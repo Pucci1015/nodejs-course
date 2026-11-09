@@ -1,0 +1,37 @@
+// VS Code のユーザー設定の例（第4章 3節）
+// 置き場所: ~/Library/Application Support/Code/User/settings.json
+// すべてのプロジェクトに効く「自分の好み」を書く。プロジェクトの決まりはワークスペース設定へ。
+{
+  // ---- 見た目 ----
+  "editor.fontSize": 14,
+  "editor.minimap.enabled": false,          // 右端の縮小表示を消す
+  "editor.renderWhitespace": "boundary",    // 単語の間以外の空白を表示する
+  "editor.bracketPairColorization.enabled": true,
+
+  // ---- 保存時の動作 ----
+  "files.autoSave": "onFocusChange",        // 別のウィンドウに移ったら自動で保存
+  "files.eol": "\n",                        // 新しいファイルの改行コードを LF にする
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+
+  // ---- 書式 ----
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "[markdown]": {
+    // Markdown は行末の空白2つが改行の意味になるので消さない
+    "files.trimTrailingWhitespace": false
+  },
+
+  // ---- ターミナル ----
+  "terminal.integrated.defaultProfile.osx": "zsh",
+
+  // ---- Git ----
+  "git.autofetch": true,                    // 定期的に git fetch する（第3章 10節）
+  "git.confirmSync": true,
+
+  // ---- その他 ----
+  "files.exclude": {
+    "**/.DS_Store": true                    // エクスプローラーに表示しない
+  },
+  "telemetry.telemetryLevel": "error"       // 送信する利用状況データをエラー情報だけにする
+}

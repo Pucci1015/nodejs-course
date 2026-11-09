@@ -1,0 +1,10 @@
+# ~/.zprofile（ログインシェルのときに読まれる）— PATH の設定を書く
+
+# Homebrew（Apple Silicon）。第2章3.3節
+# -x は「実行できるファイルがあるか」を調べる条件。brew を入れる前でもエラーにならないようにしている
+if [[ -x /opt/homebrew/bin/brew ]]; then
+  eval "$(/opt/homebrew/bin/brew shellenv)"
+fi
+
+# 自分で作ったコマンドの置き場所。第1章 練習問題10（log-summary）
+export PATH="$HOME/.local/bin:$PATH"

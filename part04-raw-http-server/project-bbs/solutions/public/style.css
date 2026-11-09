@@ -1,0 +1,26 @@
+/* 簡易掲示板の見た目。JavaScript は使わない */
+:root { --fg: #222; --muted: #666; --line: #ddd; --accent: #3c873a; --bg: #fafafa; --error: #b00020; }
+* { box-sizing: border-box; }
+body { margin: 0; font-family: system-ui, -apple-system, "Hiragino Sans", sans-serif; color: var(--fg); background: var(--bg); line-height: 1.6; }
+header.site { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 1rem; background: #fff; border-bottom: 1px solid var(--line); }
+header.site .brand { font-weight: bold; color: var(--accent); text-decoration: none; }
+header.site nav { display: flex; gap: 0.75rem; align-items: center; }
+main { max-width: 48rem; margin: 0 auto; padding: 1rem; }
+a { color: var(--accent); }
+.flash { background: #e8f5e9; border: 1px solid #a5d6a7; padding: 0.5rem 0.75rem; border-radius: 4px; }
+.error { color: var(--error); margin-top: -0.5rem; }
+.empty { color: var(--muted); }
+.threads { list-style: none; padding: 0; }
+.threads li { background: #fff; border: 1px solid var(--line); border-radius: 4px; padding: 0.5rem 0.75rem; margin-bottom: 0.5rem; }
+.threads small { display: block; color: var(--muted); }
+.post { background: #fff; border: 1px solid var(--line); border-radius: 4px; padding: 0.5rem 0.75rem; margin-bottom: 0.75rem; }
+.post header { color: var(--muted); font-size: 0.9rem; }
+/* 本文の改行を、そのまま見せる（<br> に置き換えなくてよい） */
+.post .body { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0.25rem 0; }
+.post.deleted .body { color: var(--muted); }
+.card { background: #fff; border: 1px solid var(--line); border-radius: 4px; padding: 0.75rem; }
+input:not([type=hidden]), textarea { width: 100%; font: inherit; padding: 0.4rem; }
+form.inline { display: inline; }
+button, .button { font: inherit; padding: 0.3rem 0.8rem; border: 1px solid var(--accent); background: var(--accent); color: #fff; border-radius: 4px; text-decoration: none; cursor: pointer; }
+nav.pagination { display: flex; gap: 0.5rem; margin: 1rem 0; }
+nav.pagination span[aria-current] { font-weight: bold; }

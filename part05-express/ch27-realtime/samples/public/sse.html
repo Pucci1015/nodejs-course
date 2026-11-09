@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <title>SSE のサンプル</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <h1>Server-Sent Events</h1>
+    <p>状態: <span id="state">つないでいます…</span></p>
+    <form id="form"><input id="text" maxlength="200" placeholder="送る文" autocomplete="off" /> <button>送る</button></form>
+    <ul id="log"></ul>
+    <script>
+      const log = document.getElementById('log');
+      const state = document.getElementById('state');
+      const add = (text) => {
+        const li = document.createElement('li');
+        li.textContent = text; // innerHTML は使わない（届いた文字を HTML として読まない）
+        log.prepend(li);
+      };
+
+      // EventSource は、切れると自分でつなぎ直し、そのとき Last-Event-ID を送ってくれる
+      const es = new EventSource('/events');
+      es.addEventListener('open', () => (state.textContent = 'つながっています'));
+      es.addEventListener('error', () => (state.textContent = '切れました。つなぎ直しています…'));
+      es.addEventListener('message', (e) => {
+        const m = JSON.parse(e.data);
+        add(`#${e.lastEventId} ${m.text}（${new Date(m.at).toLocaleTimeString()}）`);
+      });
+
+      // SSE はサーバから客への一方向。送るのは、ふつうの fetch で
+      document.getElementById('form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const input = document.getElementById('text');
+        if (!input.value.trim()) return;
+        await fetch('/messages', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: input.value }) });
+        input.value = '';
+      });
+    </script>
+  </body>
+</html>

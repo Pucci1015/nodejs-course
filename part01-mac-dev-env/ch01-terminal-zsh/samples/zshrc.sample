@@ -1,0 +1,48 @@
+# ~/.zshrc のサンプル（第1章）
+# そのままコピーせず、意味が分かった行だけを自分の ~/.zshrc に移すこと。
+# PATH の設定（Homebrew など）は ~/.zprofile に書く（第2章）。
+
+# ---- 履歴 ----
+HISTFILE=~/.zsh_history
+HISTSIZE=10000          # メモリ上に保持する件数
+SAVEHIST=10000          # ファイルに保存する件数
+setopt share_history    # 複数のタブで履歴を共有する
+setopt hist_ignore_dups # 直前と同じコマンドは記録しない
+setopt hist_ignore_space # 先頭にスペースを付けたコマンドは記録しない（秘密情報を打つとき用）
+
+# ---- 補完 ----
+autoload -Uz compinit && compinit
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'   # 小文字で大文字も補完する
+
+# ---- 便利な動作 ----
+setopt auto_cd          # フォルダ名だけ打てば cd する
+setopt correct          # コマンドのタイプミスを指摘する
+
+# ---- PATH（重複を除く。追加自体は ~/.zprofile で行う） ----
+typeset -U path PATH
+
+# ---- エイリアス ----
+alias ll='ls -lahF'
+alias la='ls -A'
+alias rm='rm -i'        # 削除前に確認する（慣れるまで）
+alias cp='cp -i'
+alias mv='mv -i'
+alias gs='git status'
+alias gl='git log --oneline --graph --decorate -20'
+
+# ---- 関数 ----
+# フォルダを作ってそこへ移動する
+mkcd() {
+  mkdir -p "$1" && cd "$1"
+}
+
+# ---- プロンプト ----
+# %n=ユーザー名 %1~=今いるフォルダ名 %#=一般ユーザーなら %、root なら #
+autoload -Uz vcs_info
+precmd() { vcs_info }
+zstyle ':vcs_info:git:*' formats ' (%b)'   # Git のブランチ名を表示（第3章）
+setopt prompt_subst
+PROMPT='%F{cyan}%1~%f%F{yellow}${vcs_info_msg_0_}%f %# '
+
+# ---- Node.js のバージョン管理（第2章で mise を入れてから有効にする） ----
+# eval "$(mise activate zsh)"

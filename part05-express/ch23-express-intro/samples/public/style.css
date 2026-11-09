@@ -1,0 +1,11 @@
+/* express.static のサンプル用の CSS（第23章 6節） */
+body {
+  font-family: system-ui, sans-serif;
+  max-width: 40rem;
+  margin: 2rem auto;
+  line-height: 1.7;
+}
+code {
+  background: #f3f3f3;
+  padding: 0 0.25em;
+}

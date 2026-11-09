@@ -1,0 +1,10 @@
+# .gitattributes の例（第3章 13.4節）
+# ファイル名を .gitattributes にしてリポジトリの直下に置く。
+
+# テキストファイルは、リポジトリには LF で保存し、作業ツリーにも LF で取り出す
+* text=auto eol=lf
+
+# バイナリファイル（改行コードの変換や差分表示をしない）
+*.png binary
+*.jpg binary
+*.pdf binary

@@ -1,0 +1,246 @@
+# 第3部の成果物 メモを Markdown で管理する CLI
+
+第3部のまとめとして、**メモを Markdown のファイルで管理するコマンド `memo`** を作ります。
+`memo new 牛乳を買う -t 買い物` でメモを作り、`memo list`・`memo search`・`memo edit` で使います。メモは1つずつ、ふつうの Markdown のファイルとして `~/memos` に置かれるので、エディタや Finder、`grep`、Git でもそのまま扱えます。
+
+第11〜16章の内容をすべて使います。非同期のファイル操作（第12・15章）、モジュールの分け方と `package.json` の `bin`（第14章）、途中で落ちても壊れない書き込み（第15章）、引数・入出力・終了コード・設定・確認（第16章）です。外部のパッケージは使いません（`dependencies` は空）。
+
+| 項目 | 内容 |
+| --- | --- |
+| 所要時間の目安 | 8〜12時間 |
+| 前提 | 第11〜16章（特に第16章の練習問題4と6、第15章の練習問題2の解答） |
+| 作るもの | `~/dev/memo-cli` の Git リポジトリ。`npm link` で `memo` コマンドとして使えるもの |
+| 確かめ方 | 完成例のテスト（[solutions/test/cli.test.mjs](solutions/test/cli.test.mjs)）を、自分の `memo` に対して動かす |
+
+| フォルダ | 中身 |
+| --- | --- |
+| [solutions/](solutions/) | 完成例（`memo-cli` パッケージ）。テスト付き |
+
+---
+
+## 1. 準備
+
+作業は `~/dev/memo-cli` で行い、Git で管理します（教材のフォルダは OneDrive の中なので、`node_modules` や Git のリポジトリを作らないようにします）。
+
+```sh
+$ mkdir -p ~/dev/memo-cli && cd ~/dev/memo-cli
+$ git init
+$ npm init -y                     # package.json を作る。"type": "commonjs" になるので、"module" に直す
+$ mise use node@24                # このフォルダの Node.js を 24 系に固定する（mise.toml ができる。第1部 第2章6.3節）
+$ node --version
+v24.x.x
+$ mkdir bin src test
+```
+
+`package.json` は、少なくとも次のようにします。
+
+```json
+{
+  "name": "memo-cli",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": { "memo": "./bin/memo.mjs" },
+  "scripts": { "test": "node --test \"test/*.test.mjs\"" },
+  "engines": { "node": ">=24" }
+}
+```
+
+`bin/memo.mjs` を作ったら、実行の許可を付けて、`npm link` します（第16章2節）。
+
+```sh
+$ chmod +x bin/memo.mjs
+$ npm link
+$ memo --help
+```
+
+> 試すときは、本物のメモを壊さないように、`MEMO_DIR=/tmp/memo-test memo new ...` のように、別のフォルダを使うと安心です。
+
+## 2. 要件
+
+### 2.1 メモのファイル
+
+メモは、メモのフォルダ（既定は `~/memos`）の直下に、1つのメモを1つのファイル `<id>.md` として置きます。
+
+```markdown
+---
+title: "牛乳を買う"
+tags: ["買い物","急ぎ"]
+created: 2026-11-04T06:30:12.000Z
+updated: 2026-11-04T06:30:12.000Z
+---
+
+低脂肪のもの
+```
+
+- 先頭の `---` から `---` までを **front matter** と呼びます。Jekyll、Hugo、Obsidian など多くのツールが使う、Markdown にメタデータを付ける書き方です。中身は YAML ですが、この CLI では YAML の一部だけを扱います
+- 書くときは、`title` を JSON の文字列（`"..."`）、`tags` を JSON の配列で書きます。JSON の文字列と配列は YAML としても正しいので、ほかのツールでも読めます。タイトルが `yes` や `[x]`、`a: b` でも、意味が変わりません
+- `created`・`updated` は ISO 8601 の UTC の時刻（`toISOString()`）。表示するときはローカルの時刻にします
+- 読むときは、手で書いた front matter（引用符の無い `title: メモ`、`tags: [a, b]`、`tags:` の次の行から `  - a` と並べる書き方）も読めるようにします
+- front matter の無い `.md` ファイル（自分で置いたもの）もメモとして扱います。タイトルはファイル名、更新日時はファイルの更新日時です
+- 知らない項目（`aliases:` など、自分で書き足したもの）は、書き直すときに消さずに残します
+- `.` で始まるファイルと、`.md` でないファイルは無視します
+- タグに使えない文字: 空白、`,`、`[`、`]`、`"`、`'`、`#`。タイトルに改行は使えません
+
+### 2.2 id
+
+- 新しいメモの id は、作った時刻（ローカル）の `YYYYMMDD-HHmmss`。同じ秒にもう1つ作ったら `-2`、`-3`…を付けます
+- 2つのプロセスが同時に同じ id で作ろうとしても、**片方が上書きしてはいけません**（ヒント: 3.3節）
+- コマンドで id を指定するときは、ほかと区別できれば**最初の何文字かだけ**でもよい（Git のコミットの id と同じです）。区別できなければ、候補を見せてエラー
+- 利用者が書いた id は、**パスとして使いません**。フォルダの中のファイルの一覧と照らし合わせるだけにします。そうすれば、`memo show ../../.ssh/id_ed25519` のような指定で、フォルダの外のファイルを読まれることがありません（パスの組み立ての危険は、第4部 第19章で詳しく学びます）
+
+### 2.3 コマンド
+
+| コマンド | 動作 | 標準出力 |
+| --- | --- | --- |
+| `memo new <タイトル...> [-t タグ]... [-m 本文] [--no-edit]` | メモを作る。本文は `-m` か、標準入力（パイプ）から。どちらも無く端末なら、作った後にエディタを開く | 作ったメモの id だけ |
+| `memo list [-t タグ] [-n 件数] [--json]` | 新しく更新した順の一覧 | 1行に1つ: `id  YYYY-MM-DD HH:mm  タイトル  #タグ…` |
+| `memo show <id>` | メモのファイルを、そのまま出す | ファイルの中身 |
+| `memo edit <id> [--editor コマンド]` | エディタで開く。中身が変わったら `updated` を進める | なし |
+| `memo search <文字列> [--json]` | タイトル・タグ・本文から探す。大文字と小文字は区別しない。**正規表現ではなく、ただの文字列** | 見つかったメモの行（`list` と同じ形）と、本文の見つかった行（`    行番号: 内容`） |
+| `memo tag <id> [--add タグ]... [--remove タグ]...` | タグを付ける・外す。どちらも無ければ見るだけ | 今のタグを1行に1つ |
+| `memo rm <id>... [-y]` | メモを `<メモのフォルダ>/.trash/` に移す（消さない）。端末なら確かめる | なし |
+| `memo config` | 今の設定と、それぞれがどこから来たか | `dir = ...  (env)` のような行 |
+
+どのコマンドでも、次のオプションが使えます（コマンドの後ろに書きます）。
+
+| オプション | 意味 |
+| --- | --- |
+| `--dir <フォルダ>` | メモのフォルダ |
+| `--config <ファイル>` | 設定ファイル |
+| `--no-color` | 色を付けない |
+| `-h`, `--help` | 使い方（`memo --help` は全体、`memo list --help` はそのコマンド）。標準出力に出して 0 |
+| `-V`, `--version` | 版（`package.json` の `version`）。`memo --version` |
+
+`--json` の出力は、`[{ "id", "title", "tags", "created", "updated", "path" }, ...]` の配列です（`search` は、本文の見つかった行の `matches: [{ "line", "text" }]` も付けます）。ほかのプログラム（`jq` など）で使うためのものです。
+
+### 2.4 入出力と終了コード
+
+| 決まり | 本文 |
+| --- | --- |
+| 標準出力には結果だけ。「作成しました」「ゴミ箱に移しました」、警告、エラー、質問は標準エラー出力 | 第16章1節、5節 |
+| 終了コード: 0 成功、1 失敗（見つからない、エディタの失敗など）、2 使い方や設定の間違い、130 中止（`Ctrl+C`） | 第16章6節 |
+| `search` は、見つからなければ 1（`grep` と同じ） | 第16章1節 |
+| 色は、端末のときだけ。`NO_COLOR`・`--no-color`・設定の `color: false` で付けない | 第16章5節 |
+| `memo list \| head -3` のように途中で閉じられても、エラーを出さずに終わる | 第16章7節 |
+| `rm` は、端末では `[y/N]` と確かめる。端末でないときは `-y` が無ければ終了コード 2 で断る | 第16章 練習問題4 |
+| 確かめている途中の `Ctrl+C` は終了コード 130 | 第16章 練習問題4 |
+| エディタを使っている間の `Ctrl+C` は、エディタに任せる（`memo` は止まらない） | 3.4節 |
+| 予期しないエラーでは、スタックトレースを見せずに短いメッセージを出す。`MEMO_DEBUG=1` のときだけ詳しく出す | |
+
+### 2.5 設定
+
+第16章の練習問題6の `loadConfig` をそのまま使います。
+
+| 項目 | 既定 | 設定ファイル | 環境変数 | 引数 |
+| --- | --- | --- | --- | --- |
+| メモのフォルダ | `~/memos` | `"dir"` | `MEMO_DIR` | `--dir` |
+| エディタ | `vi` | `"editor"` | `MEMO_EDITOR` > `VISUAL` > `EDITOR` | `--editor`（`edit` のみ） |
+| 色 | 付ける | `"color"` | `NO_COLOR` | `--no-color` |
+
+設定ファイルは `~/.config/memo/config.json`（`XDG_CONFIG_HOME` があれば、その下）です。
+
+```json
+{ "dir": "~/Documents/memos", "editor": "code --wait" }
+```
+
+`code --wait` の `--wait` は、VS Code でファイルを閉じるまでコマンドが終わらないようにするオプションです。これが無いと、`memo edit` はすぐに終わってしまい、変更を受け取れません。
+
+### 2.6 書き込み
+
+- メモを書き直すときは、一時ファイルに書いて `rename` で置き換えます（第15章3.4節、練習問題2）。途中で落ちても、メモが半分だけになることはありません
+- 新しいメモは、すでにある同じ名前のファイルを**上書きしない**方法で作ります（3.3節）
+- 書き終わった後に、一時ファイルを残しません
+
+## 3. 作り方のヒント
+
+### 3.1 ファイルの分け方
+
+完成例は、次のように分けています。自分で考えてから、[solutions/src/README.md](solutions/src/README.md) と比べてください。
+
+| ファイル | 役目 | 外のもの（process、端末）を触るか |
+| --- | --- | --- |
+| `bin/memo.mjs` | 入口。`main` を呼んで `process.exitCode` に入れるだけ | 触る |
+| `src/cli.mjs` | 引数の解析、コマンドの実行、出力、エラーと終了コード | 触る |
+| `src/store.mjs` | メモのフォルダ: 一覧、id の解決、作る・書き直す・ゴミ箱に移す | ファイルだけ |
+| `src/front-matter.mjs` | ファイルの文字列 ⇔ `{ meta, body }` | 触らない（文字列だけ） |
+| `src/atomic.mjs` | 壊れない書き込み | ファイルだけ |
+| `src/config.mjs`・`src/confirm.mjs` | 第16章 練習問題6・4 | 引数で受け取る |
+| `src/editor.mjs` | エディタを起動して待つ | 触る |
+
+外のものを触らない部分ほど、テストが書きやすくなります。`front-matter.mjs` は文字列だけ、`store.mjs` はフォルダを引数で受け取るので一時フォルダでテストでき、`cli.mjs` は子プロセスとして起動してテストします（第16章10節）。
+
+### 3.2 進める順番
+
+1. `front-matter.mjs` と、そのテスト。書いて読むと元に戻ること、特別な意味のタイトル（`yes`、`a: b`）、閉じていない front matter
+2. `store.mjs` の `create`・`list`・`read`。テストでは、時刻を引数（`now`）で差し替えられるようにすると、id を確かめやすい
+3. `bin/memo.mjs` と `cli.mjs` の `new`・`list`。ここで `npm link` して、実際に使ってみる
+4. `show`・`search`・`tag`・`rm`・`config`
+5. `edit` と、`new` からエディタを開く部分
+6. 完成例のテスト（4節）を、自分の `memo` に対して動かす
+
+### 3.3 上書きせずに作る
+
+「ファイルが無ければ作る」を、`fs.access` で確かめてから `writeFile` すると、確かめてから書くまでの間に、別のプロセスが同じ名前で作るかもしれません（**TOCTOU**: Time Of Check to Time Of Use）。確かめると作るを、**1回の操作**で行う方法を使います。
+
+| 方法 | 動き | 弱いところ |
+| --- | --- | --- |
+| `fs.writeFile(file, data, { flag: 'wx' })` | 無ければ作る。あれば `EEXIST` | 書いている途中で落ちると、半分のファイルが残る |
+| 一時ファイルに書いて `fs.link(tmp, file)` | 書き終わったファイルに、2つ目の名前を付ける。名前があれば `EEXIST`。その後 `tmp` を消す | ハードリンクが使えないファイルシステム（一部の USB メモリなど）では使えない |
+
+`rename` は、同じ名前のファイルがあれば**黙って上書き**するので、ここでは使えません。完成例は `link` を使い、使えないときは `wx` に切り替えています（[solutions/src/atomic.mjs](solutions/src/atomic.mjs)）。
+
+### 3.4 エディタを起動する
+
+- エディタの設定は `"code --wait"` のように引数を含むので、空白で分けて `spawn(コマンド, [...引数, ファイル], { stdio: 'inherit' })` で起動します。`stdio: 'inherit'` は、子プロセスに自分の端末をそのまま渡す設定です
+- シェル（`exec`）を通さないでください。設定やファイル名に `;` や `$(...)` が入っていると、コマンドとして実行されます（第15章8.2節）。その代わり、空白を含むパスのエディタは使えません。完成例はこれを制限として受け入れています（`git` は、エディタをシェルで起動します。どちらを選ぶかは、便利さと安全さの取り引きです）
+- 端末の `Ctrl+C` は、`memo` とエディタの**両方**に届きます（同じ「プロセスグループ」にいるため）。`memo` がそのまま止まると、エディタが置き去りになります。エディタを使っている間は、`memo` の側で `SIGINT` を受け流します
+
+### 3.5 標準入力から本文を読む
+
+`memo new タイトル` を端末で動かしたときは、エディタを開きます。`echo 本文 | memo new タイトル` のように標準入力がパイプのときは、標準入力を全部読んで本文にします。どちらかは `process.stdin.isTTY` で決めます（第16章4節）。
+
+## 4. 確かめる
+
+完成例のテスト [solutions/test/cli.test.mjs](solutions/test/cli.test.mjs) は、`memo` を子プロセスとして起動して確かめるので、**自分の `memo` にも使えます**。環境変数 `MEMO_BIN` に、自分の `bin/memo.mjs` を渡します。
+
+```sh
+$ cd "（教材のフォルダ）/part03-js-node-basics/project-memo-cli/solutions"
+$ MEMO_BIN=~/dev/memo-cli/bin/memo.mjs node --test test/cli.test.mjs
+✔ --help は stdout と 0。コマンドが無ければ stderr と 2。--version (175ms)
+✔ new: stdout には id だけ。~/memos に front matter 付きの Markdown ができる (60ms)
+...
+ℹ tests 16
+ℹ pass 16
+ℹ fail 0
+```
+
+テストは、一時フォルダを `HOME` にして動かすので、本物の `~/memos` や `~/.config/memo` には触りません。エディタの代わりに [solutions/test/fake-editor.mjs](solutions/test/fake-editor.mjs)（ファイルの最後に1行足すだけ）を使います。
+
+テストは「外から見える動き」だけを確かめます。テストに無いこと（手で書いた front matter、知らない項目を残す、同時に作っても上書きしない、など）は、自分でテストを書いて確かめてください。完成例の [solutions/test/front-matter.test.mjs](solutions/test/front-matter.test.mjs) と [solutions/test/store.test.mjs](solutions/test/store.test.mjs) が参考になります。
+
+### 評価の目安（自分で確かめる）
+
+- [ ] `MEMO_BIN=... node --test test/cli.test.mjs` がすべて通る
+- [ ] `npm link` した `memo` を、ふだんのメモに数日使ってみて、困ったところを直した
+- [ ] `memo list | head -1`、`memo list > list.txt`、`memo search x; echo $?` が、本文どおりに動く
+- [ ] 端末で `memo rm` して、`y`・`n`・`Ctrl+C` を試した。`echo y | memo rm <id>` が断られる
+- [ ] VS Code（`code --wait`）と、`vi` の両方で `memo edit` を試した
+- [ ] 手で作った `.md` ファイルや、Obsidian などほかのツールで書いた front matter を置いても、`memo list` が落ちない
+- [ ] `memo show ../xxx` のように、フォルダの外を指そうとしても読めない
+- [ ] `src/` の中で、`process.stdout`・`process.exit` を使っている場所が、決まったファイルだけになっている
+- [ ] `README.md` に、使い方・設定・終了コードを書いた
+- [ ] Git にコミットし、`bin/memo.mjs` の実行の許可（`100755`）もコミットされている
+
+## 5. 発展
+
+- `memo list` で、端末の幅（`process.stdout.columns`）に合わせてタイトルを切り詰める。日本語は1文字で2マス使うことに注意（`Intl.Segmenter` と、文字の幅）
+- `memo export --html <フォルダ>` で、メモを HTML のページにする（第4部で、自分で作ったサーバから配信できます）
+- `memo search` に `--regex` を足す。そのときは、第13章の ReDoS（正規表現で止まる問題）をどう防ぐかも考える
+- メモのフォルダを Git のリポジトリにして、`memo sync` で `git add`・`commit`・`push` する（`execFile` で `git` を動かす）
+- zsh の補完（`memo sh<Tab>` で `show`）を作る
+- 同じメモを2つの `memo tag` で同時に書き直すと、片方の変更が消えます（後から書いた方が勝つ）。これを防ぐ方法を考える（ロックファイル。本格的には、第6部のデータベースで扱います）
+
+---
+
+前の章: [第16章 CLI ツールを作る](../ch16-cli/README.md) ／ 第3部の目次: [../README.md](../README.md)

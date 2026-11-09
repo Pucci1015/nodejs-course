@@ -1,0 +1,5 @@
+# ~/.ssh/config（第3章 11.3節）— 秘密鍵そのものは dotfiles に入れない
+Host github.com
+  AddKeysToAgent yes
+  UseKeychain yes
+  IdentityFile ~/.ssh/id_ed25519

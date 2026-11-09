@@ -1,0 +1,17 @@
+{
+  "name": "scripts-demo",
+  "version": "0.3.0",
+  "private": true,
+  "type": "module",
+  "description": "npm scripts の動きを確かめる（第14章 9節）。依存パッケージは無いので npm install は不要",
+  "scripts": {
+    "hello": "node show-env.mjs",
+    "prebuild": "echo '[prebuild] build の前に自動で実行される'",
+    "build": "echo '[build] ビルドした（つもり）'",
+    "postbuild": "echo '[postbuild] build の後に自動で実行される'",
+    "args": "node show-args.mjs",
+    "path": "node -e \"console.log(process.env.PATH.split(':').slice(0, 3).join('\\n'))\"",
+    "tool": "my-tool",
+    "fail": "node -e \"process.exit(3)\""
+  }
+}

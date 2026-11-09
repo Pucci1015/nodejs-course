@@ -1,0 +1,10 @@
+# ~/.ssh/config の例（第3章 11.3節）
+# このファイルの権限は 600 にする: chmod 600 ~/.ssh/config
+
+Host github.com
+  # 鍵を ssh-agent に自動で登録する
+  AddKeysToAgent yes
+  # パスフレーズを macOS のキーチェーンに保存する（macOS 独自の設定）
+  UseKeychain yes
+  # 使う秘密鍵
+  IdentityFile ~/.ssh/id_ed25519

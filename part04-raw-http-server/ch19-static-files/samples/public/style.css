@@ -1,0 +1,4 @@
+/* このファイルが text/css として届けば、見出しが青くなる */
+body { font-family: system-ui, sans-serif; margin: 2rem; line-height: 1.6; }
+h1 { color: rgb(0, 90, 200); display: flex; align-items: center; gap: .5rem; }
+#status { padding: .5rem 1rem; background: #f3f3f3; border-radius: 4px; }

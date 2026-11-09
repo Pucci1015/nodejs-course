@@ -1,0 +1,21 @@
+# 練習問題8 の模範解答（ファイル名を .gitignore にして使う）
+
+# 依存パッケージ（どの階層にあっても無視）
+node_modules/
+
+# ビルドの成果物（先頭の / で「このファイルと同じ階層の build だけ」に限定）
+/build/
+coverage/
+
+# 環境変数ファイル（秘密情報）。見本の .env.example だけはコミットする
+.env
+.env.*
+!.env.example
+
+# ログ。ただし logs/keep/important.log は残す
+*.log
+!logs/keep/important.log
+
+# ローカル専用の設定と鍵
+config/*.local.json
+*.pem

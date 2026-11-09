@@ -1,0 +1,9 @@
+// プロジェクトの .vscode/extensions.json の例（第4章 4節）
+// このフォルダを VS Code で開いた人に、入れてほしい拡張機能を勧める。
+{
+  "recommendations": [
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "editorconfig.editorconfig"
+  ]
+}

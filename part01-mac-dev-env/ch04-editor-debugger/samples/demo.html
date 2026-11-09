@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <title>DevTools の練習</title>
+    <style>
+      body { font-family: system-ui, sans-serif; max-width: 32rem; margin: 2rem auto; }
+      li.done { text-decoration: line-through; color: gray; }
+    </style>
+  </head>
+  <body>
+    <!-- 第4章 11節のサンプル。node serve.mjs . で配信して http://localhost:8000/demo.html を開く -->
+    <h1>今日のタスク</h1>
+    <form id="form">
+      <input id="title" placeholder="タスク名" required />
+      <button>追加</button>
+    </form>
+    <ul id="list"></ul>
+    <p id="count"></p>
+    <script src="demo.js"></script>
+  </body>
+</html>

@@ -1,0 +1,4 @@
+# ~/.config/git/ignore — すべてのリポジトリで無視するもの（第3章 13.1節）
+.DS_Store
+._*
+*.swp

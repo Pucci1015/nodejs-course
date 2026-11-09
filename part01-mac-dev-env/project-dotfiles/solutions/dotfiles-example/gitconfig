@@ -1,0 +1,20 @@
+# ~/.gitconfig — 名前とメールアドレスは ~/.gitconfig.local に書く（公開しないため）
+[include]
+	path = ~/.gitconfig.local
+
+[init]
+	defaultBranch = main
+[core]
+	editor = code --wait
+	quotepath = false
+[pull]
+	ff = only
+# 以下は第3章で扱っていない設定（任意）
+[push]
+	autoSetupRemote = true    # 初めての push でも -u origin ブランチ を付けなくてよい
+[fetch]
+	prune = true              # リモートで消えたブランチを、手元の origin/〇〇 からも消す
+[alias]                       # git st のような短い名前で、長いコマンドを動かす
+	st = status --short --branch
+	lg = log --oneline --graph --decorate --all
+	unstage = restore --staged

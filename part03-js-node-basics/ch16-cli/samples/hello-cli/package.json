@@ -1,0 +1,13 @@
+{
+  "name": "hello-cli",
+  "version": "1.0.0",
+  "description": "bin と npm link を試すための小さな CLI（第16章 2節）",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "hello-cli": "./bin/hello.mjs"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}

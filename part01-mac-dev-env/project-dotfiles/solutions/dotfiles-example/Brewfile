@@ -1,0 +1,13 @@
+# brew bundle --file=Brewfile で一括インストール（第2章 4.4節）
+brew "git"
+brew "gh"
+brew "mise"
+brew "jq"
+brew "tree"
+
+cask "visual-studio-code"
+cask "google-chrome"
+
+vscode "dbaeumer.vscode-eslint"
+vscode "esbenp.prettier-vscode"
+vscode "editorconfig.editorconfig"

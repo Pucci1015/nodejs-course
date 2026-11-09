@@ -1,0 +1,15 @@
+{
+  "name": "bbs",
+  "version": "1.0.0",
+  "description": "フレームワークなしの簡易掲示板（第4部の成果物）",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.mjs",
+    "test": "node --test \"test/*.test.mjs\""
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "license": "MIT"
+}

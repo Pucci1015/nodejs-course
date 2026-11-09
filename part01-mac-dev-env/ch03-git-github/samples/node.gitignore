@@ -1,0 +1,29 @@
+# Node.js プロジェクトの .gitignore の例（第3章 13節）
+# ファイル名を .gitignore にしてプロジェクトの直下に置く。
+# より網羅的なものは https://github.com/github/gitignore の Node.gitignore を参照。
+
+# 依存パッケージ（npm install で再現できる）
+node_modules/
+
+# 環境変数（秘密情報）。見本の .env.example はコミットする
+.env
+.env.*
+!.env.example
+
+# ビルドとテストの生成物
+dist/
+build/
+coverage/
+
+# ログ
+*.log
+npm-debug.log*
+
+# エディタの個人設定（チームで共有する設定は .vscode/settings.json などに残す）
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+
+# .DS_Store はプロジェクトではなく自分の環境の都合なので、
+# ~/.config/git/ignore（グローバル）に書く。

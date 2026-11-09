@@ -1,0 +1,50 @@
+# ~/.zshrc（対話シェルのときに読まれる）— エイリアス、関数、プロンプト、ツールの有効化
+
+# 「（任意）」と書いた部分は、教材の本文では扱っていない zsh の設定です。
+# 意味を調べて、分かったものだけを使ってください。
+
+# ---- 履歴（任意）: 打ったコマンドを、何件まで、どのファイルに覚えておくか ----
+HISTFILE=~/.zsh_history
+HISTSIZE=10000
+SAVEHIST=10000
+setopt share_history hist_ignore_dups hist_ignore_space   # タブの間で履歴を共有する / 同じコマンドを続けて覚えない / 空白で始めたコマンドは覚えない
+
+# ---- 補完（任意）: Tab キーの補完を有効にし、大文字と小文字を区別しない ----
+autoload -Uz compinit && compinit
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
+
+# ---- PATH の重複を除く（任意。PATH を足すのは ~/.zprofile で行う）----
+typeset -U path PATH
+
+# ---- エイリアス（第1章11.3節、練習問題9）----
+alias ll='ls -lahF'
+alias rm='rm -i'
+alias gs='git status --short --branch'
+alias gl='git log --oneline --graph --decorate -20'
+
+# ---- 関数（第1章11.3節、練習問題9）----
+mkcd() { mkdir -p "$1" && cd "$1"; }
+
+# bak ファイル: ファイル名.YYYY-MM-DD.bak という名前でコピーを作る（第1章 練習問題9）
+bak() {
+  if [[ $# -lt 1 ]]; then
+    echo "使い方: bak ファイル" >&2
+    return 1
+  fi
+  cp -i "$1" "$1.$(date +%Y-%m-%d).bak"
+}
+
+# ---- プロンプト（任意）: 今いるフォルダの名前と、Git のブランチの名前を表示する ----
+autoload -Uz vcs_info
+precmd() { vcs_info }
+zstyle ':vcs_info:git:*' formats ' (%b)'
+setopt prompt_subst
+PROMPT='%F{cyan}%1~%f%F{yellow}${vcs_info_msg_0_}%f %# '
+
+# ---- ツール（第2章6.1節）: mise があるときだけ有効にする ----
+if command -v mise > /dev/null; then
+  eval "$(mise activate zsh)"
+fi
+
+# ---- この Mac だけの設定（Git で管理しない）: ~/.zshrc.local があれば読み込む ----
+[[ -f ~/.zshrc.local ]] && source ~/.zshrc.local

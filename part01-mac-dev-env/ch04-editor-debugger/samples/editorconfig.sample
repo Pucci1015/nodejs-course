@@ -1,0 +1,23 @@
+# .editorconfig の例（第4章 7節）
+# ファイル名を .editorconfig にしてプロジェクトの直下に置く。
+# https://editorconfig.org/
+
+# このファイルより上のフォルダの .editorconfig を探さない
+root = true
+
+# すべてのファイル
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 2
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# Markdown は行末の空白に意味があるので消さない
+[*.md]
+trim_trailing_whitespace = false
+
+# Makefile はタブでなければならない
+[Makefile]
+indent_style = tab

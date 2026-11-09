@@ -1,0 +1,19 @@
+// VS Code のワークスペース設定の例（第4章 3節）
+// 置き場所: プロジェクトの .vscode/settings.json（Git でコミットしてチームで共有する）
+// 「このプロジェクトではこう書く」という決まりだけを書き、個人の好みは書かない。
+{
+  "editor.tabSize": 2,
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"      // 保存時に ESLint で直せるものを直す（第11部）
+  },
+  "files.exclude": {
+    "node_modules": true                    // エクスプローラーに表示しない
+  },
+  "search.exclude": {
+    "node_modules": true,                   // 全体検索の対象から外す
+    "dist": true,
+    "coverage": true
+  }
+}

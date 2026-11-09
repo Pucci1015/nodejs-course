@@ -1,0 +1,22 @@
+{
+  "name": "part05-express",
+  "version": "1.0.0",
+  "private": true,
+  "description": "第5部 Express とサーバサイドの設計 のサンプル・練習問題・模範解答を動かすためのフォルダ",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "dependencies": {
+    "@hono/node-server": "2.1.6",
+    "cors": "2.8.6",
+    "express": "5.3.0",
+    "express-session": "1.19.0",
+    "fastify": "5.12.8",
+    "hono": "4.13.16",
+    "morgan": "1.12.1",
+    "pino": "10.4.0",
+    "ws": "8.22.1",
+    "zod": "4.6.7"
+  }
+}

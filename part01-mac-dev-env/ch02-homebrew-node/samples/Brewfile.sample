@@ -1,0 +1,24 @@
+# Brewfile の例（第2章）
+# 使い方:
+#   brew bundle --file=Brewfile          # ここに書いたものをすべて入れる
+#   brew bundle check --file=Brewfile    # すべて入っているか確認
+#   brew bundle cleanup --file=Brewfile  # ここに無いものを一覧表示（--force で実際に削除）
+#
+# 自分の Mac から作るときは: brew bundle dump --file=Brewfile --describe
+
+# ---- コマンドラインツール（formula） ----
+brew "git"          # バージョン管理（第3章）。macOS 付属のものより新しい
+brew "gh"           # GitHub CLI（第3章）
+brew "mise"         # 言語のバージョン管理（Node.js など）
+brew "jq"           # JSON を整形・抽出する。API の結果を見るときに便利（第2部以降）
+brew "tree"         # フォルダ構成を木の形で表示
+brew "mkcert"       # ローカル開発用の HTTPS 証明書（第2部 第8章）
+
+# ---- GUI アプリ（cask） ----
+cask "visual-studio-code"   # エディタ（第4章）
+cask "google-chrome"        # DevTools を使うブラウザ（第4章）
+
+# ---- VS Code の拡張機能（VS Code が入っていると使える） ----
+vscode "dbaeumer.vscode-eslint"
+vscode "esbenp.prettier-vscode"
+vscode "editorconfig.editorconfig"

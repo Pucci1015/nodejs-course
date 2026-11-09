@@ -1,0 +1,24 @@
+{
+  "name": "kana-lib",
+  "version": "0.1.0",
+  "description": "ひらがな・カタカナ・ローマ字を変換する小さなライブラリ（第14章 練習問題5）",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.mjs",
+    "./romaji": "./src/romaji.mjs",
+    "./package.json": "./package.json"
+  },
+  "imports": {
+    "#table": "./src/internal/table.mjs"
+  },
+  "files": [
+    "src/**/*.mjs"
+  ],
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "license": "MIT",
+  "scripts": {
+    "test": "node --test test/"
+  }
+}

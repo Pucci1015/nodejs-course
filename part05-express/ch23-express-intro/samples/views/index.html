@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <title>{{ title }} - {{ siteName }}</title>
+  </head>
+  <body>
+    <h1>{{ title }}</h1>
+    {% if q %}<p>検索: 「{{ q }}」</p>{% endif %}
+    <ul>
+      {% for task in tasks %}
+      <li>{{ task.title }}{% if task.done %}（完了）{% endif %}</li>
+      {% else %}
+      <li>タスクはありません</li>
+      {% endfor %}
+    </ul>
+  </body>
+</html>

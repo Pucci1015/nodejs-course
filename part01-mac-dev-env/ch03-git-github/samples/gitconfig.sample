@@ -1,0 +1,31 @@
+# ~/.gitconfig の例（第3章）
+# git config --global で設定すると、このファイルに書き込まれる。
+# 直接編集してもよい: git config --global --edit
+
+[user]
+	name = Alice Example
+	# GitHub の Settings → Emails にある noreply アドレス（公開されても困らない）
+	email = 12345678+username@users.noreply.github.com
+
+[init]
+	defaultBranch = main          # git init で最初に作るブランチ名
+
+[core]
+	editor = code --wait          # コミットメッセージを VS Code で書く（--wait で閉じるまで待つ）
+	quotepath = false             # 日本語のファイル名をそのまま表示する
+	# excludesFile を指定しなければ ~/.config/git/ignore が使われる
+
+[pull]
+	ff = only                     # pull で勝手にマージコミットを作らない
+
+[push]
+	autoSetupRemote = true        # 初回の push で -u を付け忘れても、同名のリモートブランチを作る
+
+[fetch]
+	prune = true                  # リモートで消えたブランチを、手元の origin/... からも消す
+
+[alias]
+	st = status --short --branch
+	lg = log --oneline --graph --decorate --all
+	last = log -1 --stat
+	unstage = restore --staged

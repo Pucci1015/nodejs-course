@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <title>WebSocket のチャット</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <h1>WebSocket のチャット</h1>
+    <p>状態: <span id="state">つないでいます…</span></p>
+    <form id="form"><input id="text" maxlength="500" placeholder="送る文" autocomplete="off" /> <button>送る</button></form>
+    <ul id="log"></ul>
+    <script>
+      const log = document.getElementById('log');
+      const state = document.getElementById('state');
+      const add = (text) => {
+        const li = document.createElement('li');
+        li.textContent = text; // innerHTML は使わない
+        log.prepend(li);
+      };
+
+      // EventSource と違って、WebSocket は切れても自分ではつなぎ直さない。自分で書く
+      let ws;
+      let wait = 1000;
+      function connect() {
+        ws = new WebSocket(`ws://${location.host}/ws`);
+        ws.addEventListener('open', () => {
+          state.textContent = 'つながっています';
+          wait = 1000;
+        });
+        ws.addEventListener('message', (e) => {
+          const m = JSON.parse(e.data);
+          add(m.type === 'chat' ? `${m.text}（${new Date(m.at).toLocaleTimeString()}）` : `[${m.type}] ${m.text}`);
+        });
+        ws.addEventListener('close', () => {
+          state.textContent = `切れました。${wait / 1000} 秒後につなぎ直します`;
+          setTimeout(connect, wait);
+          wait = Math.min(wait * 2, 30_000); // 待つ時間を、だんだん長くする（サーバが止まっているときに、たくさん送らない）
+        });
+      }
+      connect();
+
+      document.getElementById('form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const input = document.getElementById('text');
+        if (!input.value.trim() || ws.readyState !== WebSocket.OPEN) return;
+        ws.send(JSON.stringify({ type: 'chat', text: input.value }));
+        input.value = '';
+      });
+    </script>
+  </body>
+</html>

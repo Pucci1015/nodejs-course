@@ -1,0 +1,9 @@
+# Macが勝手に作るファイル
+.DS_Store
+# npm install で入るもの（大きい・再生成できる）
+node_modules/
+# 秘密の設定
+.env
+# 教材の受け渡し用の一時ファイル
+_transfer/
+*.txz

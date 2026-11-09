@@ -1,0 +1,8 @@
+{
+  "name": "resolve-demo",
+  "private": true,
+  "type": "module",
+  "imports": {
+    "#config": "./src/config.mjs"
+  }
+}

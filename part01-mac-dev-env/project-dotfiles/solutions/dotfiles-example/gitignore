@@ -1,0 +1,3 @@
+# この dotfiles リポジトリ自体の .gitignore（ファイル名を .gitignore にして使う）
+.DS_Store
+*.local

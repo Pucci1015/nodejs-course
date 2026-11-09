@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <title>タスク一覧（修正版）</title>
+    <style>
+      body { font-family: system-ui, sans-serif; max-width: 32rem; margin: 2rem auto; }
+      li.done { text-decoration: line-through; color: gray; }
+      #error { color: crimson; }
+    </style>
+  </head>
+  <body>
+    <!-- 練習問題7 の模範解答。node ../samples/serve.mjs . で配信して http://localhost:8000/fixed-page.html を開く -->
+    <h1>タスク一覧</h1>
+    <form id="form">
+      <input id="title" placeholder="タスク名" required />
+      <button>追加</button>
+    </form>
+    <label><input type="checkbox" id="hide-done" /> 完了したものを隠す</label>
+    <ul id="list"></ul>
+    <p id="error"></p>
+    <script src="fixed-page.js"></script>
+  </body>
+</html>
