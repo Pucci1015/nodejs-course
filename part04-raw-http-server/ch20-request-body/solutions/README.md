@@ -4,24 +4,90 @@
 
 | ファイル | 内容 |
 | --- | --- |
-| [body.mjs](body.mjs) | 問題2: `readBody`・`mediaType`・`readText`・`readJson`・`readForm` |
-| [merge.mjs](merge.mjs) | 問題3: `safeMerge`・`pick` |
-| [contact.mjs](contact.mjs) | 問題4: お問い合わせフォームと JSON の API を、問題2・3の関数と第18章の Router で書き直したもの |
-| [upload.mjs](upload.mjs) | 問題5: `detectImageType`・`saveImage` |
+| [media-type.mjs](media-type.mjs) | 問題1: `mediaTypeOf`・`isJson`・`isForm` |
+| [form-fields.mjs](form-fields.mjs) | 問題2: `readContactForm` |
+| [validate-message.mjs](validate-message.mjs) | 問題3: `validateMessage` |
+| [body.mjs](body.mjs) | 問題5: `readBody`・`mediaType`・`readText`・`readJson`・`readForm` |
+| [merge.mjs](merge.mjs) | 問題6: `safeMerge`・`pick` |
+| [upload.mjs](upload.mjs) | 問題7: `detectImageType`・`saveImage` |
+| [contact.mjs](contact.mjs) | 問題8: お問い合わせフォームと JSON の API を、問題5・6の関数と第18章の Router で書き直したもの |
 
-模範解答は、`exercises` フォルダで次のように確かめられます。
+模範解答は、`~/dev/part04/ch20-request-body/exercises` で次のように確かめられます。`MODULE=ファイル` を前に付けると、テストが読み込むファイルを、自分のものから模範解答に切り替えられます。
 
 ```sh
-$ cd ../exercises
+$ MODULE=../solutions/media-type.mjs node --test media-type.test.mjs
+$ MODULE=../solutions/form-fields.mjs node --test form-fields.test.mjs
+$ MODULE=../solutions/validate-message.mjs node --test validate-message.test.mjs
 $ MODULE=../solutions/body.mjs node --test body.test.mjs
 $ MODULE=../solutions/merge.mjs node --test merge.test.mjs
-$ bash check-contact.sh ../solutions/contact.mjs
 $ MODULE=../solutions/upload.mjs node --test upload.test.mjs
+$ bash check-contact.sh ../solutions/contact.mjs
 ```
 
 ---
 
-## 問題1 フォームと JSON の読み方の結果を予想する
+## 問題1 Content-Type の種類を取り出す
+
+```js
+export function mediaTypeOf(header) {
+  if (typeof header !== 'string') return '';
+  return header.split(';')[0].trim().toLowerCase();
+}
+
+export function isJson(header) {
+  return mediaTypeOf(header) === 'application/json';
+}
+
+export function isForm(header) {
+  return mediaTypeOf(header) === 'application/x-www-form-urlencoded';
+}
+```
+
+- `header.includes('json')` のように「含むか」で比べると、`application/jsonx` や `text/plain; note=json` まで JSON と見なしてしまいます。`;` より前を取り出して、まるごと比べます。
+- 種類の名前は、大文字・小文字を区別しない決まりです。だから小文字にしてから比べます。
+- 問題5の `mediaType` も同じ考え方です。
+
+## 問題2 フォームのボディを決めた形にする
+
+```js
+export function readContactForm(bodyText) {
+  const form = new URLSearchParams(bodyText);
+  return {
+    name: (form.get('name') ?? '').trim(),
+    message: (form.get('message') ?? '').trim(),
+    tags: form.getAll('tags'),
+    agree: form.has('agree'),
+  };
+}
+```
+
+- `form.get('agree') === 'on'` で確かめる書き方もありますが、チェックボックスの `value` を変えると動かなくなります。「名前があるか」で決めると、`value` に左右されません。
+- フォームの値は、ここで形をそろえておくと、後の確かめ（空でないか、長すぎないか）が書きやすくなります。
+
+## 問題3 受け取った JSON を確かめ、決めたキーだけ取り出す
+
+```js
+export function validateMessage(data) {
+  if (typeof data !== 'object' || data === null || Array.isArray(data)) {
+    return { ok: false, errors: ['オブジェクトで送ってください'] };
+  }
+
+  const errors = [];
+  const name = typeof data.name === 'string' ? data.name.trim() : '';
+  const text = typeof data.text === 'string' ? data.text.trim() : '';
+  if (name.length < 1 || name.length > 20) errors.push('name は 1〜20 文字で書いてください');
+  if (text.length < 1 || text.length > 200) errors.push('text は 1〜200 文字で書いてください');
+
+  if (errors.length > 0) return { ok: false, errors };
+  return { ok: true, value: { name, text } };
+}
+```
+
+- `data.name.trim()` と、確かめずに呼ぶと、`name` が数のときに `TypeError` になり、サーバでは 500 になります。客の送ったものが悪いので、422 にするべきところです。
+- `value` を `{ ...data, name, text }` にすると、`isAdmin` なども入ってしまいます（マスアサインメント。本文7.1節）。
+- `length` は、絵文字のような文字を2と数えることがあります。この問題では気にしなくてかまいません。
+
+## 問題4 フォームと JSON の読み方の結果を予想する
 
 ```
  1: "a b"
@@ -45,7 +111,7 @@ $ MODULE=../solutions/upload.mjs node --test upload.test.mjs
 - **6番**: `Object.fromEntries` は、同じキーが来ると後ろで上書きするので、`tags` は最後の `"b"` だけになります。チェックボックスや複数選択の項目が消えます
 - **13番と14番**: `JSON.parse` は `__proto__` を**自分のキー**として入れます（14番）。プロトタイプは変わらないので、`.x` は `undefined` です（13番）。危ないのは、このオブジェクトを `Object.assign` や深いマージに渡したときで、そこで `結果["__proto__"] = 値` という代入が起き、代入がプロトタイプを差し替えます
 
-## 問題2 ボディを上限付きで読む
+## 問題5 ボディを上限付きで読む
 
 [body.mjs](body.mjs) のポイント:
 
@@ -55,9 +121,9 @@ $ MODULE=../solutions/upload.mjs node --test upload.test.mjs
 - 文字に戻すのは `TextDecoder('utf-8', { fatal: true })`。`Buffer.toString()` は、正しくないバイト列を `�` に置き換えて、黙って続けてしまいます
 - `mediaType` は、`;` で分けてから `=` で分けています。`boundary` のように、大文字と小文字に意味がある値は、小文字にしません
 
-`readJson` で受け付ける `+json` は、`application/merge-patch+json`（問題3の JSON Merge Patch）や `application/problem+json` のような、JSON の決まりを使った種類です。
+`readJson` で受け付ける `+json` は、`application/merge-patch+json`（問題6の JSON Merge Patch）や `application/problem+json` のような、JSON の決まりを使った種類です。
 
-## 問題3 受け取った JSON を安全に混ぜる・選ぶ
+## 問題6 受け取った JSON を安全に混ぜる・選ぶ
 
 [merge.mjs](merge.mjs) のポイント:
 
@@ -71,7 +137,17 @@ $ MODULE=../solutions/upload.mjs node --test upload.test.mjs
 
 `pick` は、マスアサインメント（本文7.1節）を防ぐ部品です。受け取ったデータを「保存するもの」に変えるときは、いつも、使うキーを決めて取り出します。
 
-## 問題4 お問い合わせフォームと JSON の API のバグ
+## 問題7 アップロードされた画像を安全に保存する
+
+[upload.mjs](upload.mjs) のポイント:
+
+- 調べる順番は「`File` か → 空でないか → 大きすぎないか → 中身の種類 → 保存」。大きさは `file.size` で、中身を読む前に分かります
+- `detectImageType` は、先頭の数バイトを比べるだけです。これで分かるのは「先頭が PNG の形をしている」ことまでで、ファイル全体が正しい画像かどうかは分かりません。もっと確かめるなら、画像のライブラリ（sharp など）で一度読み込み、新しい画像として書き出し直します（そのとき、写真に入っている位置情報などのメタデータも消せます）
+- `flag: 'wx'` は「無ければ作る、あれば失敗」です。`randomUUID` がぶつかることはまずありませんが、上書きしないことをはっきりさせています
+
+**`serveStatic` で配信するとき**: `X-Content-Type-Options: nosniff` を付け（第19章の `serveStatic` は付けています）、Content-Type を拡張子から正しく付けます。保存するときに中身で拡張子を決めたので、拡張子と中身が合っています。さらに、アップロードされたファイルは、アプリのファイル（HTML や JavaScript）とは別のフォルダ（できれば別のドメイン）から配信します（第10部）。
+
+## 問題8 お問い合わせフォームと JSON の API のバグ
 
 | 失敗していた確認 | 原因 |
 | --- | --- |
@@ -91,13 +167,3 @@ $ MODULE=../solutions/upload.mjs node --test upload.test.mjs
 8 は、自分で入力したものが自分のページで動くだけなので、大したことがないように見えます。ところが、ほかのサイトに置いたフォームから、このサーバへ `<script>` 入りの値を POST させることができるので、利用者のブラウザで、このサイトの JavaScript として動かせてしまいます（反射型 XSS。第21章、第10部 第55章）。
 
 [contact.mjs](contact.mjs) は、フォームと JSON の API で、同じ `validate` と `save` を使っています。入り口（`readForm` と `readJson`）が違っても、確かめ方と保存の仕方を1か所にまとめておくと、片方だけ直し忘れることがありません。
-
-## 問題5 アップロードされた画像を安全に保存する
-
-[upload.mjs](upload.mjs) のポイント:
-
-- 調べる順番は「`File` か → 空でないか → 大きすぎないか → 中身の種類 → 保存」。大きさは `file.size` で、中身を読む前に分かります
-- `detectImageType` は、先頭の数バイトを比べるだけです。これで分かるのは「先頭が PNG の形をしている」ことまでで、ファイル全体が正しい画像かどうかは分かりません。もっと確かめるなら、画像のライブラリ（sharp など）で一度読み込み、新しい画像として書き出し直します（そのとき、写真に入っている位置情報などのメタデータも消せます）
-- `flag: 'wx'` は「無ければ作る、あれば失敗」です。`randomUUID` がぶつかることはまずありませんが、上書きしないことをはっきりさせています
-
-**`serveStatic` で配信するとき**: `X-Content-Type-Options: nosniff` を付け（第19章の `serveStatic` は付けています）、Content-Type を拡張子から正しく付けます。保存するときに中身で拡張子を決めたので、拡張子と中身が合っています。さらに、アップロードされたファイルは、アプリのファイル（HTML や JavaScript）とは別のフォルダ（できれば別のドメイン）から配信します（第10部）。

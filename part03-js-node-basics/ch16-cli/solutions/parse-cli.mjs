@@ -1,4 +1,4 @@
-// 練習問題2 解答例: サブコマンドのある todo CLI の引数を解析する
+// 練習問題5 解答例: サブコマンドのある todo CLI の引数を解析する
 import { parseArgs } from 'node:util';
 
 export class UsageError extends Error {

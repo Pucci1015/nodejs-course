@@ -1,4 +1,4 @@
-// 第25章 練習問題4の模範解答（ch25-rest-api-design/solutions/query.mjs）のコピー。sort を文字列のまま返すようにした（「変更（成果物）」）
+// 第25章 練習問題6の模範解答（ch25-rest-api-design/solutions/query.mjs）のコピー。sort を文字列のまま返すようにした（「変更（成果物）」）
 // 一覧のクエリを zod で確かめる
 import { z } from 'zod';
 import { HttpProblem } from '../middleware/problem.mjs';

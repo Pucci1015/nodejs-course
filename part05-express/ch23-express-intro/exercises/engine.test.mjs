@@ -1,4 +1,4 @@
-// 練習問題5のテスト。一時フォルダにテンプレートを作り、Express の res.render で確かめる
+// 練習問題8のテスト。一時フォルダにテンプレートを作り、Express の res.render で確かめる
 // 使い方: node --test engine.test.mjs
 //         MODULE=../solutions/engine.mjs node --test engine.test.mjs   （解答例で確かめる）
 import { test, before, after } from 'node:test';
@@ -68,9 +68,9 @@ function countingReadFile() {
 }
 
 test('1. 値を入れて、エスケープして返す', async () => {
-  const r = await render(createEngine(), 'hello', { name: '<b>花子</b>' });
+  const r = await render(createEngine(), 'hello', { name: '<b>いぬ</b>' });
   assert.equal(r.status, 200);
-  assert.equal(r.text, '<p>こんにちは、&lt;b&gt;花子&lt;/b&gt;</p>');
+  assert.equal(r.text, '<p>こんにちは、&lt;b&gt;いぬ&lt;/b&gt;</p>');
 });
 
 test('2. Express が混ぜる settings・_locals・cache は、テンプレートから見えない', async () => {
@@ -79,8 +79,8 @@ test('2. Express が混ぜる settings・_locals・cache は、テンプレー�
 });
 
 test('3. res.locals の値は使える', async () => {
-  const r = await render(createEngine(), 'hello', {}, { resLocals: { name: '太郎' } });
-  assert.equal(r.text, '<p>こんにちは、太郎</p>');
+  const r = await render(createEngine(), 'hello', {}, { resLocals: { name: 'ねこ' } });
+  assert.equal(r.text, '<p>こんにちは、ねこ</p>');
 });
 
 test('4. view cache が無効なら、毎回ファイルを読む（書き換えがすぐ反映される）', async () => {

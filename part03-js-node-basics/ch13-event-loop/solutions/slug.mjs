@@ -1,4 +1,4 @@
-// 練習問題5 の解答: バックトラックが爆発しない正規表現にしたもの
+// 練習問題6 の解答: バックトラックが爆発しない正規表現にしたもの
 // 確かめ方: cd ../exercises && node redos-measure.mjs ../solutions/slug.mjs
 //           MODULE=../solutions/slug.mjs node --test slug.test.mjs
 

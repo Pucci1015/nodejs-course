@@ -1,5 +1,5 @@
 // オフセットとカーソルのページ分けを比べる（第25章 6節）
-//   $ node pagination-demo.mjs
+//   $ node samples/pagination-demo.mjs
 //   別のターミナルで:
 //     curl -s 'http://127.0.0.1:9322/offset?limit=3&offset=0'
 //     curl -s -X POST http://127.0.0.1:9322/add          ← 新しいタスクを1つ足す（新しい順の先頭に入る）
@@ -27,7 +27,7 @@ app.get('/offset', (req, res) => {
 });
 
 // カーソル: 「前のページの最後のもの（の並べ替えのキー）より後」。途中で足しても、ずれない。
-// サンプルなので、カーソルは base64url の JSON にしただけ（練習問題3では署名を付ける）
+// サンプルなので、カーソルは base64url の JSON にしただけ（練習問題7では署名を付ける）
 app.get('/cursor', (req, res) => {
   const limit = Number(req.query.limit ?? 3);
   let list = newestFirst();

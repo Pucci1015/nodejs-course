@@ -1,4 +1,4 @@
-// 練習問題6 用: dir-size.mjs のテスト
+// 練習問題9 用: dir-size.mjs のテスト
 // 使い方: node --test dir-size.test.mjs
 //   模範解答を試す: MODULE=../solutions/dir-size.mjs node --test dir-size.test.mjs
 // テスト用のフォルダは、OS の一時フォルダの中に作って、最後に消します。

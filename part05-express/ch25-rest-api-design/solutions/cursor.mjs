@@ -1,4 +1,4 @@
-// 練習問題3の模範解答: カーソルでページを分ける（キーセット・ページネーション）
+// 練習問題7の模範解答: カーソルでページを分ける（キーセット・ページネーション）
 // 考え方: 「前のページの最後の項目の (並べ替えの値, id)」をカーソルに入れ、次のページは「それより後ろ」から始める。
 //         SQL なら WHERE (created_at, id) < ($1, $2) ORDER BY created_at DESC, id DESC LIMIT $3 にあたる（第6部 第30章）
 import { signJson, unsignJson } from '../../lib/signed.mjs';

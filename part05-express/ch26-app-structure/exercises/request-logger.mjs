@@ -1,5 +1,5 @@
-// 練習問題4: リクエストごとのログを、応答の後に1行だけ書くミドルウェア
-// 要件は exercises/README.md の問題4です。確かめ方:
+// 練習問題7: リクエストごとのログを、応答の後に1行だけ書くミドルウェア
+// 要件は exercises/README.md の問題7です。確かめ方:
 //   $ node --test request-logger.test.mjs
 import crypto from 'node:crypto';
 

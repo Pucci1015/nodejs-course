@@ -1,4 +1,4 @@
-// 練習問題4のテスト
+// 練習問題7のテスト
 // 使い方: node --test ws-protocol.test.mjs
 //         MODULE=../solutions/ws-protocol.mjs node --test ws-protocol.test.mjs   （解答例で確かめる）
 import { test } from 'node:test';

@@ -1,5 +1,5 @@
 // 同じタスク API を Express で（第28章 2節。比べるための元）
-//   $ node express-tasks.mjs          ← 127.0.0.1:9350
+//   $ node samples/express-tasks.mjs          ← 127.0.0.1:9350
 import express from 'express';
 import { createTaskService, isJson, NotFoundError, parseId, problem, ValidationError } from './tasks-core.mjs';
 

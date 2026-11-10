@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 練習問題5 用: kana-lib の package.json が要件どおりか確かめる
+# 練習問題9 用: kana-lib の package.json が要件どおりか確かめる
 # 使い方: bash check-kana-lib.sh [kana-lib のフォルダ]   既定: このスクリプトの隣の kana-lib
 #   模範解答を試す: bash check-kana-lib.sh ../solutions/kana-lib
 # npm pack --dry-run は、パッケージに入るファイルの一覧を表示するだけで、何も作らず、公開もしない。
@@ -25,8 +25,9 @@ cd "$LIB" || exit 2
 # package.json の値を1つ取り出す（キーは | で区切る。"exports|./romaji" など）
 pkg() { node -e 'const p=require("./package.json");const v=process.argv[1].split("|").reduce((o,k)=>o?.[k],p);console.log(v===undefined?"(なし)":typeof v==="object"?JSON.stringify(v):v)' "$1"; }
 
-result=$(node --test test/ 2>&1)
-check "1. npm test（自己参照の import・require・exports で隠す）がすべて通る" "ℹ fail 0" "$(printf '%s\n' "$result" | grep -E '^ℹ fail' )"
+result=$(node --test "test/*.test.mjs" 2>&1)
+# 結果の行は、Node.js のバージョンや、端末に表示するかどうかで「ℹ fail 0」か「# fail 0」になる。どちらも「ℹ」にそろえる
+check "1. npm test（自己参照の import・require・exports で隠す）がすべて通る" "ℹ fail 0" "$(printf '%s\n' "$result" | grep -E '^(ℹ|#) fail' | sed 's/^# /ℹ /')"
 
 files=$(npm pack --dry-run --json 2>/dev/null | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s)[0].files.map(f=>f.path).sort().join(" ")))')
 check "2. パッケージに入るのは、本体と README・LICENSE・package.json だけ" \

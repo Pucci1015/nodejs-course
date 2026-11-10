@@ -1,4 +1,4 @@
-// 練習問題1: html タグとエスケープの結果を予想する
+// 練習問題4: html タグとエスケープの結果を予想する
 // 実行する前に 15 個の結果を予想して書き出してから: node predict-html.mjs
 import { html, raw, escapeHtml } from '../samples/mini-html.mjs';
 

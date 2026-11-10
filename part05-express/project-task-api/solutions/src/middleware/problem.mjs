@@ -1,4 +1,4 @@
-// 第25章 練習問題2の模範解答（ch25-rest-api-design/solutions/problem.mjs）のコピー。ログの書き方だけ変えた（「変更（成果物）」）
+// 第25章 練習問題5の模範解答（ch25-rest-api-design/solutions/problem.mjs）のコピー。ログの書き方だけ変えた（「変更（成果物）」）
 import { ZodError } from 'zod';
 
 export const TITLES = {

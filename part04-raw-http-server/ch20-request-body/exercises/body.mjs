@@ -1,5 +1,5 @@
-// 練習問題2: リクエストのボディを、大きさの上限付きで読む
-// 仕様は README の練習問題2を見てください。
+// 練習問題5: リクエストのボディを、大きさの上限付きで読む
+// 仕様は README の練習問題5を見てください。
 // 確かめる: node --test body.test.mjs
 import { HttpError } from '../../ch17-minimal-server/solutions/app.mjs';
 

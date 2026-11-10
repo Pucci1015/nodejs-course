@@ -1,7 +1,6 @@
-// 練習問題3: iconv-lite で Shift_JIS（CP932）と UTF-8 を変換する CLI を完成させてください。
-// 要件は README にあります。このファイルを ~/dev/ch14/packages にコピーし、
-// そのフォルダで npm install iconv-lite をしてから作ります。
-// 確かめ方: bash <このフォルダ>/check-convert.sh ~/dev/ch14/packages
+// 練習問題5: iconv-lite で Shift_JIS（CP932）と UTF-8 を変換する CLI を完成させてください。
+// 要件は README にあります。このフォルダ（packages）で npm install iconv-lite をしてから作ります。
+// 確かめ方（exercises フォルダで）: bash check-convert.sh
 import fs from 'node:fs/promises';
 import path from 'node:path';
 // ここで iconv-lite を import する

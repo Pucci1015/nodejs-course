@@ -3,7 +3,7 @@
 //   別のターミナルで:
 //     curl -s http://127.0.0.1:9315/api/projects/3/tasks
 //     curl -s http://127.0.0.1:9315/api/projects/3/tasks/9
-//     curl -s -H 'X-Demo-User: ryota' http://127.0.0.1:9315/admin/stats
+//     curl -s -H 'X-Demo-User: alice' http://127.0.0.1:9315/admin/stats
 //     curl -si http://127.0.0.1:9315/admin/stats | head -1        ← 401
 import express from 'express';
 
@@ -17,7 +17,7 @@ tasks.get('/:taskId', (req, res) => res.json({ projectId: req.params.projectId, 
 const admin = express.Router();
 admin.use((req, res, next) => {
   // 説明のための簡単な確認。本物の認証は第10部で扱う
-  if (req.get('x-demo-user') !== 'ryota') return res.status(401).json({ error: 'ログインしてください' });
+  if (req.get('x-demo-user') !== 'alice') return res.status(401).json({ error: 'ログインしてください' });
   next();
 });
 admin.get('/stats', (req, res) => res.json({ users: 1, tasks: 0 }));

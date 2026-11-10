@@ -1,4 +1,4 @@
-// 第22章 練習問題3の模範解答（part05-express/lib/signed.mjs）のコピー。そのまま使う
+// 第22章 練習問題6の模範解答（part05-express/lib/signed.mjs）のコピー。そのまま使う
 // HMAC の署名。ここでは、ページのカーソルを作り変えられないようにするために使う
 import crypto from 'node:crypto';
 

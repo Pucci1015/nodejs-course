@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 練習問題3の確認スクリプト
+# 練習問題8の確認スクリプト
 # 使い方: bash check-grep.sh [確かめるファイル]   （既定は buggy-grep.mjs）
 #         bash check-grep.sh ../solutions/grep.mjs
 set -uo pipefail

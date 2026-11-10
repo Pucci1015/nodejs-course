@@ -13,10 +13,10 @@
 
 ## 動かし方
 
-教材のフォルダ（OneDrive の中）にデータを作らないように、`~/dev` にコピーしてから動かします。
+`~/dev/part04` の中にデータを作らないように（見本のまま残しておくため）、別のフォルダ `~/dev/bbs-example` にコピーしてから動かします。`cp -R` は、フォルダを中身ごとコピーします。
 
 ```sh
-$ cp -R ~/Library/CloudStorage/OneDrive-個人用/program/nodejs/part04-raw-http-server/project-bbs/solutions ~/dev/bbs-example
+$ cp -R ~/dev/part04/project-bbs/solutions ~/dev/bbs-example
 $ cd ~/dev/bbs-example
 $ npm start          # ブラウザで http://127.0.0.1:9230/
 $ npm test           # 17 個のテスト（127.0.0.1:9231 を使う。データは一時フォルダ）

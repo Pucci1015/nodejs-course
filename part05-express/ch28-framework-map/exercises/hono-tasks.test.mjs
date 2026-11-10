@@ -1,4 +1,4 @@
-// 練習問題3のテスト。サンプルと同じ「契約」のテストに、PATCH と DELETE の確かめを足して動かす
+// 練習問題5のテスト。サンプルと同じ「契約」のテストに、PATCH と DELETE の確かめを足して動かす
 // 使い方: node --test hono-tasks.test.mjs
 //         MODULE=../solutions/hono-tasks.mjs node --test hono-tasks.test.mjs   （解答例で確かめる）
 import { test } from 'node:test';

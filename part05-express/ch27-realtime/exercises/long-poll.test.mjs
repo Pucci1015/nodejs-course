@@ -1,4 +1,4 @@
-// 練習問題6のテスト
+// 練習問題9のテスト
 // 使い方: node --test long-poll.test.mjs
 //         MODULE=../solutions/long-poll.mjs node --test long-poll.test.mjs   （解答例で確かめる）
 import { test, after } from 'node:test';

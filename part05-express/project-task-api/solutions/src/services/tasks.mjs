@@ -1,4 +1,4 @@
-// 第26章 練習問題3の模範解答（ch26-app-structure/solutions/task-service.mjs）のコピー。一覧の絞り込み、版の確かめ、イベントを足した（「追加（成果物）」）
+// 第26章 練習問題6の模範解答（ch26-app-structure/solutions/task-service.mjs）のコピー。一覧の絞り込み、版の確かめ、イベントを足した（「追加（成果物）」）
 // タスクの決まりを、HTTP からもデータの置き場所からも切り離して書く
 import { ConflictError, NotFoundError, PreconditionFailedError, ValidationError } from '../errors.mjs';
 

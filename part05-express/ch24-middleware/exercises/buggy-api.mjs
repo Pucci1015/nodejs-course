@@ -1,8 +1,8 @@
-// 練習問題5: ミドルウェアの並べ方と書き方のバグを直す
+// 練習問題9: ミドルウェアの並べ方と書き方のバグを直す
 // タスクの API と管理用のページです。確認スクリプトでいくつも失敗します。
 //   $ bash check-api.sh                       （このファイルを 127.0.0.1:9319 で起動して確かめる）
 //   $ API_TOKEN=dev-only-token LOG_FILE=/tmp/ch24-access.log PORT=9319 node buggy-api.mjs
-// 仕様は exercises/README.md の問題5です。
+// 仕様は exercises/README.md の問題9です。
 import fs from 'node:fs';
 import cors from 'cors';
 import express from 'express';

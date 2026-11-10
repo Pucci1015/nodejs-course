@@ -1,6 +1,6 @@
 // WebSocket の始まり（ハンドシェイク）と、フレームを手で読み書きする（第27章 4節）
 // 仕組みを見るためのものです。本物では ws などのライブラリを使います（ws-demo.mjs）
-//   $ node ws-handshake-demo.mjs
+//   $ node samples/ws-handshake-demo.mjs
 //   別のターミナルで（Node.js 22 からは、WebSocket のクライアントが組み込まれている）:
 //     node -e "const ws = new WebSocket('ws://127.0.0.1:9342'); ws.onopen = () => ws.send('こんにちは'); ws.onmessage = (e) => { console.log(e.data); ws.close(); }"
 //   ハンドシェイクのリクエストとレスポンスを見るとき:

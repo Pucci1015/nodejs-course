@@ -1,5 +1,5 @@
-// 練習問題3: フォルダの中のファイルを返すハンドラ serveStatic
-// 仕様は README の練習問題3を見てください。問題2の safe-path.mjs を使います。
+// 練習問題6: フォルダの中のファイルを返すハンドラ serveStatic
+// 仕様は README の練習問題6を見てください。問題5の safe-path.mjs を使います。
 // 確かめる: node --test static.test.mjs
 import fs from 'node:fs/promises';
 import { pipeline } from 'node:stream/promises';

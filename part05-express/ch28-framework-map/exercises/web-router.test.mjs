@@ -1,4 +1,4 @@
-// 練習問題5のテスト。サーバを起動せず、Request を作って router.fetch に渡すだけで確かめられる
+// 練習問題8のテスト。サーバを起動せず、Request を作って router.fetch に渡すだけで確かめられる
 // 使い方: node --test web-router.test.mjs
 //         MODULE=../solutions/web-router.mjs node --test web-router.test.mjs   （解答例で確かめる）
 import { test } from 'node:test';

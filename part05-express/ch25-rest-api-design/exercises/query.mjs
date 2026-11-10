@@ -1,5 +1,5 @@
-// 練習問題4: 一覧のクエリを zod で確かめる
-// 要件は exercises/README.md の問題4です。確かめ方:
+// 練習問題6: 一覧のクエリを zod で確かめる
+// 要件は exercises/README.md の問題6です。確かめ方:
 //   $ node --test query.test.mjs
 // 今のひな形は「とりあえず動く」ものです。テストを読んで、足りないところを直してください。
 import { z } from 'zod';

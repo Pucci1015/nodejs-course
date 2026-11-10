@@ -1,4 +1,4 @@
-// 練習問題4 用: log-summary.mjs の parseLine と summarize のテスト
+// 練習問題6 用: log-summary.mjs の parseLine と summarize のテスト
 // 使い方: node --test log-summary.test.mjs
 //   模範解答を試す: MODULE=../solutions/log-summary.mjs node --test log-summary.test.mjs
 import { test } from 'node:test';
@@ -10,8 +10,8 @@ import path from 'node:path';
 const modulePath = path.resolve(import.meta.dirname, process.env.MODULE ?? './log-summary.mjs');
 const { parseLine, summarize } = await import(pathToFileURL(modulePath).href);
 
-// 第1部 第1章のアクセスログ（80行）
-const LOG = path.resolve(import.meta.dirname, '../../../part01-mac-dev-env/ch01-terminal-zsh/samples/access.log');
+// 第1部 第1章と同じアクセスログ（80行。このフォルダにコピーしてある）
+const LOG = path.resolve(import.meta.dirname, './access.log');
 const lines = readFileSync(LOG, 'utf8').split('\n').filter((l) => l !== '');
 
 test('parseLine: 1行を項目に分ける', () => {

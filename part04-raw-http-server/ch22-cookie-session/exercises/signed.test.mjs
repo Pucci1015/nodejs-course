@@ -1,4 +1,4 @@
-// 練習問題3のテスト
+// 練習問題6のテスト
 // 使い方: node --test signed.test.mjs
 //         MODULE=../solutions/signed.mjs node --test signed.test.mjs   （解答例で確かめる）
 import { test } from 'node:test';
@@ -48,8 +48,8 @@ test('鍵の取り替え: 配列の最初の鍵で署名し、どの鍵で署名
 });
 
 test('signJson・unsignJson: オブジェクトを署名して戻す。日本語も', () => {
-  const t = signJson({ id: 1, name: '花子', roles: ['admin'] }, KEY1);
-  assert.deepEqual(unsignJson(t, KEY1), { id: 1, name: '花子', roles: ['admin'] });
+  const t = signJson({ id: 1, name: 'いぬ', roles: ['admin'] }, KEY1);
+  assert.deepEqual(unsignJson(t, KEY1), { id: 1, name: 'いぬ', roles: ['admin'] });
   assert.match(t, /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/, '中身も base64url にして、Cookie に入れやすくする');
 });
 

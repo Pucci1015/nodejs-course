@@ -1,4 +1,4 @@
-// 練習問題2のテスト。createTasksApp で作ったアプリを listen(0)（空いているポート）で起動して、fetch で確かめる
+// 練習問題5のテスト。createTasksApp で作ったアプリを listen(0)（空いているポート）で起動して、fetch で確かめる
 // 使い方: node --test tasks-app.test.mjs
 //         MODULE=../solutions/tasks-app.mjs node --test tasks-app.test.mjs   （解答例で確かめる）
 import { test, beforeEach, afterEach } from 'node:test';

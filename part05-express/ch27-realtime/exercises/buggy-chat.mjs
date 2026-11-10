@@ -1,5 +1,5 @@
-// 練習問題5: WebSocket のチャットのバグを直す（6か所）
-// 仕様は exercises/README.md の問題5です。確かめ方:
+// 練習問題8: WebSocket のチャットのバグを直す（6か所）
+// 仕様は exercises/README.md の問題8です。確かめ方:
 //   $ node --test chat.test.mjs
 // ブラウザで2つのタブを開いて試すぶんには、ちゃんと動きます（http://127.0.0.1:9349/chat.html）。
 import path from 'node:path';

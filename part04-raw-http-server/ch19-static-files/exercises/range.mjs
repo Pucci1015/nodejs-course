@@ -1,5 +1,5 @@
-// 練習問題4: Range ヘッダ（bytes=0-99 など）を読む
-// 仕様は README の練習問題4を見てください。
+// 練習問題7: Range ヘッダ（bytes=0-99 など）を読む
+// 仕様は README の練習問題7を見てください。
 // 確かめる: node --test range.test.mjs
 //
 // 返すもの:

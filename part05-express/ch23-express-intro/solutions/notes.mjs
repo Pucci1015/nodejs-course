@@ -1,4 +1,4 @@
-// 練習問題4の模範解答: メモのアプリのバグを直したもの
+// 練習問題9の模範解答: メモのアプリのバグを直したもの
 //   $ bash ../exercises/check-notes.sh ../solutions/notes.mjs
 import path from 'node:path';
 import express from 'express';

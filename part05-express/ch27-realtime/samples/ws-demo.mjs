@@ -1,5 +1,5 @@
 // ws ライブラリで、小さなチャット（第27章 4節）
-//   $ node ws-demo.mjs
+//   $ node samples/ws-demo.mjs
 //   ブラウザで http://127.0.0.1:9343/chat.html を2つのタブで開いてください
 //   ほかのオリジンからの接続を断ることを確かめる（403）:
 //     curl -si -H 'Origin: https://evil.example' -H 'Connection: Upgrade' -H 'Upgrade: websocket' -H 'Sec-WebSocket-Version: 13' -H 'Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==' http://127.0.0.1:9343/ws --max-time 1

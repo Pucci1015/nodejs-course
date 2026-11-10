@@ -1,5 +1,5 @@
-// 練習問題2: URL のパスから、公開するフォルダの中のファイルのパスを、安全に作る
-// 仕様は README の練習問題2を見てください。
+// 練習問題5: URL のパスから、公開するフォルダの中のファイルのパスを、安全に作る
+// 仕様は README の練習問題5を見てください。
 // 確かめる: node --test safe-path.test.mjs
 import fs from 'node:fs/promises';
 import path from 'node:path';

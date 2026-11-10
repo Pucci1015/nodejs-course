@@ -1,5 +1,5 @@
 // pino で、1行1つの JSON のログを書く（第26章 6節）
-//   $ node logging-demo.mjs
+//   $ node samples/logging-demo.mjs
 //   別のターミナルで:
 //     curl -s http://127.0.0.1:9332/api/tasks
 //     curl -s -H 'X-Request-Id: my-test-001' -H 'Authorization: Bearer dev-only-token' 'http://127.0.0.1:9332/api/tasks?token=abc'
@@ -18,7 +18,7 @@ const logger = pino({
 });
 
 const SECRET_QUERY = new Set(['token', 'password', 'secret', 'code', 'key']);
-/** クエリの秘密の値を隠した URL（第24章 練習問題4と同じ考え方） */
+/** クエリの秘密の値を隠した URL（第24章 練習問題6と同じ考え方） */
 function safeUrl(originalUrl) {
   const u = new URL(originalUrl, 'http://x');
   for (const name of [...u.searchParams.keys()]) if (SECRET_QUERY.has(name.toLowerCase())) u.searchParams.set(name, '[redacted]');

@@ -1,4 +1,4 @@
-// 練習問題4 解答例: 「本当に消しますか？ [y/N]」と聞く関数
+// 練習問題6 解答例: 「本当に消しますか？ [y/N]」と聞く関数
 import { createInterface } from 'node:readline/promises';
 
 export class NotInteractiveError extends Error {

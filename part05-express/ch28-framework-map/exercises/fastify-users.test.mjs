@@ -1,4 +1,4 @@
-// 練習問題4のテスト。Fastify の inject で、サーバを起動せずにリクエストを送る
+// 練習問題6のテスト。Fastify の inject で、サーバを起動せずにリクエストを送る
 // 使い方: node --test fastify-users.test.mjs
 //         MODULE=../solutions/fastify-users.mjs node --test fastify-users.test.mjs   （解答例で確かめる）
 import { test, beforeEach } from 'node:test';
@@ -49,9 +49,9 @@ test('5. 形の違う id は 404', async () => {
 });
 
 test('6. 作る: 201 で、返すのは id と name だけ', async () => {
-  const r = await inject({ method: 'POST', url: '/users', payload: { name: 'ryota', email: 'ryota@example.test' } });
+  const r = await inject({ method: 'POST', url: '/users', payload: { name: 'alice', email: 'alice@example.test' } });
   assert.equal(r.status, 201);
-  assert.deepEqual(r.json, { id: 31, name: 'ryota' });
+  assert.deepEqual(r.json, { id: 31, name: 'alice' });
 });
 
 test('7. 作る: 知らない項目（role など）は 422 で、作らない', async () => {

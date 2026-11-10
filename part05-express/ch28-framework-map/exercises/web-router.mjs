@@ -1,5 +1,5 @@
-// 練習問題5: Web 標準の Request・Response で動く、小さなルーター
-// 要件は exercises/README.md の問題5です。確かめ方:
+// 練習問題8: Web 標準の Request・Response で動く、小さなルーター
+// 要件は exercises/README.md の問題8です。確かめ方:
 //   $ node --test web-router.test.mjs
 
 export function createRouter() {

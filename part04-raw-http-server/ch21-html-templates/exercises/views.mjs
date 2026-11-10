@@ -1,6 +1,6 @@
-// 練習問題3: タスク一覧のページを、部品の関数で組み立てる
+// 練習問題6: タスク一覧のページを、部品の関数で組み立てる
 // テスト: node --test views.test.mjs
-// 問題2の attrs・queryString を使ってよい（自分の解答を import するか、../solutions/html-helpers.mjs を使う）
+// 問題5の attrs・queryString を使ってよい（自分の解答を import するか、../solutions/html-helpers.mjs を使う）
 import { html } from '../samples/mini-html.mjs';
 
 /** ページ全体の外側。flash（「保存しました」などの知らせ）は、あるときだけ出す */

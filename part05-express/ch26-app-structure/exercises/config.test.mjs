@@ -1,4 +1,4 @@
-// 練習問題2のテスト
+// 練習問題5のテスト
 // 使い方: node --test config.test.mjs
 //         MODULE=../solutions/config.mjs node --test config.test.mjs   （解答例で確かめる）
 import { test } from 'node:test';
@@ -47,7 +47,7 @@ test('2. 正しい値を読む。知らない名前（PATH など）は気にし
     SHUTDOWN_DELAY_MS: '3000',
     SHUTDOWN_TIMEOUT_MS: '5000',
     PATH: '/usr/bin',
-    HOME: '/Users/ryota',
+    HOME: '/Users/alice',
   });
   assert.equal(c.port, 8080);
   assert.equal(c.logLevel, 'warn');

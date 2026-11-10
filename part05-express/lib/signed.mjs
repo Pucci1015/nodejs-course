@@ -1,4 +1,4 @@
-// 練習問題3の模範解答
+// 第22章 練習問題6の模範解答
 import crypto from 'node:crypto';
 
 const MIN_SECRET = 32; // 追加: 短い鍵は、総当たりで見つけられやすい

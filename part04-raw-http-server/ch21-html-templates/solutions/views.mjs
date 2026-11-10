@@ -1,4 +1,4 @@
-// 練習問題3の模範解答
+// 練習問題6の模範解答
 import { html } from '../samples/mini-html.mjs';
 import { attrs, queryString } from './html-helpers.mjs';
 

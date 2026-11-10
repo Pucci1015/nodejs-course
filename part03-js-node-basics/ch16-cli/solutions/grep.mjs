@@ -1,4 +1,4 @@
-// 練習問題3 解答例: grep のような CLI を、パイプの中でも正しく動くように直したもの
+// 練習問題8 解答例: grep のような CLI を、パイプの中でも正しく動くように直したもの
 // 使い方: node grep.mjs [-i] [-c] [--color=auto|always|never] <パターン> [ファイル...]
 import fs from 'node:fs';
 import { createInterface } from 'node:readline';

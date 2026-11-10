@@ -1,4 +1,4 @@
-// 問題3 解答例: フォルダの中のファイルを返すハンドラ serveStatic
+// 第19章 練習問題6 解答例: フォルダの中のファイルを返すハンドラ serveStatic
 // router.get('/static/*', serveStatic(root, { mount: '/static' })) のように使う
 import fs from 'node:fs/promises';
 import { pipeline } from 'node:stream/promises';

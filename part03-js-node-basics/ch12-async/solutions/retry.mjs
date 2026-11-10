@@ -1,4 +1,4 @@
-// 練習問題4 の解答: 指数バックオフでやり直す retry
+// 練習問題7 の解答: 指数バックオフでやり直す retry
 // 確かめ方: cd ../exercises && MODULE=../solutions/retry.mjs node --test retry.test.mjs
 import { setTimeout as sleep } from 'node:timers/promises';
 

@@ -1,5 +1,5 @@
 // ETag と If-Match で、同時の書き換えを見つける（楽観的ロック。第25章 7節）
-//   $ node etag-demo.mjs
+//   $ node samples/etag-demo.mjs
 //   別のターミナルで:
 //     curl -si http://127.0.0.1:9323/api/tasks/1 | grep -iE '^(etag|HTTP)'           ← ETag: "1"
 //     curl -si -X PATCH -H 'Content-Type: application/json' -H 'If-Match: "1"' -d '{"title":"A さんの変更"}' http://127.0.0.1:9323/api/tasks/1 | grep -iE '^(etag|HTTP)'

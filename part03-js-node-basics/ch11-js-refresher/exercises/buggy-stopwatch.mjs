@@ -1,4 +1,4 @@
-// 練習問題3 用: this の扱いに問題があるストップウォッチ
+// 練習問題5 用: this の扱いに問題があるストップウォッチ
 // 使い方: node buggy-stopwatch.mjs      （1秒ほど動かして、結果を表示する）
 //   このファイルをコピーして stopwatch.mjs を作り、直してから node --test stopwatch.test.mjs で確かめる。
 import { EventEmitter } from 'node:events';

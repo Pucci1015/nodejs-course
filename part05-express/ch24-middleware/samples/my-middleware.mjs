@@ -16,7 +16,7 @@ export function requestId() {
 /**
  * 応答が終わったときに1行のログを書く。
  * finish は「最後まで書き終えた」とき、close は「接続が閉じた」とき（客が先に切ったときも来る）。
- * close だけを見て、writableFinished で「最後まで返せたか」を見分ける（第17章 練習問題3と同じ）
+ * close だけを見て、writableFinished で「最後まで返せたか」を見分ける（第17章 練習問題5と同じ）
  */
 export function accessLog({ write = (line) => console.log(line) } = {}) {
   return (req, res, next) => {

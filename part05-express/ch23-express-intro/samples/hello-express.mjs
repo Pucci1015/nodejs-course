@@ -1,7 +1,7 @@
 // いちばん小さな Express のアプリ（第23章 2節）
 //   $ node hello-express.mjs
 //   別のターミナルで: curl -i http://127.0.0.1:9300/
-//                     curl -i http://127.0.0.1:9300/hello/花子     （curl は日本語を %xx にして送る）
+//                     curl -i http://127.0.0.1:9300/hello/いぬ     （curl は日本語を %xx にして送る）
 import http from 'node:http';
 import express from 'express';
 

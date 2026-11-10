@@ -1,4 +1,4 @@
-// 練習問題2のテスト
+// 練習問題5のテスト
 // 使い方: node --test cookie.test.mjs
 //         MODULE=../solutions/cookie.mjs node --test cookie.test.mjs   （解答例で確かめる）
 import { test } from 'node:test';

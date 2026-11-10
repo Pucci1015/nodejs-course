@@ -4,25 +4,91 @@
 
 | ファイル・フォルダ | 内容 |
 | --- | --- |
-| [semver.mjs](semver.mjs) | 問題2: `parse`・`compare`・`satisfies`・`maxSatisfying` |
-| [convert.mjs](convert.mjs) | 問題3: iconv-lite で Shift_JIS（CP932）と UTF-8 を変換する CLI |
-| [site.mjs](site.mjs) | 問題4: tldts でサイトを判定する |
-| [kana-lib/](kana-lib/) | 問題5: `package.json` を整えた kana-lib |
+| [cart.mjs](cart.mjs)、[cart-main.mjs](cart-main.mjs) | 問題1: モジュールに分けた買い物かご |
+| [cart.cjs](cart.cjs) | 問題2: CommonJS で書いた買い物かご |
+| [scripts-practice/package.json](scripts-practice/package.json) | 問題3: scripts を書いた `package.json` |
+| [convert.mjs](convert.mjs) | 問題5: iconv-lite で Shift_JIS（CP932）と UTF-8 を変換する CLI |
+| [site.mjs](site.mjs) | 問題6: tldts でサイトを判定する |
+| [semver.mjs](semver.mjs) | 問題8: `parse`・`compare`・`satisfies`・`maxSatisfying` |
+| [kana-lib/](kana-lib/) | 問題9: `package.json` を整えた kana-lib |
 
-確かめ方です。`convert.mjs` と `site.mjs` は、パッケージを入れた `~/dev/ch14/packages` にコピーしてから実行します（この solutions フォルダには `node_modules` が無いため）。
+模範解答は、`~/dev/part03/ch14-modules-npm/exercises` で次のように確かめられます。`convert.mjs` と `site.mjs` は、パッケージを入れた `packages` フォルダに、別の名前でコピーしてから確かめます（`solutions` フォルダには `node_modules` が無く、`import 'iconv-lite'` が見つからないため。本文5.2節）。
 
 ```sh
-$ cd ../exercises
+$ DIR=../solutions node --test cart.test.mjs
+$ MODULE=../solutions/cart.cjs node --test cart-cjs.test.mjs
+$ bash check-scripts.sh ../solutions/scripts-practice
+$ cp ../solutions/convert.mjs packages/convert-answer.mjs
+$ bash check-convert.sh convert-answer.mjs
+$ cp ../solutions/site.mjs packages/site-answer.mjs
+$ MODULE=./packages/site-answer.mjs node --test site.test.mjs
 $ MODULE=../solutions/semver.mjs node --test semver.test.mjs
-$ cp ../solutions/convert.mjs ../solutions/site.mjs ~/dev/ch14/packages/   # 自分の解答を上書きするので注意
-$ bash check-convert.sh ~/dev/ch14/packages
-$ MODULE=~/dev/ch14/packages/site.mjs node --test site.test.mjs
 $ bash check-kana-lib.sh ../solutions/kana-lib
 ```
 
 ---
 
-## 問題1 循環する import を予想する
+## 問題1 1つのファイルをモジュールに分ける
+
+```js
+// cart.mjs
+export function subtotal(items) {
+  return items.reduce((sum, item) => sum + item.price * item.qty, 0);
+}
+
+export function withTax(amount, rate = 0.1) {
+  return Math.round(amount * (1 + rate));
+}
+
+export default function formatYen(n) {
+  return `${n.toLocaleString('ja-JP')}円`;
+}
+```
+
+```js
+// cart-main.mjs
+import formatYen, { subtotal, withTax } from './cart.mjs';
+
+const items = [ ... ];  // cart-all.mjs と同じ
+const sub = subtotal(items);
+console.log('小計:', formatYen(sub));
+...
+```
+
+- `cart.mjs` に `console.log` を残すと、import しただけで表示されてしまいます（テスト「読み込んだだけでは何も表示しない」）。部品のファイルには、関数の定義だけを書きます。
+- `'./cart.mjs'` の `./` と `.mjs` は省略できません（本文2.1節）。`'cart.mjs'` と書くと、パッケージ名として `node_modules` を探してしまいます（本文5節）。
+- default の名前は、import する側が自由に決められます（`import yen from './cart.mjs'` でも動きます）。名前付きの方は、export した名前と同じにする必要があります。
+
+## 問題2 CommonJS で書き直す
+
+```js
+function subtotal(items) { ... }
+function withTax(amount, rate = 0.1) { ... }
+function formatYen(n) { ... }
+
+module.exports = { subtotal, withTax, formatYen };
+```
+
+- ES Modules から `import { subtotal } from './cart.cjs'` のように名前付きで取れるのは、Node.js が `module.exports = { subtotal, withTax, formatYen }` という形を、**実行せずに**読み取れるからです（本文4.2節）。
+- `exports = { subtotal }` と書くと、`require` しても空のオブジェクトになります。`exports` は `module.exports` を指す引数（変数）で、変数に別のものを入れても `module.exports` は変わらないからです（第11章8.1節の「参照」と同じ話です）。
+
+## 問題3 npm scripts を書く
+
+```json
+"scripts": {
+  "start": "node hello.mjs",
+  "greet": "node hello.mjs alice",
+  "pretest": "echo テストを始めます",
+  "test": "node --test",
+  "check": "npm test && npm start"
+}
+```
+
+- `node --test` は、引数が無ければ、今のフォルダの下から `*.test.mjs` などのテストのファイルを探して実行します。
+- `pretest` は、`npm test` の前に自動で実行されます。`npm run check` の中の `npm test` でも同じです。
+- `npm test && npm start` の `&&` は、テストが失敗したら（終了コードが 0 以外なら）`npm start` を実行しません。CI（第11部）で「テストが通ったら次へ」とつなぐときの基本の形です。
+
+## 問題4 循環する import を予想する
 
 ```
 $ node cycle-esm/main.mjs
@@ -50,28 +116,7 @@ main: A の値 B の値
 4. 「循環している途中で、まだ入っていないプロパティを読んだ」という警告です。Node.js が、ありがちなバグを教えてくれています。
 5. 一般的な直し方は、**お互いが使っている部分を、3つ目のモジュールに切り出す**ことです（`a` と `b` の両方が `c` を import し、`a` と `b` はお互いを import しない）。どうしても循環が残るときは、トップレベルで値を使わず、関数の中で（呼ばれたときに）使うようにします。
 
-## 問題2 semver の判定を自分で作る
-
-[semver.mjs](semver.mjs) を見てください。考え方は、ファイルの先頭のコメントのとおり、「範囲を比較の組に直してから判定する」です。
-
-```
-"^1.2.3 || >=2.0.0-beta <3"
-  → [ [ ['>=', '1.2.3'], ['<', '2.0.0-0'] ],         ← 1つ目の組
-      [ ['>=', '2.0.0-beta'], ['<', '3.0.0-0'] ] ]   ← 2つ目の組（どちらかを満たせばよい）
-```
-
-つまずきやすい所です。
-
-- **数字を文字として比べない**: `'10' < '9'` は `true` です（文字の比較）。`Number` にしてから比べます
-- **`^` の 0**: `^0.2.3` は `<0.3.0-0`、`^0.0.3` は `<0.0.4-0` です。「一番左の 0 でない数字」で場合分けします。`^0.x` のように minor が省略されたときは `<1.0.0-0` です
-- **上の境目が `-0` なのはなぜか**: `<2.0.0` と書くと、`2.0.0-beta` は `2.0.0` より小さいので、範囲に入ってしまいます。`2.0.0-0` は、`2.0.0` のどのプレリリースよりも小さい版なので、`<2.0.0-0` で「2.0.0 の系列は、プレリリースも含めて入れない」という意味になります
-- **プレリリースの決まり**: 範囲を直すときに自分で足した `-0` の境目は、「範囲を書いた人がプレリリースを書いた」ことにはなりません。模範解答では、自分で足した比較に3つ目の要素 `true` を付けて見分けています。これを忘れると、`^1.2.3` が `1.3.0-beta` を受け入れてしまいます
-- **省略のある比較**: `>1` は「1.x より大きい」、つまり `>=2.0.0-0` です。`<=1.2` は「1.2.x 以下」、つまり `<1.3.0-0` です。表にして整理すると間違えにくくなります
-- **`" >= 1.2.3"` のような空白**: 演算子とバージョンの間の空白を先に消してから、空白で区切ります
-
-模範解答は、作成時に npm の semver パッケージ（7.8）と、約2000通りの組み合わせで同じ結果になることを確かめました。それでも、本物の semver には、`includePrerelease` などのオプション、`1.2.3 - *` のような書き方、`coerce` など、ここで作らなかった機能がたくさんあります。**自分で作れることと、自分で作ったものを使うべきかは別**です。実際のアプリでは、たくさんの人が使い、テストされている semver パッケージを使います。
-
-## 問題3 iconv-lite で Shift_JIS の CSV を変換する
+## 問題5 iconv-lite で Shift_JIS の CSV を変換する
 
 ### インストールの問い
 
@@ -95,42 +140,15 @@ main: A の値 B の値
 
 `npm ci` は、`node_modules` を消してから、`package-lock.json` に書かれた版を、そのまま入れます。`package.json` の範囲から新しい版を選び直すことはありません。`npm install` は、ロックファイルがあればそれを使いますが、`package.json` と合わなければロックファイルを書き換えます。「誰がいつ実行しても同じものが入る」のは `npm ci` の方です。
 
-## 問題4 tldts でサイトを判定する
+## 問題6 tldts でサイトを判定する
 
 [site.mjs](site.mjs) を見てください。
 
 1. オプション無しの `getDomain('alice.github.io')` は **`'github.io'`** を返します。Public Suffix List には、ICANN（ドメインを管理する団体）が決めた接尾辞（`com`、`co.jp` など）の部分と、会社などが自分で登録した **PRIVATE** の部分（`github.io`、`s3.amazonaws.com`、`blogspot.com` など）があり、tldts は既定では ICANN の部分だけを使います。ブラウザは PRIVATE の部分も使って Cookie やサイトを判断するので、ブラウザと同じ判定にするには **`allowPrivateDomains: true`** が必要です。
-2. 第2部の `origin.mjs` は、`kawasaki.jp` の決まりを知らないので、どちらも登録できるドメインを `kawasaki.jp` と判断し、**同じサイト**と答えます。tldts は、`*.kawasaki.jp`（その下はすべて公開の接尾辞）と、例外の `!city.kawasaki.jp` を知っているので、`www.city.kawasaki.jp` は `city.kawasaki.jp`、`www.kawasaki.jp` は `www.kawasaki.jp` を登録できるドメインとし、**別のサイト**と答えます。tldts が正しいです。
+2. 第2部 第9章の `sameSite`（模範解答の `origin.mjs`）は、`kawasaki.jp` の決まりを知らないので、どちらも登録できるドメインを `kawasaki.jp` と判断し、**同じサイト**と答えます。tldts は、`*.kawasaki.jp`（その下はすべて公開の接尾辞）と、例外の `!city.kawasaki.jp` を知っているので、`www.city.kawasaki.jp` は `city.kawasaki.jp`、`www.kawasaki.jp` は `www.kawasaki.jp` を登録できるドメインとし、**別のサイト**と答えます。tldts が正しいです。
 3. Public Suffix List は今も更新されています。古い版の tldts は、新しく追加された接尾辞（新しいホスティングサービスなど）を知らないので、**別の人のサイトを同じサイトと判断**し、Cookie やアクセスの制御で穴になります。`npm outdated` で新しい版があるかを調べ、更新します。GitHub の Dependabot のような、更新を知らせてくれる仕組み（第11部）も使えます。
 
-## 問題5 公開するパッケージの package.json を整える
-
-[kana-lib/package.json](kana-lib/package.json) を見てください。
-
-```json
-"exports": {
-  ".": "./src/index.mjs",
-  "./romaji": "./src/romaji.mjs",
-  "./package.json": "./package.json"
-},
-"imports": {
-  "#table": "./src/internal/table.mjs"
-},
-"files": ["src/**/*.mjs"],
-"engines": { "node": ">=22.12.0" },
-```
-
-- **`exports`** で、外から読める入り口を3つに限りました。これで `kana-lib/src/internal/table.mjs` は `ERR_PACKAGE_PATH_NOT_EXPORTED` になり、自己参照（`import 'kana-lib'`）も使えるようになります
-- **`require('kana-lib')`** は、`exports` に `"require"` の条件を書かなくても動きます。`src/index.mjs` はトップレベル await を使っていないので、require(esm) で読めるからです。そのため `engines` で 22.12 以上に限っています（20.19 以降の 20.x でも動きますが、ここでは簡単にしています）
-- **`imports`** の `#table` を、`src/index.mjs` と `src/romaji.mjs` で使います（`// 修正:` のコメント）
-- **`files`** は、パッケージに入れるものの**許可リスト**です。`README.md`・`LICENSE`・`package.json` は、書かなくてもいつも入ります。`"src/"` と書くと `src/README.md` まで入ってしまうので、`"src/**/*.mjs"` にしています
-- 元の `"main"` は消しました。`exports` があれば、Node.js は `main` を見ません（`exports` を知らない古い道具のために残すこともあります）
-
-直す前の `npm pack --dry-run` には、`.env`・`notes/memo.md`・`test/kana.test.mjs` が入っていました。npm は、`.env` を**自動では除いてくれません**（`.git` や `node_modules` などは除きます）。`npm publish` していたら、トークンが世界中に公開されていました。
-
-「考えてみよう」の答え: **`files`（許可リスト）の方が安全**です。`.npmignore`（拒否リスト）では、新しく作ったファイル（`.env.local`、`secret.json` など）を書き忘れると、そのまま公開されます。許可リストなら、書き忘れたファイルは「入らない」側に倒れます。公開する前に、いつも `npm pack --dry-run` で中身を確かめる習慣も付けてください。
-
-## 問題6 依存関係を調べ、危険に気付く
+## 問題7 依存関係を調べ、危険に気付く
 
 作成時（npm 11.20）の結果です。npm の表示は変わることがあります。
 
@@ -212,3 +230,51 @@ ms          2.0.0   2.0.0   2.1.3  node_modules/ms        deps
 - install スクリプトがあるか（`npm view パッケージ scripts`）。あれば、何をしているか
 - ライセンスが、自分の使い方で問題ないか
 - 本当にパッケージが必要か（数行で書けないか、Node.js の標準の機能で足りないか）
+
+## 問題8 semver の判定を自分で作る
+
+[semver.mjs](semver.mjs) を見てください。考え方は、ファイルの先頭のコメントのとおり、「範囲を比較の組に直してから判定する」です。
+
+```
+"^1.2.3 || >=2.0.0-beta <3"
+  → [ [ ['>=', '1.2.3'], ['<', '2.0.0-0'] ],         ← 1つ目の組
+      [ ['>=', '2.0.0-beta'], ['<', '3.0.0-0'] ] ]   ← 2つ目の組（どちらかを満たせばよい）
+```
+
+つまずきやすい所です。
+
+- **数字を文字として比べない**: `'10' < '9'` は `true` です（文字の比較）。`Number` にしてから比べます
+- **`^` の 0**: `^0.2.3` は `<0.3.0-0`、`^0.0.3` は `<0.0.4-0` です。「一番左の 0 でない数字」で場合分けします。`^0.x` のように minor が省略されたときは `<1.0.0-0` です
+- **上の境目が `-0` なのはなぜか**: `<2.0.0` と書くと、`2.0.0-beta` は `2.0.0` より小さいので、範囲に入ってしまいます。`2.0.0-0` は、`2.0.0` のどのプレリリースよりも小さい版なので、`<2.0.0-0` で「2.0.0 の系列は、プレリリースも含めて入れない」という意味になります
+- **プレリリースの決まり**: 範囲を直すときに自分で足した `-0` の境目は、「範囲を書いた人がプレリリースを書いた」ことにはなりません。模範解答では、自分で足した比較に3つ目の要素 `true` を付けて見分けています。これを忘れると、`^1.2.3` が `1.3.0-beta` を受け入れてしまいます
+- **省略のある比較**: `>1` は「1.x より大きい」、つまり `>=2.0.0-0` です。`<=1.2` は「1.2.x 以下」、つまり `<1.3.0-0` です。表にして整理すると間違えにくくなります
+- **`" >= 1.2.3"` のような空白**: 演算子とバージョンの間の空白を先に消してから、空白で区切ります
+
+模範解答は、作成時に npm の semver パッケージ（7.8）と、約2000通りの組み合わせで同じ結果になることを確かめました。それでも、本物の semver には、`includePrerelease` などのオプション、`1.2.3 - *` のような書き方、`coerce` など、ここで作らなかった機能がたくさんあります。**自分で作れることと、自分で作ったものを使うべきかは別**です。実際のアプリでは、たくさんの人が使い、テストされている semver パッケージを使います。
+
+## 問題9 公開するパッケージの package.json を整える
+
+[kana-lib/package.json](kana-lib/package.json) を見てください。
+
+```json
+"exports": {
+  ".": "./src/index.mjs",
+  "./romaji": "./src/romaji.mjs",
+  "./package.json": "./package.json"
+},
+"imports": {
+  "#table": "./src/internal/table.mjs"
+},
+"files": ["src/**/*.mjs"],
+"engines": { "node": ">=22.12.0" },
+```
+
+- **`exports`** で、外から読める入り口を3つに限りました。これで `kana-lib/src/internal/table.mjs` は `ERR_PACKAGE_PATH_NOT_EXPORTED` になり、自己参照（`import 'kana-lib'`）も使えるようになります
+- **`require('kana-lib')`** は、`exports` に `"require"` の条件を書かなくても動きます。`src/index.mjs` はトップレベル await を使っていないので、require(esm) で読めるからです。そのため `engines` で 22.12 以上に限っています（20.19 以降の 20.x でも動きますが、ここでは簡単にしています）
+- **`imports`** の `#table` を、`src/index.mjs` と `src/romaji.mjs` で使います（`// 修正:` のコメント）
+- **`files`** は、パッケージに入れるものの**許可リスト**です。`README.md`・`LICENSE`・`package.json` は、書かなくてもいつも入ります。`"src/"` と書くと `src/README.md` まで入ってしまうので、`"src/**/*.mjs"` にしています
+- 元の `"main"` は消しました。`exports` があれば、Node.js は `main` を見ません（`exports` を知らない古い道具のために残すこともあります）
+
+直す前の `npm pack --dry-run` には、`.env`・`notes/memo.md`・`test/kana.test.mjs` が入っていました。npm は、`.env` を**自動では除いてくれません**（`.git` や `node_modules` などは除きます）。`npm publish` していたら、トークンが世界中に公開されていました。
+
+「考えてみよう」の答え: **`files`（許可リスト）の方が安全**です。`.npmignore`（拒否リスト）では、新しく作ったファイル（`.env.local`、`secret.json` など）を書き忘れると、そのまま公開されます。許可リストなら、書き忘れたファイルは「入らない」側に倒れます。公開する前に、いつも `npm pack --dry-run` で中身を確かめる習慣も付けてください。

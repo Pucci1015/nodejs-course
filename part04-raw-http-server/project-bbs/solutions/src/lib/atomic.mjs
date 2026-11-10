@@ -1,4 +1,4 @@
-// 途中で落ちても壊れない書き込み（第15章 練習問題2）
+// 途中で落ちても壊れない書き込み（第15章 練習問題5）
 import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';

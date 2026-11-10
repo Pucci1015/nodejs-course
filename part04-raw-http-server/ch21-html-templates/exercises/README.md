@@ -1,21 +1,101 @@
 # 第21章 練習問題
 
-本文（[../README.md](../README.md)）を読んでから取り組んでください。模範解答は [../solutions/README.md](../solutions/README.md) にあります。
+本文（[../README.md](../README.md)）の「手を動かす」を終えてから取り組んでください。模範解答は [../solutions/README.md](../solutions/README.md) にあります。
+この練習問題は `~/dev/part04/ch21-html-templates/exercises/` で行います。最初に `cd exercises` で移動してください（`cd ~/dev/part04/ch21-html-templates/exercises` と打っても構いません）。
 
-| 問題 | テーマ | 使うファイル | 本文の節 | ポート |
-| --- | --- | --- | --- | --- |
-| 1 | `html` タグとエスケープの結果を予想する | [predict-html.mjs](predict-html.mjs) | 3, 4 | — |
-| 2 | 属性・URL・`<script>` の中・クエリ文字列に値を入れる道具 | [html-helpers.mjs](html-helpers.mjs)、[html-helpers.test.mjs](html-helpers.test.mjs) | 3, 7 | — |
-| 3 | 一覧のページを部品の関数で組み立てる（ページ分けつき） | [views.mjs](views.mjs)、[views.test.mjs](views.test.mjs) | 4, 5 | — |
-| 4 | 小さなテンプレートエンジンを作る | [template.mjs](template.mjs)、[template.test.mjs](template.test.mjs) | 6 | — |
-| 5 | 読書メモのサイトの表示のバグを直す | [buggy-views.mjs](buggy-views.mjs)、[notes-data.mjs](notes-data.mjs)、[check-views.sh](check-views.sh) | 2〜7 | 9215 |
+| 問題 | 種類 | テーマ | 使うファイル | 本文の節 | ポート |
+| --- | --- | --- | --- | --- | --- |
+| 1 | 基本 | 5つの文字をエスケープする、改行を `<br>` にする | [escape-html.mjs](escape-html.mjs)、[escape-html.test.mjs](escape-html.test.mjs) | 3 | — |
+| 2 | 基本 | コメントの一覧を `html` タグで作る | [comment-list.mjs](comment-list.mjs)、[comment-list.test.mjs](comment-list.test.mjs) | 4, 5 | — |
+| 3 | 基本 | 選ぶ欄（`<select>`）を `html` タグで作る | [select-box.mjs](select-box.mjs)、[select-box.test.mjs](select-box.test.mjs) | 3, 4 | — |
+| 4 | 基本 | `html` タグとエスケープの結果を予想する（調べる問題） | [predict-html.mjs](predict-html.mjs) | 3, 4 | — |
+| 5 | 応用 | 属性・URL・`<script>` の中・クエリ文字列に値を入れる道具 | [html-helpers.mjs](html-helpers.mjs)、[html-helpers.test.mjs](html-helpers.test.mjs) | 3, 7 | — |
+| 6 | 応用 | 一覧のページを部品の関数で組み立てる（ページ分けつき） | [views.mjs](views.mjs)、[views.test.mjs](views.test.mjs) | 4, 5 | — |
+| 7 | 発展 | 小さなテンプレートエンジンを作る | [template.mjs](template.mjs)、[template.test.mjs](template.test.mjs) | 6 | — |
+| 8 | 発展 | 読書メモのサイトの表示のバグを直す | [buggy-views.mjs](buggy-views.mjs)、[notes-data.mjs](notes-data.mjs)、[check-views.sh](check-views.sh) | 2〜7 | 9215 |
 
-- 問題2・3・4は `node --test ○○.test.mjs` ですべてのテストが通れば完成です
-- 問題5は `bash check-views.sh` で確かめます。模範解答は、問題2・3の解答と、第17・18章の模範解答を使います
+**発展**（7・8）は、少し長めの問題です。できなくても次の章に進んでかまいません。
+
+## テストの使い方
+
+- 問題1〜3・5〜7: `○○.mjs` の「ここを書く」を埋め、`node --test ○○.test.mjs` ですべてのテストが通れば完成です。
+- 問題8は `bash check-views.sh` で確かめます。模範解答は、問題5・6の解答と、第17・18章の模範解答を使います。
+- 問題2・3の `html` は、本文で使った [../samples/mini-html.mjs](../samples/mini-html.mjs) を `import` しています。
 
 ---
 
-## 問題1 `html` タグとエスケープの結果を予想する
+## 基本
+
+### 問題1 5つの文字をエスケープする、改行を `<br>` にする
+
+[escape-html.mjs](escape-html.mjs) に、2つの関数を作ってください（本文3節）。
+
+- **`escapeHtml(value)`**: `&`・`<`・`>`・`"`・`'` を、`&amp;`・`&lt;`・`&gt;`・`&quot;`・`&#39;` にする
+  - 数は文字にする（`0` → `'0'`）。`null` と `undefined` は `''`
+  - `&lt;` は `&amp;lt;` になる（`&` を置き換えたものを、もう一度置き換えない）
+- **`textToHtml(text)`**: 複数行の文字を、改行を保ったまま HTML に入れる形にする。先にエスケープしてから、改行（`\n`）を `<br>\n` にする
+  - `textToHtml('a < b\n2行目')` → `'a &lt; b<br>\n2行目'`
+
+```sh
+$ node --test escape-html.test.mjs
+ℹ pass 6
+ℹ fail 0
+```
+
+ヒント:
+
+- 本文3節の `escape.mjs` の `escapeHtml` に、`null`・`undefined` のときの1行を足したものです。
+- `textToHtml` は `escapeHtml(text).replaceAll('\n', '<br>\n')` で書けます。`replaceAll(探す文字, 置き換える文字)` は、見つかったものを全部置き換えます。
+- 順番を逆に（`<br>` を入れてからエスケープ）すると、`<br>` まで `&lt;br&gt;` になります。
+
+### 問題2 コメントの一覧を `html` タグで作る
+
+[comment-list.mjs](comment-list.mjs) に、2つの関数を作ってください。どちらも `html` タグで書き、結果は `SafeHtml` にします（本文4・5節）。
+
+- **`commentItem({ name, text, starred })`**: 1件分
+  - `{ name: 'alice', text: 'こんにちは', starred: false }` → `<li class="comment"><b>alice</b>: こんにちは</li>`
+  - `starred` が `true` なら `class="comment starred"`
+- **`commentList(comments)`**: `<ul class="comments">` の中に `commentItem` を並べる。0件なら `<p class="empty">コメントはありません</p>`
+
+```sh
+$ node --test comment-list.test.mjs
+ℹ pass 6
+ℹ fail 0
+```
+
+ヒント:
+
+- 本文5節の `book-page.mjs` の `bookItem` と、`` html`<ul>${books.map(bookItem)}</ul>` `` の形です。
+- `class` の値は、`const cls = comment.starred ? 'comment starred' : 'comment';` のように先に決めておくと読みやすくなります。
+- `.join('')` で文字列にしてはいけません。`SafeHtml` の印が消えて、外側の `html` がもう一度エスケープします（本文4.1節）。配列のまま渡せば、`html` がつないでくれます。
+
+### 問題3 選ぶ欄（`<select>`）を `html` タグで作る
+
+並べ替えの欄のような `<select>` を作る関数 `selectBox(name, options, selected)` を [select-box.mjs](select-box.mjs) に作ってください。結果は `SafeHtml` にします。
+
+```js
+selectBox('sort', [{ value: 'new', label: '新しい順' }, { value: 'old', label: '古い順' }], 'old');
+// → <select name="sort"><option value="new">新しい順</option><option value="old" selected>古い順</option></select>
+```
+
+- `options` の1つずつを `<option value="値">表示</option>` にする
+- `value` が `selected` と同じ `<option>` にだけ、` selected` を付ける
+- 名前・値・表示の文字は、すべてエスケープする（属性の値は引用符で囲む。本文3.2節）
+- `options` が空なら `<select name="sort"></select>`
+
+```sh
+$ node --test select-box.test.mjs
+ℹ pass 5
+ℹ fail 0
+```
+
+ヒント:
+
+- `options.map((o) => ...)` の中で、`o.value === selected` なら `selected` の付いた `html`、違えばふつうの `html` を返します（`? :`）。
+- `selected` のような「名前だけの属性」は、値を入れずに、テンプレートの文字として書きます。
+- 送られた検索の条件を、フォームに残して見せるときに使います。
+
+### 問題4 `html` タグとエスケープの結果を予想する（調べる問題）
 
 [predict-html.mjs](predict-html.mjs) に 15 個の式があります。[../samples/mini-html.mjs](../samples/mini-html.mjs) を読んでから、**実行する前に**結果を予想して書き出し、`node predict-html.mjs` で確かめてください。
 
@@ -26,7 +106,11 @@
 - 9番と12番: 8番・10番と、どこが違うのか
 - 15番: HTML としては正しいが、URL としては困ることがある。何が困るか（ヒント: サーバの `req.query.get('q')` は何を受け取るか）
 
-## 問題2 値を入れる場所ごとの道具
+---
+
+## 応用
+
+### 問題5 値を入れる場所ごとの道具
 
 本文3.3節の表の、「要素の中身」以外の場所に値を入れる道具を、[html-helpers.mjs](html-helpers.mjs) に作ってください。
 
@@ -44,7 +128,7 @@
 - ブラウザは、URL の前の空白・制御文字と、途中のタブ・改行を取り除いてから読みます。同じようにしてから scheme を見ること（取り除いた後の文字を返すのではなく、通すなら元の文字を返す）
 - `/search?q=a:b` のように、`/` や `?` より後に `:` があるだけなら scheme ではない
 
-**`jsonForScript(value)`**: `<script>` の中に入れる JSON（本文7節）。`<`・`>`・`&`・U+2028・U+2029 を `<` のような形にする。結果は `SafeHtml`（`html` タグに入れても、もう一度エスケープされない）。`undefined` は `null` にする。
+**`jsonForScript(value)`**: `<script>` の中に入れる JSON（本文7節）。`<`・`>`・`&`・U+2028・U+2029 を `\u003c` のような形にする。結果は `SafeHtml`（`html` タグに入れても、もう一度エスケープされない）。`undefined` は `null` にする。
 
 **`queryString(params)`**: `{ q: 'a b', page: 2 }` → `'?q=a+b&page=2'`。URL 用にエンコードする。`null`・`undefined` の値は入れない。何も残らなければ `''`。
 
@@ -54,7 +138,7 @@ $ node --test html-helpers.test.mjs
 
 最初は 13 個のうち 10 個が失敗します。すべて通れば完成です。
 
-## 問題3 一覧のページを、部品の関数で組み立てる
+### 問題6 一覧のページを、部品の関数で組み立てる
 
 タスクの一覧のページを作るつもりで、[views.mjs](views.mjs) に4つの関数を作ってください。どれも `html` タグを使って書き直します（いまは文字列をつないでいて、ページ分けもずれています）。
 
@@ -65,7 +149,7 @@ $ node --test html-helpers.test.mjs
 | `paginate(all, { page, perPage })` | `{ items, page, pages, total, hasPrev, hasNext }`。`page` は 1 から。数でない・範囲の外の `page` は、いちばん近いページにする。`'2'` のような文字列も受け取る（クエリから来るので）。`pages` は 0件でも 1 |
 | `pagination({ page, pages, baseUrl, query })` | `<nav class="pagination">`。前のページ（`rel="prev"`、「前へ」）、ページの番号（今のページは `<span aria-current="page">`）、次のページ（`rel="next"`、「次へ」）。`query` の条件はリンクに残す。1ページだけなら空 |
 
-`attrs`・`queryString`（問題2）を使うと楽です。
+`attrs`・`queryString`（問題5）を使うと楽です。
 
 ```sh
 $ node --test views.test.mjs
@@ -73,7 +157,11 @@ $ node --test views.test.mjs
 
 最初は 10 個すべてが失敗します。すべて通れば完成です。
 
-## 問題4 小さなテンプレートエンジンを作る
+---
+
+## 発展
+
+### 問題7 小さなテンプレートエンジンを作る
 
 Jinja2 のごく一部を、[template.mjs](template.mjs) の `compile(source)` に作ってください。`compile` はテンプレートの文字を受け取り、「データを受け取って文字列を返す関数」を返します。
 
@@ -102,7 +190,7 @@ $ node --test template.test.mjs
 
 最初は 11 個のうち 10 個が失敗します。すべて通れば完成です。
 
-## 問題5 読書メモのサイトの表示のバグを直す
+### 問題8 読書メモのサイトの表示のバグを直す
 
 [buggy-views.mjs](buggy-views.mjs) は、読書メモの一覧・検索・1件のページ・直すページを表示するサイトです（データは [notes-data.mjs](notes-data.mjs) の 23 件。保存はしません）。確認スクリプトを動かすと、25 個のうち 21 個が失敗します。
 
@@ -118,4 +206,4 @@ $ bash check-views.sh
 
 ブラウザで開いて、崩れているところを探すのも良い練習です。そのときは、本文2節のとおり、ページのソースと DevTools の Elements を見比べてください。
 
-直し方は自由です。問題2・3の関数と、第18章の Router を使って書き直してもかまいません（模範解答はそうしています）。
+直し方は自由です。問題5・6の関数と、第18章の Router を使って書き直してもかまいません（模範解答はそうしています）。

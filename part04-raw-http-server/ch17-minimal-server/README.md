@@ -13,11 +13,35 @@
 
 | フォルダ | 中身 |
 | --- | --- |
-| [samples/](samples/) | 最小のサーバ、イベントの順番、レスポンスの返し方、例外、安全に止める、時間の制限 |
+| [samples/](samples/) | 本文で書くサーバの完成形（`hello-server.mjs`・`events.mjs`・`respond.mjs`・`safe-server.mjs`・`stop-server.mjs`）と、イベントの順番、レスポンスの返し方、例外、安全に止める、時間の制限を確かめるサーバ |
 | [exercises/](exercises/) | 練習問題 |
 | [solutions/](solutions/) | 模範解答 |
 
-> 外部のパッケージは使わないので、`npm install` は不要です。Node.js は第1部 第2章で mise を使って入れたもの（この教材は Node 26 で確かめています）を使います。まだ入れていなければ、`brew install mise` の後に `mise use -g node@26` を実行し、`node -v` で `v26` から始まる番号が出ることを確かめてください。
+> **読み方**
+> - 第4部の実習は `~/dev/part04/` で行います（教材のフォルダは見本として残しておくため）。第4部の章は、前の章の模範解答を `import` して使うので、**部のフォルダを丸ごと**コピーします。この章の最初に1回だけ行います。
+>
+>   ```sh
+>   $ mkdir -p ~/dev
+>   $ cp -R （ここに Finder から part04-raw-http-server フォルダをドラッグ） ~/dev/part04
+>   $ cd ~/dev/part04/ch17-minimal-server
+>   ```
+>
+>   `cp -R コピー元 コピー先` は、フォルダを中身ごとコピーします。**2回目は打たないでください**（既にあると、`~/dev/part04` の**中に**もう1つコピーされてしまいます）。
+> - この章のコマンドは、すべて `~/dev/part04/ch17-minimal-server/` で実行します。
+> - 「**手を動かす**」の所は、新しいファイルに書いて動かしてください。ファイルの完成形は `samples/` にあります。「中身は読まなくてよい」と書いたサンプルは、動かして結果を見るだけで十分です。
+> - サーバを動かしている間、そのターミナルは使えません。`curl` は**別のターミナル**（ターミナルのメニューの「シェル」→「新規タブ」、または `⌘T`）で打ちます。新しいタブでも、最初に `cd ~/dev/part04/ch17-minimal-server` してください。サーバは、動かしているターミナルで `Ctrl+C` を押すと止まります。
+> - `curl -i URL` は、URL を開いて、ステータス行とヘッダ（`-i`）も表示するコマンドです（第2部）。`curl -s` の `-s` は、進み具合の表示を消すオプションです。
+> - 外部のパッケージは使わないので、`npm install` は不要です。この章の出力は Node.js 26 で確かめたものです（`node -v` で確かめられます）。
+
+## この章で学ぶことを、後でどこで使うか
+
+| この章で学ぶこと | 後で使う場面 |
+| --- | --- |
+| `createServer`・`listen`・`req`・`res`（2〜4節） | 第4部のすべての章。第5部の Express も、中ではこれを使っている |
+| `Content-Type`・`Content-Length`（バイト数）を正しく付ける（4節） | 第19章（静的ファイル）、第20章（JSON の API） |
+| ハンドラを包んで 500 を返す（5節） | 第5部の Express のエラーハンドリングのミドルウェア |
+| 返し方の部品 `sendText`・`sendJson`（6節） | 第18章以降のすべてのサーバ（練習問題6の模範解答を `import` して使う） |
+| 安全に止める（7節） | 第4部の成果物、第12部の本番へのデプロイ（コンテナは SIGTERM で止める） |
 
 ---
 
@@ -62,8 +86,10 @@ Flask の開発用サーバと違い、`node:http` のサーバは本番でも�
 
 ## 2. いちばん小さなサーバ
 
+**手を動かす**: `hello.mjs` を作り、次のように書きます（完成形は [samples/hello-server.mjs](samples/hello-server.mjs)）。
+
 ```js
-// samples/hello-server.mjs
+// hello.mjs
 import http from 'node:http';
 
 const PORT = 9170;
@@ -81,8 +107,7 @@ server.listen(PORT, '127.0.0.1', () => {
 ```
 
 ```sh
-$ cd samples
-$ node hello-server.mjs
+$ node hello.mjs
 http://127.0.0.1:9170/ で待っています（Ctrl+C で止める）
 ```
 
@@ -126,7 +151,7 @@ Content-Length: 64
 ### 2.2 同じポートで2つ起動すると
 
 ```sh
-$ node hello-server.mjs   # 1つ目が動いているときに、もう1つ
+$ node hello.mjs   # 1つ目が動いているときに、別のターミナルでもう1つ
 node:events:505
     throw er; // Unhandled 'error' event
     ^
@@ -141,8 +166,10 @@ Error: listen EADDRINUSE: address already in use 127.0.0.1:9170
 Flask の `flask run --debug` は、ファイルを保存すると自動でサーバを起動し直してくれます（リローダ）。Node.js では `node --watch` が同じことをします。
 
 ```sh
-$ node --watch hello-server.mjs
+$ node --watch hello.mjs
 ```
+
+`hello.mjs` の `こんにちは` を `こんばんは` に変えて保存し、もう一度 `curl` で開いてみてください。起動し直さなくても、変わっています。
 
 `--watch` は、起動したファイルと、そこから `import` しているファイルを見張ります。保存するとプロセスを止めて起動し直すので、メモリに持っているデータ（配列に入れた伝言など）は消えます。
 
@@ -158,11 +185,53 @@ $ node --watch hello-server.mjs
 | `'finish'` | `res` | レスポンスを最後まで OS に渡した（客に届いたかどうかは分からない） |
 | `'close'` | `res` | レスポンスが閉じた。最後まで返せたときも、客が先に切ったときも、1回だけ来る |
 
+**手を動かす**: `events.mjs` を作り、イベントが来た順に表示します（完成形は [samples/events.mjs](samples/events.mjs)）。
+
+```js
+import http from 'node:http';
+
+const PORT = 9179;
+
+const server = http.createServer((req, res) => {
+  console.log('request: ヘッダを読み終えた', req.method, req.url);
+  req.on('end', () => console.log('req end: ボディを読み終えた'));
+  res.on('finish', () => console.log('res finish: レスポンスを OS に渡し終えた'));
+  res.on('close', () => console.log('res close: レスポンスが閉じた'));
+  req.resume(); // ボディを読む（読まないと 'end' が来ない）
+  res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+  res.end('ok\n');
+});
+
+server.listen(PORT, '127.0.0.1', () => console.log(`http://127.0.0.1:${PORT}/ で待っています（Ctrl+C で止める）`));
+```
+
 ```sh
-$ node lifecycle-demo.mjs
+$ node events.mjs
+http://127.0.0.1:9179/ で待っています（Ctrl+C で止める）
+# 別のターミナルで
+$ curl -s http://127.0.0.1:9179/a
+ok
+```
+
+サーバのターミナル:
+
+```
+request: ヘッダを読み終えた GET /a
+res finish: レスポンスを OS に渡し終えた
+req end: ボディを読み終えた
+res close: レスポンスが閉じた
+```
+
+- `req.on('end', 関数)` は「`req` に `end` のイベントが来たら、この関数を呼ぶ」という登録です（第15章の EventEmitter）。
+- ハンドラ（`createServer` に渡した関数）が呼ばれたのは、ヘッダを読み終えた所です。ボディ（`req`）は、その後で読みます。
+
+次のサンプルで、接続・ボディ・客が先に切ったとき、まで詳しく見ます（中身は読まなくてよい）。ポートは 9171 です。
+
+```sh
+$ node samples/lifecycle-demo.mjs
 # 別のターミナルで
 $ curl -s http://127.0.0.1:9171/a http://127.0.0.1:9171/b
-$ curl -s -d 'name=ryota' http://127.0.0.1:9171/form
+$ curl -s -d 'name=alice' http://127.0.0.1:9171/form
 $ curl -s --max-time 0.5 http://127.0.0.1:9171/slow
 ```
 
@@ -189,11 +258,11 @@ $ curl -s --max-time 0.5 http://127.0.0.1:9171/slow
 ここから分かること:
 
 1. **1つの TCP の接続で、2つのリクエスト**（`/a` と `/b`）が順に処理されました。HTTP/1.1 の keep-alive です（第2部 第6章）。「接続」と「リクエスト」は1対1ではありません
-2. **ハンドラが呼ばれた時点では、ボディはまだ読まれていません。** `/form` のボディ（`name=ryota` の10バイト）は、ハンドラが呼ばれた後に `'data'` で届きました。大きなボディなら、何回にも分かれて届きます。Flask の `request.form` は「読み終わったもの」を見せてくれますが、Node.js では自分で読みます（第20章）
+2. **ハンドラが呼ばれた時点では、ボディはまだ読まれていません。** `/form` のボディ（`name=alice` の10バイト）は、ハンドラが呼ばれた後に `'data'` で届きました。大きなボディなら、何回にも分かれて届きます。Flask の `request.form` は「読み終わったもの」を見せてくれますが、Node.js では自分で読みます（第20章）
 3. **客が先に切ると**（`--max-time 0.5`）、`res` の `'close'` が来て、`res.writableFinished` は `false` です。ハンドラはそれを知らずに処理を続けているので、`res.destroyed` などで確かめないと、誰もいない相手に返そうとします。時間のかかる処理（データベースへの問い合わせなど）は、ここで止められると無駄がありません（第3部 第12章の `AbortSignal` を使います）
 4. `'finish'` と `'end'` の順番は、場合によって入れ替わります。ボディを読まずに返すこともできるからです。順番に頼るコードは書かないでください
 
-> `res.on('close')` は「必ず1回だけ来る」ので、アクセスログ（ステータス、かかった時間）を書くのにちょうどよい場所です（練習問題3）。
+> `res.on('close')` は「必ず1回だけ来る」ので、アクセスログ（ステータス、かかった時間）を書くのにちょうどよい場所です（練習問題5）。
 
 ## 4. レスポンスの返し方
 
@@ -209,8 +278,11 @@ $ curl -s --max-time 0.5 http://127.0.0.1:9171/slow
 
 決まりは1つです。**ヘッダは、本文より先にしか送れません。** HTTP のレスポンスは「ステータス行 → ヘッダ → 空行 → 本文」というバイト列なので（第2部 第6章）、本文を書き始めた後でヘッダを足すことはできません。`res.headersSent` が `true` なら、もうヘッダは送られています。
 
+次のサンプルで、それぞれの道具を使ったときに何が送られるかを見ます（中身は読まなくてよい）。
+
 ```sh
-$ node response-demo.mjs
+$ node samples/response-demo.mjs
+# 別のターミナルで
 $ curl -i http://127.0.0.1:9172/auto       # setHeader + end(本文)
 HTTP/1.1 200 OK
 Content-Type: text/plain; charset=utf-8
@@ -230,23 +302,82 @@ $ curl -i http://127.0.0.1:9172/late       # write の後に setHeader
 - **`end(本文)` だけで返すと、Node.js は本文の長さを知っているので `Content-Length` を付けます。** `write` を使うと、最初の `write` の時点ではまだ全体の長さが分からないので、`Transfer-Encoding: chunked` になります（Node 26 で確かめた動き）
 - `write` の後の `setHeader` は `ERR_HTTP_HEADERS_SENT` という例外になります。サンプルは `try/catch` で捕まえていますが、捕まえなければ5節のとおりサーバが止まります
 
+**手を動かす**: `respond.mjs` を作り、パスによってテキストと JSON を返し分けます（完成形は [samples/respond.mjs](samples/respond.mjs)）。
+
+```js
+import http from 'node:http';
+
+const PORT = 9179;
+
+const server = http.createServer((req, res) => {
+  if (req.url === '/text') {
+    const body = 'こんにちは\n';
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.setHeader('Content-Length', Buffer.byteLength(body)); // 文字数ではなくバイト数
+    res.end(body);
+    return; // 返したら、ここで終わる
+  }
+  if (req.url === '/json') {
+    const body = JSON.stringify({ message: 'こんにちは', time: new Date().toISOString() });
+    res.writeHead(200, {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Content-Length': Buffer.byteLength(body),
+    });
+    res.end(body);
+    return;
+  }
+  res.statusCode = 404;
+  res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+  res.end('見つかりません\n');
+});
+
+server.listen(PORT, '127.0.0.1', () => console.log(`http://127.0.0.1:${PORT}/ で待っています（Ctrl+C で止める）`));
+```
+
+```sh
+$ node respond.mjs
+# 別のターミナルで
+$ curl -i http://127.0.0.1:9179/text
+HTTP/1.1 200 OK
+Content-Type: text/plain; charset=utf-8
+Content-Length: 16
+...
+
+こんにちは
+$ curl -i http://127.0.0.1:9179/json
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+Content-Length: 63
+...
+
+{"message":"こんにちは","time":"2026-11-09T18:21:08.495Z"}
+$ curl -i http://127.0.0.1:9179/nai
+HTTP/1.1 404 Not Found
+...
+```
+
+- `こんにちは\n` は6文字ですが、`Content-Length` は 16 です。日本語は1文字3バイトなので、`Buffer.byteLength(body)` でバイト数を数えます。
+- `JSON.stringify(値)` は、値を JSON の文字列にします。JSON のときは `Content-Type` を `application/json` にします。
+- `if` の中で返した後の `return;` を忘れると、その下の 404 の処理まで進み、1つのリクエストに2回返そうとしてエラーになります（次の4.2節）。
+
 ### 4.2 よくある間違い
 
 | 間違い | 何が起きるか |
 | --- | --- |
 | `end` を呼ばない | 客はずっと待つ（`/no-end`。curl は `--max-time` が来るまで待つ） |
 | `end` の後に `write`・`end` | `ERR_STREAM_WRITE_AFTER_END` が `res` の `'error'` イベントで届く。リスナーが無いとプロセスが落ちる（`/twice`） |
-| `Content-Length` に `body.length`（文字数） | 日本語が入ると本文より小さい値になり、客は途中までしか読まない。残りのバイトは次のレスポンスの先頭と間違えられる（`/bytes`、練習問題1・2） |
+| `Content-Length` に `body.length`（文字数） | 日本語が入ると本文より小さい値になり、客は途中までしか読まない。残りのバイトは次のレスポンスの先頭と間違えられる（`/bytes`、練習問題4・7） |
 | `end(123)`（数値） | `ERR_INVALID_ARG_TYPE`。本文に渡せるのは文字列・Buffer・Uint8Array だけ |
 | 1つのリクエストで2回返す | 2回目は上の `ERR_STREAM_WRITE_AFTER_END` か `ERR_HTTP_HEADERS_SENT`。`if` の中で返した後に `return` を忘れると起きる |
 
 `Content-Length` を自分で書くときは、必ず `Buffer.byteLength(本文)` を使ってください。`/bytes` は `あいう\n` で、文字の数は 4、バイトの数は 10 です。
 
-> Node.js は、`Content-Length` が本文と合っていなくても、確かめずにそのまま送ってしまいます（Node 26 で確かめた動き）。練習問題1の6番で確かめます。
+> Node.js は、`Content-Length` が本文と合っていなくても、確かめずにそのまま送ってしまいます（Node 26 で確かめた動き）。練習問題4の6番で確かめます。
 
 ### 4.3 本文を返さないレスポンス
 
-- **HEAD**: `curl -I` は HEAD を送ります。HEAD への返事は、GET と同じヘッダで、本文はありません。Node.js は、ハンドラが `end(本文)` に渡した本文を捨ててくれます。ただし、自動の `Content-Length` は付かないので、GET と同じ値にしたければ自分で付けます（練習問題4）
+- **HEAD**: `curl -I` は HEAD を送ります。HEAD への返事は、GET と同じヘッダで、本文はありません。Node.js は、ハンドラが `end(本文)` に渡した本文を捨ててくれます。ただし、自動の `Content-Length` は付かないので、GET と同じ値にしたければ自分で付けます（練習問題6）
 - **204 No Content・304 Not Modified**: 本文を持てないステータスです。`end('本文')` に何か渡しても、Node.js は送りません
 - `setHeader('Set-Cookie', ...)` を2回書くと、1つ目が消えます。複数の Cookie は、配列で渡すか `appendHeader` を使います（第22章で使います）
 
@@ -254,8 +385,11 @@ $ curl -i http://127.0.0.1:9172/late       # write の後に setHeader
 
 ### 5.1 1つのリクエストの失敗で、サーバごと止まる
 
+サンプルで、わざとサーバを落としてみます（中身は読まなくてよい）。
+
 ```sh
-$ node crash-demo.mjs
+$ node samples/crash-demo.mjs
+# 別のターミナルで
 $ curl http://127.0.0.1:9173/throw
 curl: (52) Empty reply from server
 $ curl http://127.0.0.1:9173/ok
@@ -280,27 +414,52 @@ Node.js v26.13.0
 
 ### 5.2 ハンドラを包む
 
-```sh
-$ node crash-demo.mjs safe
-```
+**手を動かす**: `safe-server.mjs` を作り、ハンドラを `try`/`catch` で包みます（完成形は [samples/safe-server.mjs](samples/safe-server.mjs)）。
 
 ```js
-// crash-demo.mjs（safe のとき）
-async (req, res) => {
-  try {
-    await handler(req, res); // 同期の例外も、await の先の失敗も、ここで捕まる
-  } catch (err) {
-    console.error(`${req.method} ${req.url} でエラー:`, err.message);
-    if (!res.headersSent) {
-      res.statusCode = 500;
-      res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-      res.end('サーバの中でエラーが起きました\n'); // 詳しい中身（スタックなど）は客に見せない
-    } else {
-      res.destroy(); // もう途中まで返してしまった。接続を切って「失敗した」ことを伝える
-    }
+import http from 'node:http';
+
+const PORT = 9179;
+
+async function handler(req, res) {
+  if (req.url === '/boom') {
+    throw new Error('わざと起こしたエラー');
   }
+  res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+  res.end('ok\n');
 }
+
+const server = http.createServer(async (req, res) => {
+  try {
+    await handler(req, res);
+  } catch (err) {
+    console.error('エラー:', err.message); // 中身はサーバのログにだけ書く
+    if (res.headersSent) {
+      res.destroy(); // もう途中まで返してしまった。接続を切る
+      return;
+    }
+    res.statusCode = 500;
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.end('サーバの中でエラーが起きました\n'); // 客には中身を見せない
+  }
+});
+
+server.listen(PORT, '127.0.0.1', () => console.log(`http://127.0.0.1:${PORT}/ で待っています（Ctrl+C で止める）`));
 ```
+
+```sh
+$ node safe-server.mjs
+# 別のターミナルで
+$ curl -i http://127.0.0.1:9179/boom
+HTTP/1.1 500 Internal Server Error
+...
+
+サーバの中でエラーが起きました
+$ curl http://127.0.0.1:9179/
+ok
+```
+
+`/boom` で例外が起きても、サーバは止まらず、次の `/` にも答えました。サーバのターミナルには `エラー: わざと起こしたエラー` が出ています。`crash-demo.mjs` も、`node samples/crash-demo.mjs safe` で起動すると、同じ包み方で動きます。
 
 大事なのは3つです。
 
@@ -311,6 +470,8 @@ async (req, res) => {
 ### 5.3 包んでも捕まえられないもの
 
 ```sh
+$ node samples/crash-demo.mjs safe
+# 別のターミナルで
 $ curl http://127.0.0.1:9173/callback     # safe でも、10ms 後にプロセスが終わる
 ```
 
@@ -318,7 +479,7 @@ $ curl http://127.0.0.1:9173/callback     # safe でも、10ms 後にプロセ�
 
 `process.on('uncaughtException', ...)` で全部捕まえれば止まらない、と考えるかもしれません。しかし、例外が起きた時点で、途中まで書き換えたデータなど、プログラムの状態がおかしくなっているかもしれません。Node.js のドキュメントも、`uncaughtException` は「ログを書いてから終わる」ために使い、そのまま動き続けるのはやめるように書いています。**落ちたら、起動し直す**のが Node.js のふつうの考え方です。起動し直す仕組み（launchd、systemd、コンテナなど）は第12部で扱います。
 
-この「包む」処理を、リクエスト ID とアクセスログも含めて部品にするのが練習問題3です。第5部の Express では、これがエラーハンドリングのミドルウェアになります。
+この「包む」処理を、リクエスト ID とアクセスログも含めて部品にするのが練習問題5です。第5部の Express では、これがエラーハンドリングのミドルウェアになります。
 
 ## 6. 返し方を部品にする
 
@@ -329,7 +490,7 @@ $ curl http://127.0.0.1:9173/callback     # safe でも、10ms 後にプロセ�
 - ヘッダを全部決めてから、`end` を1回だけ呼ぶ
 - HEAD・204・304 では本文を送らない
 
-毎回書くと必ずどこかで間違えるので、`sendText(res, 200, '本文')`・`sendJson(res, 201, データ)`・`redirect(res, '/login', 303)` のような小さな関数にまとめます（練習問題4）。Flask で `return 'こんにちは'` や `return jsonify(データ)`、`return redirect('/login')` と書けたのは、Flask が同じことをしてくれていたからです。第18章以降は、この部品を使ってサーバを書きます。
+毎回書くと必ずどこかで間違えるので、`sendText(res, 200, '本文')`・`sendJson(res, 201, データ)`・`redirect(res, '/login', 303)` のような小さな関数にまとめます（練習問題6）。Flask で `return 'こんにちは'` や `return jsonify(データ)`、`return redirect('/login')` と書けたのは、Flask が同じことをしてくれていたからです。第18章以降は、この部品を使ってサーバを書きます。
 
 ## 7. 安全に止める
 
@@ -345,7 +506,54 @@ $ curl http://127.0.0.1:9173/callback     # safe でも、10ms 後にプロセ�
 4. 2回目のシグナルが来たら、待たずに終わる
 5. 自分で動かしているタイマー（定期的な処理など）を止め、自然にプロセスを終わらせる
 
+**手を動かす**: まず 1 と 2 だけの小さな版を作ります。`stop-server.mjs` を作ってください（完成形は [samples/stop-server.mjs](samples/stop-server.mjs)）。
+
+```js
+import http from 'node:http';
+
+const PORT = 9179;
+
+const server = http.createServer(async (req, res) => {
+  if (req.url === '/slow') {
+    await new Promise((resolve) => setTimeout(resolve, 2000)); // 2秒かかる仕事のつもり
+  }
+  res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+  res.setHeader('Connection', 'close'); // この例では keep-alive を使わない（7.3節）
+  res.end(`${req.url} を返しました\n`);
+});
+
+server.listen(PORT, '127.0.0.1', () => console.log(`http://127.0.0.1:${PORT}/ で待っています（Ctrl+C で止める）`));
+
+process.on('SIGINT', () => {
+  console.log('止めます。処理中のリクエストを返し終わるまで待ちます…');
+  server.close(() => {
+    console.log('すべて返し終わりました');
+    process.exitCode = 130;
+  });
+});
+```
+
+```sh
+$ node stop-server.mjs
+# 別のターミナルで（打ったら、2秒以内にサーバのターミナルで Ctrl+C）
+$ curl http://127.0.0.1:9179/slow
+/slow を返しました
+```
+
+サーバのターミナル:
+
+```
+^C止めます。処理中のリクエストを返し終わるまで待ちます…
+すべて返し終わりました
+```
+
+- `server.close(関数)` は、新しい接続の受け付けをやめ、今ある接続が全部閉じたら関数を呼びます。Ctrl+C の後でも、処理中の `/slow` は最後まで返りました。
+- Ctrl+C を押した後に `curl http://127.0.0.1:9179/` を打つと、`Failed to connect`（つながらない）になります。受け付けをやめたからです。
+- 3〜5 も入れた、本物に近い版が次の `shutdown-demo.mjs` です。
+
 ### 7.2 shutdown-demo.mjs
+
+1〜5 をすべて入れたサンプルです（`samples/shutdown-demo.mjs`。要点だけ見せます）。
 
 ```js
 let stopping = false;
@@ -372,7 +580,7 @@ process.on('SIGTERM', () => shutdown('SIGTERM'));
 ```
 
 ```sh
-$ node shutdown-demo.mjs
+$ node samples/shutdown-demo.mjs
 # 別のターミナルで
 $ curl -s http://127.0.0.1:9174/slow
 # すぐに、サーバのターミナルで Ctrl+C
@@ -389,7 +597,7 @@ curl には `/slow を返しました` が届き、その後にプロセスが�
 - **何もしていない接続**: Node 19 からは、`server.close()` がそのときに何もしていない接続を閉じてくれます（Node 26 で確かめた動き）。サンプルでは、はっきりさせるために `closeIdleConnections()` も呼んでいます
 - **止め始めた後に返事を終えた接続**: これは `close()` を呼んだ時点では「処理中」だったので、閉じられません。返事を終えると、keep-alive の待ち時間（`keepAliveTimeout`。既定 5 秒）が過ぎるまで開いたままになり、その間プロセスは終われません。止めている途中の返事に `Connection: close` を付けると、Node.js は返事の後に接続を閉じます
 
-この2つ目は見落としやすいので、練習問題5の確認スクリプトで試します。
+この2つ目は見落としやすいので、練習問題8の確認スクリプトで試します。
 
 > `unref()` を付けたタイマーは、「このタイマーだけが残っているなら、待たずに終わってよい」という印です（第3部 第13章）。上限のタイマーを `unref` しないと、接続がすぐに全部閉じても、タイマーが鳴るまでプロセスが残ります。逆に、`setInterval` で動かしている定期的な処理は `unref` していないので、止め忘れるとプロセスが終わりません。
 
@@ -404,10 +612,10 @@ curl には `/slow を返しました` が届き、その後にプロセスが�
 | `server.keepAliveTimeout` | 5000ms | 返事の後、次のリクエストが来るのを待つ時間 |
 | `connectionsCheckingInterval`（`createServer` のオプション） | 30000ms | 上の2つの時間切れを確かめる間隔 |
 
-[timeout-demo.mjs](samples/timeout-demo.mjs) は、**自分で立てたサーバ（127.0.0.1:9175）に**、同じプロセスの中から遅い客をつなぎます。ほかの人のサーバに対して、こういう客を動かしてはいけません。
+[timeout-demo.mjs](samples/timeout-demo.mjs)（中身は読まなくてよい）は、**自分で立てたサーバ（127.0.0.1:9175）に**、同じプロセスの中から遅い客をつなぎます。ほかの人のサーバに対して、こういう客を動かしてはいけません。
 
 ```sh
-$ node timeout-demo.mjs
+$ node samples/timeout-demo.mjs
 既定の値: headersTimeout=60000 requestTimeout=300000 keepAliveTimeout=5000
 1. ヘッダを 1 文字ずつ、300ms おきに送る客
  2408ms 客: 受け取った "HTTP/1.1 408 Request Timeout"
@@ -429,11 +637,11 @@ $ node timeout-demo.mjs
 | 保存したら起動し直す | `flask run --debug` | `node --watch server.mjs` |
 | メソッド・パス | `request.method`・`request.path` | `req.method`・`` new URL(`http://localhost${req.url}`).pathname ``（第18章3節） |
 | ヘッダを読む | `request.headers['User-Agent']` | `req.headers['user-agent']`（名前はすべて小文字） |
-| 文字列を返す | `return 'こんにちは'` | `res.setHeader(...)` + `res.end('こんにちは')`（練習問題4の `sendText`） |
+| 文字列を返す | `return 'こんにちは'` | `res.setHeader(...)` + `res.end('こんにちは')`（練習問題6の `sendText`） |
 | ステータスとヘッダ | `return '本文', 201, {'X-A': '1'}` | `res.writeHead(201, { 'X-A': '1' })` + `res.end('本文')` |
-| JSON を返す | `return jsonify(データ)` | `sendJson(res, 200, データ)`（練習問題4で作る） |
-| 例外 → 500 | Flask がしてくれる | 自分でハンドラを包む（5.2節、練習問題3） |
-| `abort(404)` | Flask がしてくれる | `throw new HttpError(404, ...)` を包む側で受け取る（練習問題3） |
+| JSON を返す | `return jsonify(データ)` | `sendJson(res, 200, データ)`（練習問題6で作る） |
+| 例外 → 500 | Flask がしてくれる | 自分でハンドラを包む（5.2節、練習問題5） |
+| `abort(404)` | Flask がしてくれる | `throw new HttpError(404, ...)` を包む側で受け取る（練習問題5） |
 | 止める | Ctrl+C | SIGINT・SIGTERM を受け取り、自分で安全に止める（7節） |
 
 ## まとめ
@@ -448,7 +656,7 @@ $ node timeout-demo.mjs
 
 ## 練習問題
 
-[exercises/README.md](exercises/README.md) に5問あります。解答は [solutions/README.md](solutions/README.md) です。
+[exercises/README.md](exercises/README.md) に8問あります（基本4問・応用2問・発展2問）。解答は [solutions/README.md](solutions/README.md) です。
 
 ## 参考資料
 

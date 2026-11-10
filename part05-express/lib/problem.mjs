@@ -1,4 +1,4 @@
-// 第25章 練習問題2の模範解答（ch25-rest-api-design/solutions/problem.mjs）のコピー。第26章から後で使う
+// 第25章 練習問題5の模範解答（ch25-rest-api-design/solutions/problem.mjs）のコピー。第26章から後で使う
 import { ZodError } from 'zod';
 
 export const TITLES = {

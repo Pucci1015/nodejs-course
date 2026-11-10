@@ -1,4 +1,4 @@
-// 4つのサーバが守る「約束」（契約）のテスト（第28章 6節）。contract.test.mjs と、練習問題3のテストが使う
+// 4つのサーバが守る「約束」（契約）のテスト（第28章 6節）。contract.test.mjs と、練習問題5のテストが使う
 // HTTP の外から確かめるだけなので、中でどのフレームワークを使っていても、同じテストが使える
 import { describe, test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 /**
  * @param {string} name
  * @param {() => Promise<{ url: string, close: () => Promise<void> }>} start
- * @param {(t: { call: Function }) => void} [more]  ほかに確かめたいもの（練習問題3）
+ * @param {(t: { call: Function }) => void} [more]  ほかに確かめたいもの（練習問題5）
  */
 export function contract(name, start, more) {
   describe(name, () => {

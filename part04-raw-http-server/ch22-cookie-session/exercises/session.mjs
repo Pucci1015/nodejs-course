@@ -1,6 +1,6 @@
-// 練習問題4: セッションの保存場所と、ハンドラを包む withSession
+// 練習問題7: セッションの保存場所と、ハンドラを包む withSession
 // テスト: node --test session.test.mjs
-// 問題2の serializeCookie・clearCookie・parseCookies を使う（自分の解答か、../solutions/cookie.mjs）
+// 問題5の serializeCookie・clearCookie・parseCookies を使う（自分の解答か、../solutions/cookie.mjs）
 import { parseCookies, serializeCookie } from '../samples/cookie-basic.mjs';
 
 let counter = 0;
@@ -53,7 +53,7 @@ export class SessionStore {
 
 /**
  * handler を包んで、req.session（中身のオブジェクト）・req.regenerateSession()・req.destroySession() を使えるようにする
- * 決まりは README の問題4
+ * 決まりは README の問題7
  */
 export function withSession(handler, store, { cookieName = 'sid', secure = false } = {}) {
   return (req, res) => {

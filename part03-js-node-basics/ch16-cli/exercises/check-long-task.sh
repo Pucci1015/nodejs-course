@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 練習問題5の確認スクリプト
+# 練習問題9の確認スクリプト
 # 使い方: bash check-long-task.sh [確かめるファイル]   （既定は long-task.mjs）
 #         bash check-long-task.sh ../solutions/long-task.mjs
 set -uo pipefail

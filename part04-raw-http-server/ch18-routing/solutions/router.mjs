@@ -1,4 +1,4 @@
-// 練習問題3 解答例: メソッドとパスで、ハンドラを選ぶ Router
+// 練習問題6 解答例: メソッドとパスで、ハンドラを選ぶ Router
 // 第19章からも、この Router を使います
 import { HttpError } from '../../ch17-minimal-server/solutions/app.mjs';
 import { comparePatterns, matchPath, parsePattern } from './pattern.mjs';

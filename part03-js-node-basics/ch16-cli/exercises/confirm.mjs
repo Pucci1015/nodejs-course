@@ -1,5 +1,5 @@
-// 練習問題4: 「本当に消しますか？ [y/N]」と聞く関数
-// 仕様は README の練習問題4を見てください。
+// 練習問題6: 「本当に消しますか？ [y/N]」と聞く関数
+// 仕様は README の練習問題6を見てください。
 // 確かめる: node --test confirm.test.mjs   /   動かす: node confirm-demo.mjs
 import { createInterface } from 'node:readline/promises';
 

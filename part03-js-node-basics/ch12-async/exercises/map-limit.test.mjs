@@ -1,4 +1,4 @@
-// 練習問題3 用: map-limit.mjs の mapLimit のテスト
+// 練習問題8 用: map-limit.mjs の mapLimit のテスト
 // 使い方: node --test map-limit.test.mjs
 //   模範解答を試す: MODULE=../solutions/map-limit.mjs node --test map-limit.test.mjs
 import { test } from 'node:test';

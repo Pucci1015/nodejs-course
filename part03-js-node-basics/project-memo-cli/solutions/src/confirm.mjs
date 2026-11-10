@@ -1,4 +1,4 @@
-// 「本当に消しますか？ [y/N]」と聞く（第16章 練習問題4）
+// 「本当に消しますか？ [y/N]」と聞く（第16章 練習問題6）
 import { createInterface } from 'node:readline/promises';
 
 export class NotInteractiveError extends Error {

@@ -1,4 +1,4 @@
-// 練習問題1 用: 実行する前に、それぞれの「→ ?」の結果を予想してください
+// 練習問題4 用: 実行する前に、それぞれの「→ ?」の結果を予想してください
 // 使い方: node predict.mjs        （予想を書いてから実行する）
 //         node predict.mjs 5      （5番だけを実行する）
 // エラーになるものは「エラーの種類」（TypeError など）を予想してください。
@@ -23,13 +23,13 @@ const problems = [
   () => ({ a: 1, b: { c: 2 } }) === structuredClone({ a: 1, b: { c: 2 } }),
   // 6
   () => {
-    const user = { name: 'ryota', greet() { return `hi ${this.name}`; } };
+    const user = { name: 'alice', greet() { return `hi ${this.name}`; } };
     const { greet } = user;
     return greet();
   },
   // 7
   () => {
-    const user = { name: 'ryota', greet: () => `hi ${this?.name}` };
+    const user = { name: 'alice', greet: () => `hi ${this?.name}` };
     return user.greet();
   },
   // 8

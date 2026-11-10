@@ -1,4 +1,4 @@
-// 練習問題4のテスト
+// 練習問題7のテスト
 // 使い方: node --test range.test.mjs
 //         MODULE=../solutions/range.mjs node --test range.test.mjs   （解答例で確かめる）
 import { test } from 'node:test';

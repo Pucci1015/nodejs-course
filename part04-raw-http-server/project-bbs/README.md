@@ -10,7 +10,7 @@
 | 項目 | 内容 |
 | --- | --- |
 | 所要時間の目安 | 10〜15時間 |
-| 前提 | 第17〜22章（特に各章の練習問題の模範解答）、第3部 第15章 練習問題2（`writeFileAtomic`） |
+| 前提 | 第17〜22章（特に各章の練習問題の模範解答）、第3部 第15章 練習問題5（`writeFileAtomic`） |
 | 作るもの | `~/dev/bbs` の Git リポジトリ。`npm start` で `http://127.0.0.1:9230/` に掲示板が立ち上がるもの |
 | 確かめ方 | 完成例のテスト（[solutions/test/bbs.test.mjs](solutions/test/bbs.test.mjs)）を、自分の掲示板に対して動かす。ブラウザでも使ってみる |
 
@@ -18,17 +18,37 @@
 | --- | --- |
 | [solutions/](solutions/) | 完成例（`bbs` パッケージ）。外から HTTP で確かめるテスト付き |
 
+> **読み方**
+> - 作るのは、新しいフォルダ `~/dev/bbs` です（1節で作ります）。自分のコードはここに書きます。
+> - 部品と完成例は、第17章でコピーした `~/dev/part04` の中にあります。1.1節では、そこから部品をコピーします。
+> - 完成例を動かしてみるときは、[solutions/README.md](solutions/README.md) のとおり `~/dev/bbs-example` にコピーしてから動かします。
+> - 一度に全部作ろうとせず、3.2節の順番で1つずつ作って、そのつどブラウザで確かめてください。
+
+## この成果物で身につくことを、後でどこで使うか
+
+| 身につくこと | 後で使う場面 |
+| --- | --- |
+| 第17〜22章の部品を組み合わせて、1つのアプリにする | 第5部（Express の中で、同じ部品がどこにあるかを比べる） |
+| 認証（ログイン）と認可（自分の投稿だけ消せる） | 第5部の成果物、第10部 第51章 |
+| ファイルへの書き込みを1つずつ順に行う | 第6部（データベースのトランザクション） |
+| 外から HTTP だけで確かめるテスト | 第5部の成果物、第11部のテスト |
+
 ---
 
 ## 1. 準備
 
-作業は `~/dev/bbs` で行い、Git で管理します（教材のフォルダは OneDrive の中なので、Git のリポジトリやデータのファイルを作らないようにします）。
+作業は `~/dev/bbs` で行い、Git で管理します（教材のフォルダは見本として残しておくため、そこには書きません）。
+
+- `mkdir -p` はフォルダを作るコマンドで、`-p` は途中のフォルダもまとめて作る、すでにあってもエラーにしない、という意味です。`mkdir -p src/lib public test` のように、いくつも並べて作れます。`&&` は「前のコマンドが成功したら、次を実行する」です。
+- `git init` は、このフォルダを Git のリポジトリにします（第1部 第3章）。
+- `npm init -y` は、質問をせずに `package.json` を作ります（`-y` は「全部はい」）。
+- `printf '…\n…\n' > .gitignore` は、`\n` を改行にして、2行の `.gitignore` を作ります。`>` は、出力をファイルに書き込みます（第1部）。
 
 ```sh
 $ mkdir -p ~/dev/bbs && cd ~/dev/bbs
 $ git init
 $ npm init -y                     # "type": "commonjs" になるので、"module" に直す
-$ mise use node@24                # このフォルダの Node.js を固定する（第1部 第2章6.3節）
+$ mise use node@24                # このフォルダの Node.js を 24 系に固定する（mise.toml ができる。第1部 第2章6.3節）
 $ mkdir -p src/lib public test
 $ printf 'node_modules/\ndata/\n' > .gitignore   # データのファイルはコミットしない
 ```
@@ -67,14 +87,20 @@ $ printf 'node_modules/\ndata/\n' > .gitignore   # データのファイルは�
 | `paginate`・`pagination` | 第21章 `solutions/views.mjs` から取り出す | `src/lib/pagination.mjs` |
 | `parseCookies`・`serializeCookie` | 第22章 `solutions/cookie.mjs` | `src/lib/cookie.mjs` |
 | `SessionStore`・`withSession` | 第22章 `solutions/session.mjs` | `src/lib/session.mjs` |
-| `writeFileAtomic` | 第3部の成果物 `project-memo-cli/solutions/src/atomic.mjs`（第15章 練習問題2） | `src/lib/atomic.mjs` |
+| `writeFileAtomic` | 第3部の成果物 `project-memo-cli/solutions/src/atomic.mjs`（第15章 練習問題5） | `src/lib/atomic.mjs` |
 
 ```sh
-$ N=~/Library/CloudStorage/OneDrive-個人用/program/nodejs/part04-raw-http-server
+$ cd ~/dev/bbs
+$ N=~/dev/part04
 $ cp $N/ch17-minimal-server/solutions/app.mjs src/lib/http-app.mjs
 $ cp $N/ch18-routing/solutions/{router,pattern}.mjs src/lib/
 # …残りも同じように
+$ cp ~/dev/part03/project-memo-cli/solutions/src/atomic.mjs src/lib/
 ```
+
+- `N=~/dev/part04` は、`N` という名前に、フォルダの場所を覚えさせます（シェルの変数）。`$N` と書くと、その場所に置き換わります。ターミナルを開き直すと消えるので、そのときはもう一度打ちます。
+- `cp 元 先` はファイルをコピーします。先がフォルダ（`src/lib/`）なら、同じ名前でその中にコピーします。
+- `{router,pattern}.mjs` は、`router.mjs pattern.mjs` の2つに広がる書き方です（zsh と bash の機能）。
 
 ## 2. 要件
 
@@ -158,11 +184,11 @@ $ PORT=9300 DATA_DIR=/tmp/bbs npm start  # ポートとデータの場所を変�
 
 ```
 GET /api/threads
-[{ "id": 1, "title": "…", "author": "ryota", "postCount": 3, "createdAt": "2026-…Z", "updatedAt": "2026-…Z" }, …]
+[{ "id": 1, "title": "…", "author": "alice", "postCount": 3, "createdAt": "2026-…Z", "updatedAt": "2026-…Z" }, …]
 
 GET /api/threads/1
-{ "id": 1, "title": "…", "author": "ryota", "createdAt": "…", "updatedAt": "…",
-  "posts": [{ "id": 1, "author": "ryota", "body": "…", "deleted": false, "createdAt": "…" }, …] }
+{ "id": 1, "title": "…", "author": "alice", "createdAt": "…", "updatedAt": "…",
+  "posts": [{ "id": 1, "author": "alice", "body": "…", "deleted": false, "createdAt": "…" }, …] }
 ```
 
 - 削除した投稿の `body` は `null`
@@ -228,7 +254,7 @@ GET /api/threads/1
 完成例のテストをコピーして、自分の掲示板に対して動かします。テストは、サーバを別のプロセスで起動し（`127.0.0.1:9231`、データは一時フォルダ）、HTTP だけで確かめます。中の作りが完成例と違っていても、2節の要件を満たしていれば通ります。
 
 ```sh
-$ cp $N/project-bbs/solutions/test/bbs.test.mjs test/
+$ cp ~/dev/part04/project-bbs/solutions/test/bbs.test.mjs test/
 $ npm test
 ```
 
@@ -237,10 +263,10 @@ $ npm test
 ## 5. もっとやるなら
 
 - 投稿を編集できるようにする（自分の投稿だけ。編集した時刻も表示する）
-- 題名で検索する（`?q=`。ページのリンクに `q` を残す。第21章 練習問題3）
+- 題名で検索する（`?q=`。ページのリンクに `q` を残す。第21章 練習問題6）
 - 同じ人が短い時間にたくさん書き込めないようにする（1分に5件まで、など）
 - セッションをファイルに保存して、サーバを起動し直してもログインしたままにする
-- 第21章 練習問題4のテンプレートエンジンで、画面を `views/*.html` のファイルに分ける
+- 第21章 練習問題7のテンプレートエンジンで、画面を `views/*.html` のファイルに分ける
 
 ## 6. Flask で作るなら
 

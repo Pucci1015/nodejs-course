@@ -1,4 +1,4 @@
-// 練習問題2のテスト
+// 練習問題5のテスト
 // 使い方: node --test html-helpers.test.mjs
 //         MODULE=../solutions/html-helpers.mjs node --test html-helpers.test.mjs   （解答例で確かめる）
 import { test } from 'node:test';

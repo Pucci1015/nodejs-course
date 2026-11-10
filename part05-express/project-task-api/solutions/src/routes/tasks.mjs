@@ -1,5 +1,5 @@
 // ルートの層。HTTP を読んで確かめ、サービスを呼び、応答の形にする
-// 第26章 練習問題5の模範解答（ch26-app-structure/solutions/tasks-routes.mjs）から始めて、
+// 第26章 練習問題8の模範解答（ch26-app-structure/solutions/tasks-routes.mjs）から始めて、
 // 第25章のページ分け・ETag・冪等キーを足した（「追加（成果物）」）
 import express from 'express';
 import { z } from 'zod';
@@ -71,7 +71,7 @@ export function createTasksRouter({ service, cursorSecret, idempotencyStore = cr
 
   // 一覧。?status=todo,doing&due_before=2026-12-01&sort=-createdAt&limit=20&cursor=…
   router.get('/', async (req, res) => {
-    const q = parseListQuery(req.query); // 間違いは 400（第25章 練習問題4）
+    const q = parseListQuery(req.query); // 間違いは 400（第25章 練習問題6）
     const items = await service.list({ statuses: q.status, dueBefore: q.dueBefore });
     try {
       res.json(paginate(items, { sort: q.sort, limit: q.limit, cursor: q.cursor, secret: cursorSecret }));

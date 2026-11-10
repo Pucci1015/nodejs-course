@@ -1,4 +1,4 @@
-// 練習問題4: タスクの API。if 文を並べたルーティングに、バグがたくさんあります
+// 練習問題9: タスクの API。if 文を並べたルーティングに、バグがたくさんあります
 // 確かめる: bash check-tasks.sh
 // 使い方: node buggy-tasks.mjs   → http://127.0.0.1:9184/api/tasks
 //   管理用: curl -H 'X-Admin-Token: dev-only-token' http://127.0.0.1:9184/admin/stats

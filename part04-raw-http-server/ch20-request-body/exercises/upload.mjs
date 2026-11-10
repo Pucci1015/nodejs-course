@@ -1,5 +1,5 @@
-// 練習問題5: アップロードされた画像を、安全に保存する
-// 仕様は README の練習問題5を見てください。
+// 練習問題7: アップロードされた画像を、安全に保存する
+// 仕様は README の練習問題7を見てください。
 // 確かめる: node --test upload.test.mjs
 import crypto from 'node:crypto';
 import fs from 'node:fs/promises';

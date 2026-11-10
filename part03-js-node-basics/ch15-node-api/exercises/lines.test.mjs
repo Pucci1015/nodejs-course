@@ -1,4 +1,4 @@
-// 練習問題3 用: lines.mjs の createLineSplitter のテスト
+// 練習問題6 用: lines.mjs の createLineSplitter のテスト
 // 使い方: node --test lines.test.mjs
 //   模範解答を試す: MODULE=../solutions/lines.mjs node --test lines.test.mjs
 import { test } from 'node:test';

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 練習問題2 用: report-server.mjs が、重い計算の最中も /health に素早く応えるか確かめる
+# 練習問題8 用: report-server.mjs が、重い計算の最中も /health に素早く応えるか確かめる
 # 使い方: bash check-report-server.sh
 #   模範解答を試す: TARGET=../solutions/report-server.mjs bash check-report-server.sh
 # サーバは、このスクリプトが起動して、最後に止める（先に起動したものは止めておく）。

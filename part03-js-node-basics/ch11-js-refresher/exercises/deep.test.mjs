@@ -1,4 +1,4 @@
-// 練習問題6 用: deep.mjs の deepEqual と setIn のテスト
+// 練習問題7 用: deep.mjs の deepEqual と setIn のテスト
 // 使い方: node --test deep.test.mjs
 //   模範解答を試す: MODULE=../solutions/deep.mjs node --test deep.test.mjs
 import { test } from 'node:test';
@@ -75,7 +75,7 @@ test('deepEqual: 自分自身を指すオブジェクト（循環）でも止ま
 
 // ---- setIn ----
 const state = {
-  user: { name: 'ryota', settings: { theme: 'light', lang: 'ja' } },
+  user: { name: 'alice', settings: { theme: 'light', lang: 'ja' } },
   tasks: [
     { id: 1, title: '牛乳を買う', done: false },
     { id: 2, title: '第11章を読む', done: true },
@@ -108,7 +108,7 @@ test('setIn: 配列の中も、配列のまま作り直す', () => {
 });
 
 test('setIn: 値が変わらないなら、元のオブジェクトをそのまま返す', () => {
-  assert.equal(setIn(state, ['user', 'name'], 'ryota'), state);
+  assert.equal(setIn(state, ['user', 'name'], 'alice'), state);
   assert.equal(setIn(state, ['tasks', 1, 'done'], true), state);
 });
 

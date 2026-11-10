@@ -2,6 +2,10 @@
 
 | ファイル | 内容 | 本文の節 | ポート |
 | --- | --- | --- | --- |
+| [hello.mjs](hello.mjs) | 「手を動かす」の完成形。いちばん小さな Express のアプリ。`X-Powered-By` を消す | 2 | 9307 |
+| [routes.mjs](routes.mjs) | 「手を動かす」の完成形。パスパラメータとクエリ（配列にそろえる）、具体的なルートを先に | 3 | 9307 |
+| [body.mjs](body.mjs) | 「手を動かす」の完成形。`express.json()` で読み、415・422・201 を返す | 5 | 9307 |
+| [errors.mjs](errors.mjs) | 「手を動かす」の完成形。404 のミドルウェアと、JSON を返すエラーハンドラ | 8 | 9307 |
 | [hello-express.mjs](hello-express.mjs) | いちばん小さな Express のアプリ。`app` は関数なので `http.createServer(app)` に渡せる | 2 | 9300 |
 | [routes-demo.mjs](routes-demo.mjs) | パスパラメータ、クエリ、`*名前`、`{…}`、`app.route`、ルートの順番。405 にならないこと | 3 | 9301 |
 | [req-res-demo.mjs](req-res-demo.mjs) | `res.send` の型による違い、`res.send(数)` の落とし穴、`res.redirect`、204、2回返す、`req.get`・`req.accepts` | 4 | 9302 |
@@ -14,13 +18,13 @@
 
 ## 動かし方
 
-第5部のサンプルは Express などのパッケージを使います。先に、第5部のフォルダで `bash setup-part05.sh` を実行して、`~/dev/part05` を作ってください（[第5部の README](../../README.md)）。サンプルは、その `~/dev/part05` の中で動かします。
+第5部のサンプルは Express などのパッケージを使います。本文の最初の「読み方」で `setup-part05.sh` を動かして作った `~/dev/part05` の中で、章のフォルダから動かします。
 
 ```sh
-$ cd ~/dev/part05/ch23-express-intro/samples
-$ node hello-express.mjs          # 別のターミナルで curl -i http://127.0.0.1:9300/
-$ node routes-demo.mjs            # 別のターミナルで curl -i http://127.0.0.1:9301/tasks/42
-$ NODE_ENV=production node error-demo.mjs
+$ cd ~/dev/part05/ch23-express-intro
+$ node samples/hello-express.mjs          # 別のターミナルで curl -i http://127.0.0.1:9300/
+$ node samples/routes-demo.mjs            # 別のターミナルで curl -i http://127.0.0.1:9301/tasks/42
+$ NODE_ENV=production node samples/error-demo.mjs
 ```
 
 - 各ファイルの先頭のコメントに、試す `curl` を書いてあります

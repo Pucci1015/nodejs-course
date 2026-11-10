@@ -2,7 +2,7 @@
 // 使い方: node lifecycle-demo.mjs
 //   別のターミナルで:
 //   curl -s http://127.0.0.1:9171/a http://127.0.0.1:9171/b        （1つの接続で2つ。keep-alive）
-//   curl -s -d 'name=ryota' http://127.0.0.1:9171/form              （ボディのあるリクエスト）
+//   curl -s -d 'name=alice' http://127.0.0.1:9171/form              （ボディのあるリクエスト）
 //   curl -s --max-time 0.5 http://127.0.0.1:9171/slow                （返す前に、客が先に切る）
 import http from 'node:http';
 

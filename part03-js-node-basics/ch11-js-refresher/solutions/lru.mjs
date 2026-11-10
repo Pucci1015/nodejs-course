@@ -1,4 +1,4 @@
-// 練習問題5 の解答: LRU（Least Recently Used）キャッシュ
+// 練習問題9 の解答: LRU（Least Recently Used）キャッシュ
 // 確かめ方: cd ../exercises && MODULE=../solutions/lru.mjs node --test lru.test.mjs
 
 export class LRUCache {

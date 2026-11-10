@@ -1,4 +1,4 @@
-// 練習問題2 用: semver.mjs のテスト
+// 練習問題8 用: semver.mjs のテスト
 // 使い方: node --test semver.test.mjs
 //   模範解答を試す: MODULE=../solutions/semver.mjs node --test semver.test.mjs
 // 期待する値は、npm が使っている semver パッケージ（7.x）の結果と同じにしてあります。

@@ -1,4 +1,4 @@
-// 練習問題3のテスト。HTTP もサーバも使わず、サービスの層だけを確かめる
+// 練習問題6のテスト。HTTP もサーバも使わず、サービスの層だけを確かめる
 // 使い方: node --test task-service.test.mjs
 //         MODULE=../solutions/task-service.mjs node --test task-service.test.mjs   （解答例で確かめる）
 import { test } from 'node:test';

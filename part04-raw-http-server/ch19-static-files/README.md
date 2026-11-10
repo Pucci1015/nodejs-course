@@ -11,11 +11,31 @@ HTML・CSS・JavaScript・画像のように、**フォルダに置いたファ�
 
 | フォルダ | 中身 |
 | --- | --- |
-| [samples/](samples/) | 危ないサーバ、パスの表、安全なサーバ、キャッシュ、Range、圧縮。`public/` は公開するフォルダの例 |
+| [samples/](samples/) | 本文で書くプログラムの完成形（`my-mime.mjs`・`inside.mjs`・`file-server.mjs`・`etag-server.mjs`）と、危ないサーバ、パスの表、安全なサーバ、キャッシュ、Range、圧縮を確かめるプログラム。`public/` は公開するフォルダの例 |
 | [exercises/](exercises/) | 練習問題 |
 | [solutions/](solutions/) | 模範解答（`static.mjs` の `serveStatic` は、成果物の掲示板でも使います） |
 
-> この章のサンプルと練習問題は、第17章の模範解答を `import` して使います。外部のパッケージは使わないので、`npm install` は不要です。
+> **読み方**
+> - この章のコマンドは、`~/dev/part04/ch19-static-files/` で実行します（第17章で第4部のフォルダを `~/dev/part04` にコピーしてあります）。
+>
+>   ```sh
+>   $ cd ~/dev/part04/ch19-static-files
+>   ```
+>
+> - 「**手を動かす**」の所は、新しいファイルに書いて動かしてください。ファイルの完成形は `samples/` にあります。「中身は読まなくてよい」と書いたサンプルは、動かして結果を見るだけで十分です。
+> - 「手を動かす」のプログラムは、公開するフォルダとして `samples/public` を使います。`path.resolve('samples/public')` は「今いるフォルダから見た `samples/public`」なので、必ず `~/dev/part04/ch19-static-files` で動かしてください。
+> - 「手を動かす」のサーバは 9196 番を使います。次のサーバを動かす前に `Ctrl+C` で止めてください。
+> - サンプルと練習問題の一部は、第17章の模範解答を `import` して使います。外部のパッケージは使わないので、`npm install` は不要です。
+
+## この章で学ぶことを、後でどこで使うか
+
+| この章で学ぶこと | 後で使う場面 |
+| --- | --- |
+| Content-Type と `nosniff`（3節） | 第20章（アップロードした画像を返す）、第5部の `express.static` |
+| パストラバーサルを防ぐ（4節） | 第20章（アップロードの保存先）、第10部（安全） |
+| Stream で少しずつ返す（5節） | 第5部以降の大きなファイルのダウンロード |
+| キャッシュと 304（6節） | 第8部（Vite がビルドしたファイル）、第12部（CDN） |
+| 問題6の `serveStatic` | 第20〜22章のサーバと、第4部の成果物（CSS や画像を返す） |
 
 ---
 
@@ -67,8 +87,7 @@ const server = http.createServer(async (req, res) => {
 2つ目を、自分の Mac の中で確かめます。`samples/outside.txt` は、`public` の**外**に置いた練習用のファイルです。
 
 ```sh
-$ cd samples
-$ node naive-static.mjs
+$ node samples/naive-static.mjs
 # 別のターミナルで
 $ curl --path-as-is 'http://127.0.0.1:9190/..%2Foutside.txt'
 これは public の外にあるファイルです（練習用。中身に秘密はありません）。
@@ -83,23 +102,45 @@ $ curl --path-as-is 'http://127.0.0.1:9190/..%2Foutside.txt'
 
 ### 3.1 拡張子から決める
 
-ファイルの種類は、拡張子から決めます（[samples/mime.mjs](samples/mime.mjs)）。
+ファイルの種類は、拡張子から決めます。
+
+**手を動かす**: `my-mime.mjs` を作ります。サーバは起動しません（完成形は [samples/my-mime.mjs](samples/my-mime.mjs)）。
 
 ```js
+import path from 'node:path';
+
 const TYPES = {
   '.html': 'text/html; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
-  '.json': 'application/json; charset=utf-8',
   '.txt': 'text/plain; charset=utf-8',
-  '.svg': 'image/svg+xml',
   '.png': 'image/png',
-  ...
 };
-export function contentType(file) {
-  return TYPES[path.extname(file).toLowerCase()] ?? 'application/octet-stream';
+
+function contentType(file) {
+  const ext = path.extname(file).toLowerCase(); // '.PNG' → '.png'
+  return TYPES[ext] ?? 'application/octet-stream'; // 知らないものは「ただのバイト列」
+}
+
+for (const file of ['index.html', 'style.css', 'LOGO.PNG', 'notes.md', 'Makefile']) {
+  console.log(file.padEnd(12), path.extname(file).padEnd(6), contentType(file));
 }
 ```
+
+```sh
+$ node my-mime.mjs
+index.html   .html  text/html; charset=utf-8
+style.css    .css   text/css; charset=utf-8
+LOGO.PNG     .PNG   image/png
+notes.md     .md    application/octet-stream
+Makefile            application/octet-stream
+```
+
+- `path.extname(file)` は、最後の `.` から後ろ（拡張子）を返します。無ければ `''` です。
+- `??` は、左が `undefined` か `null` のときだけ右を使う書き方です。表に無い拡張子は `application/octet-stream` になります。
+- `padEnd(12)` は、表示をそろえるために、右を空白で12文字まで埋めます。
+
+もっと多くの種類を入れた [samples/mime.mjs](samples/mime.mjs) は、練習問題や模範解答でも使います（中身は読まなくてよい）。決まりは次のとおりです。
 
 - 文字のファイルには `charset=utf-8` を付けます。無いと、ブラウザが文字コードを推測して、文字化けすることがあります（第2部 第7章）
 - JavaScript は `text/javascript` です（古い資料には `application/javascript` もありますが、今の決まりは `text/javascript`）
@@ -110,7 +151,7 @@ export function contentType(file) {
 
 ブラウザは、Content-Type が無かったり、おかしかったりすると、中身を見て種類を推測することがあります（MIME スニッフィング）。たとえば、利用者がアップロードした「画像」の中身が HTML なら、ブラウザがそれをページとして表示し、中の JavaScript が動いてしまうかもしれません。
 
-`X-Content-Type-Options: nosniff` を付けると、ブラウザは推測をやめ、**Content-Type をそのまま信じます**。その代わり、Content-Type が間違っていると、正しく使われなくなります。練習問題5のサーバ（`app.js` を `text/plain`、`logo.svg` を `text/plain` で返し、`nosniff` を付けている）を Chromium で開くと、次のようになりました（Playwright で確かめた）。
+`X-Content-Type-Options: nosniff` を付けると、ブラウザは推測をやめ、**Content-Type をそのまま信じます**。その代わり、Content-Type が間違っていると、正しく使われなくなります。練習問題9のサーバ（`app.js` を `text/plain`、`logo.svg` を `text/plain` で返し、`nosniff` を付けている）を Chromium で開くと、次のようになりました（Playwright で確かめた）。
 
 ```
 Refused to execute script from 'http://127.0.0.1:9195/app.js' because its MIME type ('text/plain')
@@ -129,22 +170,22 @@ JavaScript は動かず、SVG の画像も表示されませんでした。正�
 
 ```sh
 $ node samples/traversal-demo.mjs
-公開するフォルダ: /Users/ryota/site/public
+公開するフォルダ: /Users/alice/site/public
 
 "/..%2Foutside.txt"
   URL の pathname : /..%2Foutside.txt
   %xx を戻すと    : "/../outside.txt"
-  path.join       : /Users/ryota/site/outside.txt
+  path.join       : /Users/alice/site/outside.txt
   path.relative   : "../outside.txt"   ← 外を指している
 "/docs/..%2F..%2F..%2F.ssh%2Fid_ed25519"
   URL の pathname : /docs/..%2F..%2F..%2F.ssh%2Fid_ed25519
   %xx を戻すと    : "/docs/../../../.ssh/id_ed25519"
-  path.join       : /Users/ryota/.ssh/id_ed25519
+  path.join       : /Users/alice/.ssh/id_ed25519
   path.relative   : "../../.ssh/id_ed25519"   ← 外を指している
 ...
 ```
 
-`path.join` は `..` をそのまま計算するので、外に出るのを止めません（第3部 第15章 練習問題1）。
+`path.join` は `..` をそのまま計算するので、外に出るのを止めません（第3部 第15章 練習問題4）。
 
 ### 4.2 戻した「後」で、外を指していないか確かめる
 
@@ -161,9 +202,52 @@ if (rel === '..' || rel.startsWith(`..${path.sep}`) || path.isAbsolute(rel)) {
 
 `path.relative(ROOT, full)` は「ROOT から full への道順」です。`..` で始まれば、一度 ROOT の外に出ています。
 
+**手を動かす**: `inside.mjs` を作り、いくつかの URL のパスが、どこを指すかを表示します。サーバは起動しません（完成形は [samples/inside.mjs](samples/inside.mjs)）。
+
+```js
+import path from 'node:path';
+
+const ROOT = path.resolve('samples/public'); // 今いるフォルダから見た samples/public の、/ から始まるパス
+
+function toFile(pathname) {
+  const decoded = decodeURIComponent(pathname); // %xx を戻すのは1回だけ
+  const full = path.join(ROOT, decoded);
+  const rel = path.relative(ROOT, full); // ROOT から full への道順
+  const outside = rel === '..' || rel.startsWith('..' + path.sep) || path.isAbsolute(rel);
+  return { full, rel, outside };
+}
+
+console.log('公開するフォルダ:', ROOT);
+for (const p of ['/hello.txt', '/docs/guide.html', '/..%2Foutside.txt', '/img/..%2F..%2F..%2Foutside.txt']) {
+  const { full, rel, outside } = toFile(p);
+  console.log(p);
+  console.log('  path.join    :', full);
+  console.log('  path.relative:', JSON.stringify(rel), outside ? '← 外を指している' : '');
+}
+```
+
+```sh
+$ node inside.mjs
+公開するフォルダ: /Users/alice/dev/part04/ch19-static-files/samples/public
+/hello.txt
+  path.join    : /Users/alice/dev/part04/ch19-static-files/samples/public/hello.txt
+  path.relative: "hello.txt"
+/docs/guide.html
+  path.join    : /Users/alice/dev/part04/ch19-static-files/samples/public/docs/guide.html
+  path.relative: "docs/guide.html"
+/..%2Foutside.txt
+  path.join    : /Users/alice/dev/part04/ch19-static-files/samples/outside.txt
+  path.relative: "../outside.txt" ← 外を指している
+/img/..%2F..%2F..%2Foutside.txt
+  path.join    : /Users/alice/dev/part04/ch19-static-files/outside.txt
+  path.relative: "../../outside.txt" ← 外を指している
+```
+
+`path.sep` は、パスの区切りの文字（Mac では `/`）です。`..` だけでなく、`..` の後に区切りが続くときに外と判定します（`..memo.txt` のような名前のファイルを、外と間違えないため）。
+
 `full.startsWith(ROOT)` で確かめる書き方もよく見ますが、`ROOT` が `/site/public` のとき、`/site/public-backup/secret` も `startsWith` を満たしてしまいます。`path.relative` を使うか、`startsWith(ROOT + path.sep)` にします。
 
-また、**`%xx` を戻すのは1回だけ**にします。`%252F` を2回戻すと `%2F` → `/` になり、1回目の後で確かめた意味がなくなります（二重デコード）。第18章の Router の `params['*']` はもう戻した後の値なので、静的ファイルのハンドラは、%xx のままの `pathname` から自分で1回だけ戻します（練習問題3）。
+また、**`%xx` を戻すのは1回だけ**にします。`%252F` を2回戻すと `%2F` → `/` になり、1回目の後で確かめた意味がなくなります（二重デコード）。第18章の Router の `params['*']` はもう戻した後の値なので、静的ファイルのハンドラは、%xx のままの `pathname` から自分で1回だけ戻します（練習問題6）。
 
 ### 4.3 そのほかに気をつけるもの
 
@@ -178,7 +262,7 @@ if (rel === '..' || rel.startsWith(`..${path.sep}`) || path.isAbsolute(rel)) {
 
 シンボリックリンクは、`ln -s 元 リンクの名前` で作れる「別のファイルを指す印」です。`public` の中にあっても、指している先が外なら、外のファイルが読めてしまいます。`fs.realpath` は、リンクをたどった本当のパスを返します。
 
-これらをまとめて、`safePath` と `resolveFile` という部品にするのが練習問題2です。
+これらをまとめて、`safePath` と `resolveFile` という部品にするのが練習問題5です。
 
 ### 4.4 フォルダと、最後の `/`
 
@@ -211,7 +295,90 @@ try {
 - 客が途中で切ると、`pipeline` は `ERR_STREAM_PREMATURE_CLOSE` で失敗します。客がいないだけなので、エラーとして扱う必要はありません
 - `end`（最後のバイトの位置）を渡しておくと、ストリームは最後のバイトを読んだところで終わります。渡さないと、もう一度「ファイルの終わり」を確かめる読み込みが入ります。この教材の環境では、その間に客（curl）が先に接続を閉じ、全部受け取れているのに `ERR_STREAM_PREMATURE_CLOSE` になることがありました
 - 空のファイルでは `end` が `-1` になるので、先に `res.end()` で終えます
-- 練習問題3の解答では、**先にファイルを開いてから**、開いたファイルの `stat` で大きさを調べます。`stat` してから開くまでの間にファイルが消えたり変わったりすると、`Content-Length` と中身が合わなくなるからです
+- 練習問題6の解答では、**先にファイルを開いてから**、開いたファイルの `stat` で大きさを調べます。`stat` してから開くまでの間にファイルが消えたり変わったりすると、`Content-Length` と中身が合わなくなるからです
+
+**手を動かす**: ここまでの 3〜5節をまとめて、`samples/public` のファイルを返すサーバ `file-server.mjs` を作ります（完成形は [samples/file-server.mjs](samples/file-server.mjs)）。
+
+```js
+import fs from 'node:fs';
+import http from 'node:http';
+import path from 'node:path';
+import { pipeline } from 'node:stream/promises';
+
+const PORT = 9196;
+const ROOT = path.resolve('samples/public');
+const TYPES = {
+  '.html': 'text/html; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
+  '.js': 'text/javascript; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+  '.txt': 'text/plain; charset=utf-8',
+  '.svg': 'image/svg+xml',
+};
+
+function sendText(res, status, text) {
+  res.writeHead(status, { 'Content-Type': 'text/plain; charset=utf-8', 'Content-Length': Buffer.byteLength(text) });
+  res.end(text);
+}
+
+const server = http.createServer(async (req, res) => {
+  const { pathname } = new URL(`http://localhost${req.url}`);
+  let decoded;
+  try {
+    decoded = decodeURIComponent(pathname === '/' ? '/index.html' : pathname);
+  } catch {
+    return sendText(res, 400, '%xx の形が正しくありません\n');
+  }
+  const file = path.join(ROOT, decoded);
+  const rel = path.relative(ROOT, file);
+  if (rel === '..' || rel.startsWith('..' + path.sep) || path.isAbsolute(rel)) {
+    return sendText(res, 403, 'このフォルダの外は開けません\n');
+  }
+
+  let stat;
+  try {
+    stat = await fs.promises.stat(file);
+  } catch {
+    return sendText(res, 404, '見つかりません\n');
+  }
+  if (!stat.isFile()) return sendText(res, 404, '見つかりません\n');
+
+  res.writeHead(200, {
+    'Content-Type': TYPES[path.extname(file).toLowerCase()] ?? 'application/octet-stream',
+    'Content-Length': stat.size,
+    'X-Content-Type-Options': 'nosniff',
+  });
+  try {
+    await pipeline(fs.createReadStream(file), res); // 少しずつ読んで、少しずつ送る
+  } catch (err) {
+    if (err.code !== 'ERR_STREAM_PREMATURE_CLOSE') console.error(err); // 客が先に切ったのは、エラーではない
+  }
+});
+
+server.listen(PORT, '127.0.0.1', () => console.log(`http://127.0.0.1:${PORT}/ で待っています（Ctrl+C で止める）`));
+```
+
+```sh
+$ node file-server.mjs
+# 別のターミナルで
+$ curl -i http://127.0.0.1:9196/hello.txt
+HTTP/1.1 200 OK
+Content-Type: text/plain; charset=utf-8
+Content-Length: 86
+X-Content-Type-Options: nosniff
+...
+
+こんにちは。これは public の中の文字のファイルです。
+...
+$ curl -i --path-as-is 'http://127.0.0.1:9196/..%2Foutside.txt'
+HTTP/1.1 403 Forbidden
+...
+```
+
+- ブラウザで http://127.0.0.1:9196/ を開くと、`index.html` と、その中の CSS・画像も表示されます。正しい Content-Type を付けたからです。
+- `curl --path-as-is` は、パスを直さずにそのまま送るオプションです。`..%2F` を使っても外が読めないことを、自分のサーバで確かめました。
+- `fs.promises.stat(file)` は、ファイルの情報（大きさ、フォルダかどうか）を調べます。無ければ例外になるので 404 にします。
+- このサーバには、まだ「`.` で始まる名前」「フォルダの案内」「キャッシュ」がありません。全部を入れたものが、練習問題6の `serveStatic` です。
 
 ## 6. キャッシュと 304
 
@@ -236,8 +403,56 @@ try {
 2. ブラウザは、次に同じ URL を開くとき、`If-None-Match: 前の ETag` と `If-Modified-Since: 前の Last-Modified` を付けて聞く
 3. サーバは、変わっていなければ **304 Not Modified** を、本文なしで返す。ブラウザは保存しておいたものを使う
 
+**手を動かす**: まず、ETag だけの小さなサーバ `etag-server.mjs` を作ります（完成形は [samples/etag-server.mjs](samples/etag-server.mjs)）。
+
+```js
+import crypto from 'node:crypto';
+import http from 'node:http';
+
+const PORT = 9196;
+const body = 'ETag の練習用のページです\n';
+// 中身のハッシュ（SHA-256）の最初の16文字を、中身の目印にする。中身が変われば、目印も変わる
+const etag = `"${crypto.createHash('sha256').update(body).digest('hex').slice(0, 16)}"`;
+
+const server = http.createServer((req, res) => {
+  res.setHeader('ETag', etag);
+  res.setHeader('Cache-Control', 'no-cache'); // 使う前に毎回「変わった？」と聞いてもらう
+  if (req.headers['if-none-match'] === etag) {
+    res.statusCode = 304; // 変わっていない。本文は送らない
+    res.end();
+    return;
+  }
+  res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+  res.end(body);
+});
+
+server.listen(PORT, '127.0.0.1', () => console.log(`http://127.0.0.1:${PORT}/ で待っています（ETag ${etag}）`));
+```
+
+```sh
+$ node etag-server.mjs
+http://127.0.0.1:9196/ で待っています（ETag "308778484992db97"）
+# 別のターミナルで
+$ curl -i http://127.0.0.1:9196/
+HTTP/1.1 200 OK
+ETag: "308778484992db97"
+Cache-Control: no-cache
+...
+$ curl -i -H 'If-None-Match: "308778484992db97"' http://127.0.0.1:9196/
+HTTP/1.1 304 Not Modified
+ETag: "308778484992db97"
+...
+```
+
+- `curl -H 'ヘッダ: 値'` は、ヘッダを足して送るオプションです。ブラウザが2回目に送る `If-None-Match` を、手で付けました。
+- 中身（`body`）を書き換えて起動し直すと、ETag も変わり、古い ETag では 304 になりません。
+- `crypto.createHash('sha256').update(本文).digest('hex')` は、本文から決まった長さの「指紋」（ハッシュ）を作ります。中身が1文字でも違えば、まったく違う値になります。
+
+`Last-Modified` も付けたサンプルです（中身は読まなくてよい）。
+
 ```sh
 $ node samples/cache-demo.mjs
+# 別のターミナルで
 $ curl -i http://127.0.0.1:9192/no-cache
 HTTP/1.1 200 OK
 Cache-Control: no-cache
@@ -255,14 +470,17 @@ HTTP/1.1 304 Not Modified
 - `If-None-Match` があれば、`If-Modified-Since` は見ない（ETag の方が正確だから）
 - HTTP の日付は**秒まで**です。ファイルの時刻にはミリ秒があるので、切り捨ててから比べます。そうしないと、いつまでも「変わった」ことになります
 - ETag には「強い」（`"abc"`）と「弱い」（`W/"abc"`）があります。弱い ETag は「意味として同じ」という印で、304 を返すかどうかを決めるときは、`W/` を無視して比べます（弱い比較）
-- 練習問題3の解答の ETag は、ファイルの大きさと更新時刻から作る弱い ETag です（中身を読まずに作れる）。`cache-demo.mjs` は中身のハッシュから作る強い ETag で、正確ですが、毎回中身を全部読む必要があります
+- 練習問題6の解答の ETag は、ファイルの大きさと更新時刻から作る弱い ETag です（中身を読まずに作れる）。`cache-demo.mjs` は中身のハッシュから作る強い ETag で、正確ですが、毎回中身を全部読む必要があります
 
 ## 7. Range: 一部だけを返す
 
 動画を途中から見る、止まったダウンロードを続きから始める、というときに、ブラウザは `Range` ヘッダで「何バイト目から何バイト目まで」を頼みます。
 
+次のサンプルで確かめます（中身は読まなくてよい）。`curl -r 0-8` は、`Range: bytes=0-8` を付けて送るオプションです。
+
 ```sh
 $ node samples/range-demo.mjs
+# 別のターミナルで
 $ curl -i -r 0-8 http://127.0.0.1:9193/hello.txt
 HTTP/1.1 206 Partial Content
 Content-Type: text/plain; charset=utf-8
@@ -282,14 +500,17 @@ Content-Range: bytes */86
 - `bytes=-500` は「最後の 500 バイト」、`bytes=500-` は「500 バイト目から最後まで」。`bytes=0-99,200-299` のように複数の範囲も頼めますが、対応しないなら、Range を無視して全部を 200 で返してかまいません
 - 9バイト（`こんに`）でちょうど切れたのは、日本語が1文字3バイトだからです。10バイトにすると、文字の途中で切れます（第3部 第15章6節）
 
-`Range` を正しく読む `parseRange` を作るのが練習問題4です。
+`Range` を正しく読む `parseRange` を作るのが練習問題7です。
 
 ## 8. 圧縮して返す
 
 文字のファイル（HTML・CSS・JavaScript・JSON）は、gzip や Brotli（br）で圧縮すると、ずっと小さくなります。
 
+次のサンプルで、圧縮したときとしないときの大きさを比べます（中身は読まなくてよい）。`curl -o /dev/null -w '%{size_download}'` は、受け取った本文を捨てて、受け取ったバイト数だけを表示します。
+
 ```sh
 $ node samples/gzip-demo.mjs
+# 別のターミナルで
 $ curl -s -o /dev/null -w '%{size_download} バイト\n' http://127.0.0.1:9194/big.txt
 146000 バイト
 $ curl -s -o /dev/null -w '%{size_download} バイト\n' -H 'Accept-Encoding: gzip' http://127.0.0.1:9194/big.txt
@@ -306,7 +527,7 @@ $ curl -s -o /dev/null -w '%{size_download} バイト\n' -H 'Accept-Encoding: br
 - 画像（PNG・JPEG）や動画は、もう圧縮されているので、もう一度圧縮しても小さくなりません。CPU を使うだけです（`mime.mjs` の `isCompressible`）
 - 毎回圧縮すると CPU を使うので、本番では、前もって圧縮したファイル（`app.js.br`）を置いておいたり、前に置いた Web サーバや CDN に任せたりします
 
-`Accept-Encoding` には `gzip;q=0.5` のような「好みの強さ」も書けます。きちんと読む `negotiateEncoding` を作るのが練習問題6です。
+`Accept-Encoding` には `gzip;q=0.5` のような「好みの強さ」も書けます。きちんと読む `negotiateEncoding` を作るのが練習問題8です。
 
 ## 9. Flask との対応
 
@@ -314,9 +535,9 @@ $ curl -s -o /dev/null -w '%{size_download} バイト\n' -H 'Accept-Encoding: br
 | --- | --- | --- |
 | フォルダを公開する | `static/` に置く（自動で `/static/...`） | `router.get('/static/*', serveStatic(root, { mount: '/static' }))` |
 | ファイルを1つ返す | `send_from_directory(folder, name)` | `resolveFile` + `serveStatic` の中身 |
-| 外に出ないか確かめる | `safe_join`（`send_from_directory` の中） | `safePath`（練習問題2） |
+| 外に出ないか確かめる | `safe_join`（`send_from_directory` の中） | `safePath`（練習問題5） |
 | Content-Type | 拡張子から自動 | `contentType`（`mime.mjs`） |
-| 304 | 自動 | ETag・Last-Modified を自分で比べる（練習問題3） |
+| 304 | 自動 | ETag・Last-Modified を自分で比べる（練習問題6） |
 | キャッシュの時間 | `SEND_FILE_MAX_AGE_DEFAULT` の設定 | `cacheControl` のオプション |
 | 本番 | nginx などに任せることが多い | 同じ（第12部） |
 
@@ -332,7 +553,7 @@ $ curl -s -o /dev/null -w '%{size_download} バイト\n' -H 'Accept-Encoding: br
 
 ## 練習問題
 
-[exercises/README.md](exercises/README.md) に6問あります。解答は [solutions/README.md](solutions/README.md) です。
+[exercises/README.md](exercises/README.md) に9問あります（基本4問・応用3問・発展2問）。解答は [solutions/README.md](solutions/README.md) です。
 
 ## 参考資料
 

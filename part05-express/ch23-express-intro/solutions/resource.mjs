@@ -1,4 +1,4 @@
-// 練習問題3の模範解答: Express に「405 と Allow」を足す
+// 練習問題6の模範解答: Express に「405 と Allow」を足す
 export const ORDER = ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'];
 const KNOWN = new Set(['get', 'post', 'put', 'patch', 'delete']); // 追加: 受け付ける名前
 

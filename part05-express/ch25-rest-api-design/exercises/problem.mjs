@@ -1,5 +1,5 @@
-// 練習問題2: エラーを Problem Details（RFC 9457）の形にそろえる
-// 要件は exercises/README.md の問題2です。確かめ方:
+// 練習問題5: エラーを Problem Details（RFC 9457）の形にそろえる
+// 要件は exercises/README.md の問題5です。確かめ方:
 //   $ node --test problem.test.mjs
 import { ZodError } from 'zod';
 

@@ -1,5 +1,5 @@
-// 1つのハンドラに、何もかも書いてしまった例（第26章 2節。練習問題1で使う）
-//   $ node fat-route.mjs
+// 1つのハンドラに、何もかも書いてしまった例（第26章 2節。練習問題4で使う）
+//   $ node samples/fat-route.mjs
 //   別のターミナルで:
 //     curl -si -X POST -H 'Content-Type: application/json' -d '{"title":"牛乳","dueDate":"2026-12-01"}' http://127.0.0.1:9330/api/tasks
 //     curl -si -X POST -H 'Content-Type: application/json' -d '{"title":"牛乳"}' http://127.0.0.1:9330/api/tasks   ← 409（同じ題名）

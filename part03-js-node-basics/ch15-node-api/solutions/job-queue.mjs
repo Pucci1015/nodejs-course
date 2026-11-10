@@ -1,4 +1,4 @@
-// 練習問題5 の解答: EventEmitter で、進み具合を知らせる仕事の列（JobQueue）
+// 練習問題7 の解答: EventEmitter で、進み具合を知らせる仕事の列（JobQueue）
 // 確かめ方: cd ../exercises && MODULE=../solutions/job-queue.mjs node --test job-queue.test.mjs
 import { EventEmitter, once } from 'node:events';
 

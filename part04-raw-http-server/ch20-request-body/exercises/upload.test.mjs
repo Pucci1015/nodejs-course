@@ -1,4 +1,4 @@
-// 練習問題5のテスト。保存先は OS の一時フォルダ。最後に消す
+// 練習問題7のテスト。保存先は OS の一時フォルダ。最後に消す
 // 使い方: node --test upload.test.mjs
 //         MODULE=../solutions/upload.mjs node --test upload.test.mjs   （解答例で確かめる）
 import { test } from 'node:test';

@@ -1,5 +1,5 @@
 // 同じタスク API を、フレームワークを使わずに「Web 標準のハンドラ」で（第28章 5節）
-//   $ node web-handler-tasks.mjs      ← 127.0.0.1:9353
+//   $ node samples/web-handler-tasks.mjs      ← 127.0.0.1:9353
 // handle(request) は Request を受け取って Response を返すだけの関数。
 // Next.js の Route Handlers、Deno・Bun・Cloudflare Workers の fetch も、同じ形をしている
 import http from 'node:http';
@@ -46,7 +46,7 @@ export function createHandler(service = createTaskService()) {
 
 /**
  * Node.js の req・res と、Web 標準の Request・Response をつなぐ、いちばん簡単なもの。
- * 足りないところ（複数の Set-Cookie、客が切ったとき、HEAD など）は、練習問題2で直す
+ * 足りないところ（複数の Set-Cookie、客が切ったとき、HEAD など）は、練習問題7で直す
  */
 export function toNodeHandler(handle) {
   return async (req, res) => {

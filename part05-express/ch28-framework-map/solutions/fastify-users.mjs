@@ -1,4 +1,4 @@
-// 練習問題4の模範解答: Fastify の JSON Schema で、入力を確かめ、出力を「決めた項目だけ」にする
+// 練習問題6の模範解答: Fastify の JSON Schema で、入力を確かめ、出力を「決めた項目だけ」にする
 import Fastify from 'fastify';
 
 // 修正: 返すユーザーの形。ここに無い項目（passwordHash・email）は、JSON にするときに捨てられる

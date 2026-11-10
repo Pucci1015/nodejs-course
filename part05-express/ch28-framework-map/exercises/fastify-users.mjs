@@ -1,5 +1,5 @@
-// 練習問題4: Fastify の JSON Schema で、入力を確かめ、出力を「決めた項目だけ」にする
-// 要件は exercises/README.md の問題4です。確かめ方:
+// 練習問題6: Fastify の JSON Schema で、入力を確かめ、出力を「決めた項目だけ」にする
+// 要件は exercises/README.md の問題6です。確かめ方:
 //   $ node --test fastify-users.test.mjs
 // 今のひな形は、スキーマを1つも書いていません。
 import Fastify from 'fastify';

@@ -11,11 +11,30 @@ Node.js のプログラムは、ファイルを読む、データベースに問
 
 | フォルダ | 中身 |
 | --- | --- |
-| [samples/](samples/) | コールバックと Promise の比較、Promise の基本、直列と並行の時間、unhandled rejection、forEach の落とし穴、AbortController |
+| [samples/](samples/) | 本文で書くプログラムの完成形と、Promise・unhandled rejection・AbortController をまとめて確かめるプログラム |
 | [exercises/](exercises/) | 練習問題 |
 | [solutions/](solutions/) | 模範解答 |
 
-> 時間の表示（`300ms` など）は、この教材の作成時に Node.js 26 で実行したものです。数ミリ秒の違いは毎回出ます。
+> **読み方**
+> - この章のコマンドは、すべて `~/dev/part03/ch12-async/` で実行します。第11章の最初に、第3部のフォルダを丸ごと `~/dev/part03` にコピーしてあるので、移動するだけです。
+>
+>   ```sh
+>   $ cd ~/dev/part03/ch12-async
+>   ```
+>
+>   第11章をまだやっていないときは、第11章の「読み方」のコピーを先に行ってください。
+> - 「**手を動かす**」の所は、新しいファイルに書いて動かすか、REPL に打ってください。ファイルの完成形は `samples/` にあります。「中身は読まなくてよい」と書いたサンプルは、動かして結果を見るだけで十分です。
+> - 時間の表示（`300ms` など）は、この教材の作成時に Node.js 26 で実行したものです。数ミリ秒の違いは毎回出ます。
+
+## この章で学ぶことを、後でどこで使うか
+
+| この章で学ぶこと | 後で使う場面 |
+| --- | --- |
+| コールバックと Promise（2〜3節） | 第14章・第15章で Node.js の API（`fs`・`stream`・`events`）を使うとき |
+| async/await と try/catch（4〜5節） | 第4部・第5部のサーバのほぼすべての処理（ファイル、データベース、他の API） |
+| unhandled rejection（5節） | 第4部・第5部で「1つのリクエストの失敗でサーバ全体が止まる」のを防ぐとき |
+| 直列と並行、`Promise.all`（6〜7節） | 第5部の API で、複数のデータをまとめて取るとき。第8部の React で API を呼ぶとき |
+| `AbortSignal`（8節） | 第4部のタイムアウト、第8部で画面を離れたときに通信をやめるとき |
 
 ---
 
@@ -54,6 +73,44 @@ fs.readFile('big.txt', 'utf8', (err, text) => { ... }); // 非同期: 読み始�
 ### 2.1 エラーファーストのコールバック
 
 Node.js の古い API は、最後の引数に**コールバック**（終わったら呼んでもらう関数）を渡します。コールバックは `(err, 結果)` の順で呼ばれます（**エラーファースト**）。
+
+**手を動かす**: `read-callback.mjs` を作り、次のように書いて実行します（完成形は [samples/read-callback.mjs](samples/read-callback.mjs)）。`fs.readFile(ファイル名, 'utf8', コールバック)` は、ファイルを文字列として読む関数です。
+
+```js
+import fs from 'node:fs';
+
+console.log('1. 読み始める');
+
+fs.readFile('README.md', 'utf8', (err, text) => {
+  if (err) {
+    console.log('読めませんでした:', err.code);
+    return;
+  }
+  console.log(`3. README.md は ${text.length} 文字`);
+});
+
+fs.readFile('no-such-file.txt', 'utf8', (err, text) => {
+  if (err) {
+    console.log('3. no-such-file.txt は読めませんでした:', err.code);
+    return;
+  }
+  console.log(text);
+});
+
+console.log('2. readFile の次の行（読み終わるのを待たない）');
+```
+
+```sh
+$ node read-callback.mjs
+1. 読み始める
+2. readFile の次の行（読み終わるのを待たない）
+3. no-such-file.txt は読めませんでした: ENOENT
+3. README.md は 19689 文字
+```
+
+`2.` が、ファイルの中身（`3.`）より先に表示されました。`readFile` は「読み始める」だけで、読み終わるのを待たずに次の行へ進むからです。`ENOENT` は「そのファイルはありません」という意味のエラーコードです（文字数は、README を直すと変わります）。
+
+もう少し長い例を動かしてみます（中身は読まなくてよい）。
 
 ```sh
 $ node samples/callback-demo.mjs
@@ -105,6 +162,8 @@ fs.readFile(src, 'utf8', (err, text) => {
 
 一度 fulfilled か rejected になったら、もう変わりません。
 
+Promise の動きをまとめて確かめるサンプルです（中身は読まなくてよい）。3節と4節の結果が順に表示されます。
+
 ```sh
 $ node samples/promise-demo.mjs
 == 1. Promise は「後で結果が入る箱」==
@@ -140,6 +199,52 @@ function delay(ms, value) {
 ```
 
 `new Promise` に渡す関数は、`resolve`（成功させる）と `reject`（失敗させる）を受け取ります。この関数は**すぐに**（同期的に）実行され、`resolve` や `reject` は**最初の1回だけ**が有効です（2回呼んでも無視されるので、コールバックの「2回呼ぶ」バグが起きません）。
+
+`setTimeout(関数, ms)` は、`ms` ミリ秒たったら関数を呼ぶ関数です。上の `delay` は、「`ms` ミリ秒たったら `value` で成功する Promise」を返します。
+
+**手を動かす**: `delay.mjs` を作り、次のように書いて実行します（完成形は [samples/delay.mjs](samples/delay.mjs)）。3.2節の `then` と `catch` を、自分で確かめます。
+
+```js
+function delay(ms, value) {
+  return new Promise((resolve) => setTimeout(() => resolve(value), ms));
+}
+
+function delayFail(ms, message) {
+  return new Promise((resolve, reject) => setTimeout(() => reject(new Error(message)), ms));
+}
+
+const p = delay(500, 'こんにちは');
+console.log('作った直後:', p);
+
+p.then((text) => {
+  console.log('500ms 後:', text);
+  return text.length;
+})
+  .then((n) => {
+    console.log('文字数:', n);
+    return delayFail(100, 'わざと失敗');
+  })
+  .then(() => {
+    console.log('ここは表示されない（前で失敗したので飛ばされる）');
+  })
+  .catch((err) => {
+    console.log('catch:', err.message);
+  })
+  .finally(() => {
+    console.log('finally: 成功でも失敗でも実行');
+  });
+```
+
+```sh
+$ node delay.mjs
+作った直後: Promise { <pending> }
+500ms 後: こんにちは
+文字数: 5
+catch: わざと失敗
+finally: 成功でも失敗でも実行
+```
+
+`delayFail` の行を `delay(100)` に変えて、もう一度実行してみてください。今度は「ここは表示されない」が表示され、`catch:` は表示されません。
 
 コールバックの関数は、`util.promisify` で Promise を返す関数に変えられます。`fs` のように、`fs/promises`（`fs.promises`）として最初から Promise 版が用意されているものもあります（第15章）。
 
@@ -178,12 +283,47 @@ async function copyUpperCaseAsync(src, dest) {
 
 2.2節のコールバック地獄と同じ処理が、上から下へ読めるようになりました。`await` は「この Promise が終わるまで、**この関数の続き**を後回しにする」という意味で、スレッドを止めるわけではありません。待っている間、Node.js は他の処理を進めます。
 
+**手を動かす**: 3.3節の `delay.mjs` を、async/await で書き直します。`delay-await.mjs` を作り、`delay` と `delayFail` の2つの関数はそのままコピーして、その下を次のように書きます（完成形は [samples/delay-await.mjs](samples/delay-await.mjs)）。
+
+```js
+async function main() {
+  try {
+    const text = await delay(500, 'こんにちは');
+    console.log('500ms 後:', text);
+    console.log('文字数:', text.length);
+    await delayFail(100, 'わざと失敗');
+    console.log('ここは表示されない');
+  } catch (err) {
+    console.log('catch:', err.message);
+  } finally {
+    console.log('finally: 成功でも失敗でも実行');
+  }
+  return 'main の戻り値';
+}
+
+const result = main();
+console.log('main() の戻り値:', result);
+console.log('await すると:', await result);
+```
+
+```sh
+$ node delay-await.mjs
+main() の戻り値: Promise { <pending> }
+500ms 後: こんにちは
+文字数: 5
+catch: わざと失敗
+finally: 成功でも失敗でも実行
+await すると: main の戻り値
+```
+
+`then` のつながりが、ふつうの `try`/`catch`/`finally` になりました。`main()` が `'main の戻り値'` ではなく Promise を返していることにも注目してください（次の4.2節）。
+
 ### 4.2 async 関数は必ず Promise を返す
 
 ```
 == 4. async 関数は、必ず Promise を返す ==
   getUser(1) の戻り値: Promise { <pending> }
-  await した値: { id: 1, name: 'ryota' }
+  await した値: { id: 1, name: 'alice' }
   try/catch で受け取れる: RangeError: id が正しくありません: 0
 ```
 
@@ -196,13 +336,15 @@ async function copyUpperCaseAsync(src, dest) {
 
 ### 4.3 トップレベル await
 
-ES Modules（`.mjs`）では、関数の外でも `await` を使えます（**トップレベル await**）。この章のサンプルは、これを使っています。CommonJS（第14章）では使えません。
+ES Modules（`.mjs`）では、関数の外でも `await` を使えます（**トップレベル await**）。上の `delay-await.mjs` の最後の行も、関数の外の `await` です。この章のサンプルは、これを使っています。CommonJS（第14章）では使えません。REPL でも、`await` をそのまま打てます。
 
 ## 5. 失敗を取りこぼさない
 
 ### 5.1 unhandled rejection
 
 失敗した Promise を、誰も `catch` も `await` もしないと、**unhandled rejection**（処理されなかった失敗）になります。今の Node.js は、**既定でプロセスを終了します**。
+
+次のサンプルで確かめます（中身は読まなくてよい）。引数の数字（1〜4）で、場面を選びます。`echo $?` は、直前のコマンドの**終了コード**を表示するコマンドです（0 なら正常、それ以外なら異常終了）。
 
 ```sh
 $ node samples/unhandled-demo.mjs 1
@@ -258,13 +400,38 @@ process.on('unhandledRejection', (reason) => {
 
 ### 6.1 直列と並行
 
-```sh
-$ node samples/timing-demo.mjs
-== 1. 順番に await（直列）: 時間は足し算 ==
-  ユーザー の結果、タスク の結果、通知 の結果  → 602ms
+**手を動かす**: `timing.mjs` を作り、次のように書いて実行します（完成形は [samples/timing.mjs](samples/timing.mjs)）。`fakeFetch` は「ユーザーを取ってくる」などの、時間のかかる処理の代わりです。`Date.now()` は、今の時刻をミリ秒で返します。
 
-== 2. 先に全部始めてから待つ（並行）: 時間はいちばん長いもの ==
-  ユーザー の結果、タスク の結果、通知 の結果  → 300ms
+```js
+function delay(ms, value) {
+  return new Promise((resolve) => setTimeout(() => resolve(value), ms));
+}
+
+function fakeFetch(name, ms) {
+  return delay(ms, `${name}の結果`);
+}
+
+// 1. 順番に await する（直列）
+let start = Date.now();
+const user = await fakeFetch('ユーザー', 300);
+const tasks = await fakeFetch('タスク', 200);
+const notices = await fakeFetch('通知', 100);
+console.log('直列:', user, tasks, notices, `${Date.now() - start}ms`);
+
+// 2. 先に全部始めてから、まとめて待つ（並行）
+start = Date.now();
+const results = await Promise.all([
+  fakeFetch('ユーザー', 300),
+  fakeFetch('タスク', 200),
+  fakeFetch('通知', 100),
+]);
+console.log('並行:', results, `${Date.now() - start}ms`);
+```
+
+```sh
+$ node timing.mjs
+直列: ユーザーの結果 タスクの結果 通知の結果 602ms
+並行: [ 'ユーザーの結果', 'タスクの結果', '通知の結果' ] 300ms
 ```
 
 3つの処理（300ms・200ms・100ms）を順番に `await` すると、合わせて600msかかります。**互いに関係の無い処理**なら、全部を先に始めてから待てば、いちばん長い300msで済みます。
@@ -280,7 +447,13 @@ const [user, tasks] = await Promise.all([getUser(), getTasks()]);
 
 ただし、**2つ目が1つ目の結果を使う**（ユーザーの ID でタスクを取る）なら、直列にするしかありません。
 
-Promise は**作った時点で処理が始まっています**。`await` は「結果を待つ」だけで、「始める」わけではありません（`timing-demo.mjs` の6）。
+Promise は**作った時点で処理が始まっています**。`await` は「結果を待つ」だけで、「始める」わけではありません。
+
+次の6.2節の4つの関数も含めて、まとめて確かめるサンプルがあります（中身は読まなくてよい）。
+
+```sh
+$ node samples/timing-demo.mjs
+```
 
 ### 6.2 Promise の組み合わせ方
 
@@ -302,11 +475,46 @@ Promise は**作った時点で処理が始まっています**。`await` は「
 
 ### 7.1 forEach は await を待たない
 
+**手を動かす**: `foreach-pitfall.mjs` を作り、次のように書いて実行します（完成形は [samples/foreach-pitfall.mjs](samples/foreach-pitfall.mjs)。2と3は、次の7.2節の正しい書き方です）。
+
+```js
+function delay(ms, value) {
+  return new Promise((resolve) => setTimeout(() => resolve(value), ms));
+}
+
+const waits = [300, 100, 200];
+
+// 1. forEach に async 関数を渡す（間違い）
+const done1 = [];
+waits.forEach(async (ms) => {
+  await delay(ms);
+  done1.push(ms);
+});
+console.log('forEach の直後:', done1);
+await delay(400);
+console.log('400ms 後:', done1);
+
+// 2. for...of と await（1つずつ順番に）
+const done2 = [];
+let start = Date.now();
+for (const ms of waits) {
+  await delay(ms);
+  done2.push(ms);
+}
+console.log('for...of:', done2, `${Date.now() - start}ms`);
+
+// 3. map と Promise.all（全部を同時に）
+start = Date.now();
+const done3 = await Promise.all(waits.map((ms) => delay(ms, ms)));
+console.log('Promise.all:', done3, `${Date.now() - start}ms`);
+```
+
 ```sh
-$ node samples/foreach-demo.mjs
-== 1. forEach に async 関数を渡す ==
-  forEach の直後: []（forEach は Promise を待たない）
-  400ms 後: ["タスク1","タスク2","タスク3"]（終わった順に入る）
+$ node foreach-pitfall.mjs
+forEach の直後: []
+400ms 後: [ 100, 200, 300 ]
+for...of: [ 300, 100, 200 ] 601ms
+Promise.all: [ 300, 100, 200 ] 300ms
 ```
 
 `forEach` は、渡された関数が返した Promise を**捨てます**。そのため、`forEach` の直後にはまだ何も終わっておらず、結果の順番も終わった順になり、途中の失敗は unhandled rejection になります。`map`・`filter`・`reduce` なども、同じく Promise を待ちません。
@@ -316,21 +524,37 @@ $ node samples/foreach-demo.mjs
   filter(async): [3,1,2]（Promise はオブジェクトなので、常に truthy）
 ```
 
+上は `node samples/foreach-demo.mjs` の結果の一部です（中身は読まなくてよい）。練習問題2は、この落とし穴で「合計が 0 円になる」バグです。
+
 ### 7.2 正しい書き方
 
 | 目的 | 書き方 | 時間 |
 | --- | --- | --- |
 | 1つずつ順番に（前の結果を使う、相手に負荷をかけない） | `for (const id of ids) { await f(id); }` | 足し算（602ms） |
 | すべて同時に | `await Promise.all(ids.map((id) => f(id)))` | いちばん長いもの（300ms） |
-| 同時に N 個まで | 自分で書く（練習問題3）か、パッケージを使う | その間 |
+| 同時に N 個まで | 自分で書く（練習問題8）か、パッケージを使う | その間 |
 
-1万件の URL を `Promise.all(urls.map(fetch))` で取りに行くと、1万個の接続を同時に開こうとして、相手のサーバにも自分の Mac にも大きな負荷がかかります。**同時に動かす数を制限する**のは、実際のアプリでとても大事です（練習問題3・6）。
+1万件の URL を `Promise.all(urls.map(fetch))` で取りに行くと、1万個の接続を同時に開こうとして、相手のサーバにも自分の Mac にも大きな負荷がかかります。**同時に動かす数を制限する**のは、実際のアプリでとても大事です（練習問題8・9）。
 
 ## 8. 待つのをやめる
 
 ### 8.1 AbortController と AbortSignal
 
 ネットワークの相手が返事をしないと、`fetch` はいつまでも待ち続けることがあります。**`AbortSignal`** は「やめて」という合図を伝えるオブジェクトで、`fetch`、`fs` の多くの関数、`timers/promises` の `setTimeout` などが受け取れます。
+
+**手を動かす**: REPL（`node` だけを打つ）で、次の2行を1行ずつ打ちます。`node:timers/promises` の `setTimeout(ms, value, { signal })` は、3.3節の `delay` と同じく「`ms` ミリ秒たったら `value` で成功する」Promise を返し、`signal` を受け取れます。
+
+```
+> const { setTimeout: sleep } = await import('node:timers/promises')
+undefined
+> await sleep(1000, '1秒たった', { signal: AbortSignal.timeout(300) })
+Uncaught AbortError: The operation was aborted
+    at ...（どこで起きたかが何行か続く）
+```
+
+1秒待つはずが、300ms で「やめた」という失敗になりました。`AbortSignal.timeout(300)` を `AbortSignal.timeout(3000)` に変えると、1秒後に `'1秒たった'` が表示されます。`{ setTimeout: sleep }` は、「`setTimeout` を `sleep` という名前で取り出す」という分割代入です（第11章6節。グローバルの `setTimeout` と名前がぶつからないようにするため）。
+
+`fetch` でも同じように使えます。次のサンプルは、わざと遅いサーバ（127.0.0.1:9120）を中で起動し、それに `fetch` します（中身は読まなくてよい）。
 
 ```sh
 $ node samples/abort-demo.mjs
@@ -394,7 +618,7 @@ Python にも `async`/`await` があり、考え方はよく似ています。�
 
 ## 練習問題
 
-[exercises/README.md](exercises/README.md) に6問あります。解答は [solutions/README.md](solutions/README.md) です。
+[exercises/README.md](exercises/README.md) に9問あります（基本4問・応用3問・発展2問）。解答は [solutions/README.md](solutions/README.md) です。
 
 ## 参考資料
 

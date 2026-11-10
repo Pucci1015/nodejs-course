@@ -1,4 +1,4 @@
-// 練習問題6 の解答: イベントループが止まったことに気付く見張り
+// 練習問題9 の解答: イベントループが止まったことに気付く見張り
 // 確かめ方: cd ../exercises && MODULE=../solutions/lag-monitor.mjs node --test lag-monitor.test.mjs
 
 export function createLagMonitor({ intervalMs = 20, thresholdMs = 100, onLag = () => {} } = {}) {

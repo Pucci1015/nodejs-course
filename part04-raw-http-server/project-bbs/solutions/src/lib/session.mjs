@@ -1,4 +1,4 @@
-// 練習問題4の模範解答
+// 第22章 練習問題7の模範解答
 import crypto from 'node:crypto';
 import { parseCookies, serializeCookie, clearCookie } from './cookie.mjs';
 

@@ -12,7 +12,7 @@
 
 ## 動かす
 
-教材のフォルダの中で、そのまま動かせます。本物の `~/memos` を使わないよう、`MEMO_DIR` で別のフォルダを指定して試します。
+第11章でコピーした `~/dev/part03/project-memo-cli/solutions` で動かします（`cd ~/dev/part03/project-memo-cli/solutions`）。本物の `~/memos` を使わないよう、`MEMO_DIR` で別のフォルダを指定して試します。
 
 ```sh
 $ export MEMO_DIR=/tmp/memo-test
@@ -32,11 +32,10 @@ $ node bin/memo.mjs config
 $ unset MEMO_DIR; rm -r /tmp/memo-test
 ```
 
-`memo` という名前で使うには、`~/dev` にコピーしてから `npm link` します（教材のフォルダ（OneDrive）の中から `npm link` すると、OneDrive の中のフォルダへのリンクになり、同期の具合で動かなくなることがあるためです）。
+`memo` という名前で使うには、同じフォルダで `npm link` します（第16章2.3節）。自分の `memo` を作っている途中なら、名前がぶつかるので、試した後で必ず外してください。
 
 ```sh
-$ cp -R "（教材のフォルダ）/part03-js-node-basics/project-memo-cli/solutions" ~/dev/memo-cli-example
-$ cd ~/dev/memo-cli-example
+$ cd ~/dev/part03/project-memo-cli/solutions
 $ chmod +x bin/memo.mjs
 $ npm link
 $ memo --help

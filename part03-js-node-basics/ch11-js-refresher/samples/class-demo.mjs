@@ -46,7 +46,7 @@ class Account {
   }
 }
 
-const account = new Account('ryota').deposit(1000).deposit(500);
+const account = new Account('alice').deposit(1000).deposit(500);
 console.log(String(account));
 console.log(`account.balance = ${account.balance}`);
 console.log(`account['#balance'] = ${account['#balance']}（別のプロパティ扱い）`);
@@ -71,7 +71,7 @@ class SavingsAccount extends Account {
     return `${super.toString()}、利率 ${this.rate * 100}%`;
   }
 }
-const savings = new SavingsAccount('hanako', 0.02).deposit(10000).addInterest();
+const savings = new SavingsAccount('bob', 0.02).deposit(10000).addInterest();
 console.log(String(savings));
 console.log(`savings instanceof Account = ${savings instanceof Account}`);
 console.log(`作った口座の数: ${Account.count}`);

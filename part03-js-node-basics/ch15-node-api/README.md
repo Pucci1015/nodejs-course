@@ -11,11 +11,30 @@ Node.js には、ファイル、パス、プロセス、バイト列、ストリ
 
 | フォルダ | 中身 |
 | --- | --- |
-| [samples/](samples/) | path、fs、壊れない書き込み、EventEmitter、Buffer、Stream、readline とメモリ、child_process、util・os・crypto |
+| [samples/](samples/) | 本文で書くプログラムの完成形と、path・fs・壊れない書き込み・EventEmitter・Buffer・Stream・readline とメモリ・child_process・util・os・crypto を確かめるプログラム |
 | [exercises/](exercises/) | 練習問題 |
 | [solutions/](solutions/) | 模範解答 |
 
-> ファイルを作るサンプルと練習問題は、教材のフォルダ（OneDrive）を汚さないよう、OS の一時フォルダ（`os.tmpdir()`。Mac では `/var/folders/...` の下）に作って、最後に消します。
+> **読み方**
+> - この章のコマンドは、すべて `~/dev/part03/ch15-node-api/` で実行します（第11章で第3部のフォルダを `~/dev/part03` にコピーしてあります）。
+>
+>   ```sh
+>   $ cd ~/dev/part03/ch15-node-api
+>   ```
+>
+> - 「**手を動かす**」の所は、新しいファイルに書いて動かすか、REPL に打ってください。ファイルの完成形は `samples/` にあります。「中身は読まなくてよい」と書いたサンプルは、動かして結果を見るだけで十分です。
+> - ファイルを作るサンプルと練習問題は、OS の一時フォルダ（`os.tmpdir()`。Mac では `/var/folders/...` の下）に作って、最後に消します。
+
+## この章で学ぶことを、後でどこで使うか
+
+| この章で学ぶこと | 後で使う場面 |
+| --- | --- |
+| `path`（2節） | 第4部 第19章で、URL からファイルのパスを作るとき（外に出させない） |
+| `fs/promises` とエラーの code（3節） | 第16章の CLI、成果物のメモの CLI、第4部の掲示板のデータの保存 |
+| 壊れない書き込み（3.4節） | 成果物のメモの CLI、第4部の掲示板 |
+| EventEmitter（5節） | 第4部で `server.on('request')`・`req.on('data')` を使うとき |
+| Buffer と Stream（6〜7節） | 第4部 第20章でリクエストのボディを読むとき、第19章で大きなファイルを返すとき |
+| child_process（8.2節） | 成果物でエディタを起動するとき、第16章で CLI をテストするとき |
 
 ---
 
@@ -40,6 +59,23 @@ Python の標準ライブラリ（`os`・`pathlib`・`shutil`・`subprocess`・`
 
 ## 2. path: パスを組み立てる
 
+**手を動かす**: REPL（`node` だけを打つ）で、次の式を1つずつ打ってみてください。REPL では、`path` や `fs` などの組み込みモジュールを、import しなくてもそのままの名前で使えます。
+
+```
+> path.join('data', 'memos', 'a.md')
+'data/memos/a.md'
+> path.join('data', '..', '..', 'secret.txt')
+'../secret.txt'
+> path.basename('/Users/alice/memo/a.md')
+'a.md'
+> path.extname('a.md')
+'.md'
+```
+
+2つ目のように、`..` を渡すと `data` の外を指すパスになります。この「外に出られる」ことは、後で大事になります。
+
+もっと多くの例をまとめて表示するサンプルです（中身は読まなくてよい）。
+
 ```sh
 $ node samples/path-demo.mjs
 --- 組み立てる
@@ -49,7 +85,7 @@ path.resolve('data', 'a.md')（今のフォルダから）       → "<cwd>/data
 path.resolve('/srv', 'data', '/etc', 'x')    → "/etc/x"
 path.normalize('/a//b/./c/../d')             → "/a/b/d"
 --- 分解する
-path.dirname(file)                           → "/Users/ryota/dev/memo"
+path.dirname(file)                           → "/Users/alice/dev/memo"
 path.basename(file)                          → "2026-11-04 会議.md"
 path.basename(file, '.md')                   → "2026-11-04 会議"
 path.extname(file)                           → ".md"
@@ -67,7 +103,7 @@ path.extname('.zshrc')                       → ""
 
 文字列を `+` や `` `${dir}/${name}` `` でつながず、`path.join` を使います。`/` の重なりや `..` を正しく整理してくれ、Windows では `\` を使ってくれます（`path.win32`）。
 
-`path.join` も `path.resolve` も、`..` を含むパスを**外に出ないように止めてはくれません**（練習問題1）。利用者が送ってきた名前でファイルを開くときの対策（パストラバーサル）は、第4部 第19章で扱います。
+`path.join` も `path.resolve` も、`..` を含むパスを**外に出ないように止めてはくれません**（練習問題4）。利用者が送ってきた名前でファイルを開くときの対策（パストラバーサル）は、第4部 第19章で扱います。
 
 `~` は zsh が展開するもので、Node.js のパスとしては意味がありません。`path.isAbsolute('~/dev')` は `false` です。ホームは `os.homedir()` で取ります。
 
@@ -84,6 +120,49 @@ path.extname('.zshrc')                       → ""
 `node:fs` には、`createReadStream` のような Stream を作る関数もあります（7節）。
 
 ### 3.2 よく使う関数
+
+**手を動かす**: `notes.mjs` を作り、次のように書いて実行します（完成形は [samples/notes.mjs](samples/notes.mjs)）。OS の一時フォルダに作業用のフォルダを作り、ファイルを書いて、読んで、最後に消します。
+
+```js
+import fs from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+
+const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'ch15-notes-'));
+console.log('作業フォルダ:', dir);
+
+const file = path.join(dir, 'memos', 'a.md');
+await fs.mkdir(path.dirname(file), { recursive: true });
+await fs.writeFile(file, '# メモA\n');
+await fs.appendFile(file, '追記した行\n');
+console.log('1. 読んだ中身:', JSON.stringify(await fs.readFile(file, 'utf8')));
+
+const entries = await fs.readdir(path.join(dir, 'memos'), { withFileTypes: true });
+console.log('2. memos の中:', entries.map((e) => `${e.name}（${e.isFile() ? 'ファイル' : 'フォルダ'}）`));
+
+try {
+  await fs.readFile(path.join(dir, 'no-such.md'), 'utf8');
+} catch (err) {
+  console.log('3. 無いファイルを読むと:', err.code);
+}
+
+await fs.rm(dir, { recursive: true, force: true });
+console.log('4. 片付けた');
+```
+
+```sh
+$ node notes.mjs
+作業フォルダ: /var/folders/xx/.../T/ch15-notes-uAke1w
+1. 読んだ中身: "# メモA\n追記した行\n"
+2. memos の中: [ 'a.md（ファイル）' ]
+3. 無いファイルを読むと: ENOENT
+4. 片付けた
+```
+
+- `fs.mkdtemp(接頭辞)` は、接頭辞の後ろにランダムな文字を付けた、新しいフォルダを作ります（毎回違う名前になるので、他とぶつかりません）。
+- `JSON.stringify(文字列)` で表示すると、改行が `\n` と見えるので、中身を確かめやすくなります。
+
+使う関数をもっと多く確かめるサンプルです（中身は読まなくてよい）。
 
 ```sh
 $ node samples/fs-demo.mjs
@@ -123,13 +202,15 @@ fs の関数が失敗すると、`err.code` に理由が入ります。
 | `EACCES`・`EPERM` | 権限が無い |
 | `EISDIR`・`ENOTDIR` | フォルダなのにファイルとして、またはその逆 |
 | `ENOTEMPTY` | フォルダが空でない |
-| `EMFILE` | 開いているファイルが多すぎる（同時に開きすぎ。練習問題6） |
+| `EMFILE` | 開いているファイルが多すぎる（同時に開きすぎ。練習問題9） |
 
 「ファイルがあるか確かめてから読む」（`fs.access` や `existsSync` の後に `readFile`）は、確かめた後、読む前に、別のプロセスが消すかもしれません（**TOCTOU**、Time Of Check to Time Of Use）。まず読んでみて、`ENOENT` なら「無かった」と扱う方が確実です（`fs-demo.mjs` の6）。「無ければ作る」も同じで、`flag: 'wx'` を使えば「確かめる」と「作る」が1回の操作になります（2）。
 
 ### 3.4 途中で落ちても壊れない書き方
 
 `writeFile` は、まずファイルを空にしてから、中身を書いていきます。書いている途中でプロセスが落ちたら（電源が切れた、メモリが足りなくて OS に止められた、Ctrl+C）、ファイルは**途中までの、壊れた内容**になります。
+
+次のサンプルは、書いている途中でわざとプロセスを止めて、2つの書き方を比べます（中身は読まなくてよい）。
 
 ```sh
 $ node samples/atomic-write-demo.mjs
@@ -145,7 +226,7 @@ await fs.writeFile(tmp, data);
 await fs.rename(tmp, file);
 ```
 
-残った一時ファイル（2）の片付けや、ディスクまで確実に書き出す `fsync`、同時に更新したときの取りこぼしは、練習問題2で扱います。設定ファイルやデータの JSON を保存するとき（成果物のメモの CLI でも）は、この書き方にします。
+残った一時ファイル（2）の片付けや、ディスクまで確実に書き出す `fsync`、同時に更新したときの取りこぼしは、練習問題5で扱います。設定ファイルやデータの JSON を保存するとき（成果物のメモの CLI でも）は、この書き方にします。
 
 ## 4. process: 今動いているプロセス
 
@@ -165,6 +246,38 @@ await fs.rename(tmp, file);
 ## 5. events: EventEmitter
 
 **EventEmitter** は、「何かが起きたら、登録しておいた関数を呼ぶ」仕組みです。HTTP のサーバ（`server.on('request')`）も、Stream（`on('data')`）も、子プロセス（`on('exit')`）も、EventEmitter を継承しています。
+
+**手を動かす**: `emitter.mjs` を作り、次のように書いて実行します（完成形は [samples/emitter.mjs](samples/emitter.mjs)）。`on(名前, 関数)` で登録し、`emit(名前, 値)` でイベントを出します。
+
+```js
+import { EventEmitter } from 'node:events';
+
+const download = new EventEmitter();
+
+download.on('progress', (percent) => console.log(`進み具合: ${percent}%`));
+download.once('done', (info) => console.log('終わった:', info));
+
+console.log('emit の前');
+download.emit('progress', 50);
+download.emit('progress', 100);
+download.emit('done', { bytes: 1234 });
+download.emit('done', { bytes: 9999 });
+console.log('emit の後');
+```
+
+```sh
+$ node emitter.mjs
+emit の前
+進み具合: 50%
+進み具合: 100%
+終わった: { bytes: 1234 }
+emit の後
+```
+
+- `once` で登録した関数は、1回だけ呼ばれます。2回目の `done` には反応しませんでした。
+- 「emit の後」が最後に表示されました。`emit` は、登録した関数を**その場で**（同期で）呼んでから戻ります。
+
+もっと多くの決まりを確かめるサンプルです（中身は読まなくてよい）。
 
 ```sh
 $ node samples/events-demo.mjs
@@ -195,6 +308,23 @@ Flask には EventEmitter にあたる仕組みはあまり出てきませんが
 
 ファイルもネットワークも、流れてくるのは文字ではなく**バイト**です（第2部 第6章・第7章）。Node.js では、バイト列を **Buffer**（`Uint8Array` を広げたもの）で扱います。
 
+**手を動かす**: REPL で、次の式を1つずつ打ってみてください。
+
+```
+> Buffer.from('Aあ')
+<Buffer 41 e3 81 82>
+> 'Aあ'.length
+2
+> Buffer.byteLength('Aあ')
+4
+> Buffer.from('Aあ').toString()
+'Aあ'
+```
+
+`A` は1バイト（`41`）、`あ` は3バイト（`e3 81 82`）です。文字の数は2つでも、バイトの数は4つです。
+
+チャンクの境目で文字が切れる様子なども確かめるサンプルです（中身は読まなくてよい）。
+
 ```sh
 $ node samples/buffer-demo.mjs
 1. Buffer.from("Aあ😀"): 41 e3 81 82 f0 9f 98 80 （8 バイト）
@@ -209,7 +339,7 @@ $ node samples/buffer-demo.mjs
 ```
 
 - UTF-8 では、`A` は1バイト、`あ` は3バイト、`😀` は4バイトです。**文字数とバイト数は違います**（第2部 第6章の Content-Length）。`Buffer.byteLength(文字列)` でバイト数を数えます
-- ストリームから届くチャンクは、**文字の途中で切れている**ことがあります（3）。チャンクごとに `toString()` すると、切れた所が `�` に化けます。全部集めて `Buffer.concat` してから変換するか（4）、途中のバイトを次まで持っておいてくれる `StringDecoder`・`TextDecoder`（`stream: true`）を使います（5、練習問題3）
+- ストリームから届くチャンクは、**文字の途中で切れている**ことがあります（3）。チャンクごとに `toString()` すると、切れた所が `�` に化けます。全部集めて `Buffer.concat` してから変換するか（4）、途中のバイトを次まで持っておいてくれる `StringDecoder`・`TextDecoder`（`stream: true`）を使います（5、練習問題6）
 - Buffer を `===` で比べると、中身ではなく「同じオブジェクトか」を比べます（6）。中身は `equals` で比べます。パスワードやトークンのような**秘密の値**を比べるときは、かかる時間から中身を推測されないよう `crypto.timingSafeEqual` を使います（第10部）
 
 ## 7. Stream: 少しずつ流す
@@ -217,6 +347,8 @@ $ node samples/buffer-demo.mjs
 ### 7.1 なぜ Stream か
 
 `readFile` は、ファイルを**全部メモリに読んでから**返します。1GB のログなら 1GB 以上のメモリを使い、読み終わるまで何もできません。**Stream** は、データを小さなチャンク（ファイルなら既定で 64KiB）に分けて、届いた分から順に処理します。
+
+次のサンプルは、100万行のファイルを作り、2つの読み方でメモリの使い方を比べます（中身は読まなくてよい。数秒かかります）。
 
 ```sh
 $ node samples/readline-demo.mjs
@@ -240,6 +372,8 @@ readline: 500 の行 20,000 件、264ms、メモリの最大 64 MiB
 import { pipeline } from 'node:stream/promises';
 await pipeline(fs.createReadStream(src), zlib.createGzip(), fs.createWriteStream(`${src}.gz`));
 ```
+
+次のサンプルで、Stream のいろいろな使い方を確かめます（中身は読まなくてよい）。
 
 ```sh
 $ node samples/stream-demo.mjs
@@ -271,12 +405,39 @@ for await (const line of rl) { /* line は改行を含まない1行 */ }
 
 `crlfDelay: Infinity` は、CRLF（`\r\n`）の `\r` と `\n` が別のチャンクに分かれても、1つの改行として扱うための設定です。
 
+**手を動かす**: `count-lines.mjs` を作り、ファイルを1行ずつ読んで、ある言葉を含む行を数えます（完成形は [samples/count-lines.mjs](samples/count-lines.mjs)）。
+
+```js
+import fs from 'node:fs';
+import { createInterface } from 'node:readline';
+
+const file = process.argv[2] ?? 'README.md';
+const word = process.argv[3] ?? 'Stream';
+
+const rl = createInterface({ input: fs.createReadStream(file), crlfDelay: Infinity });
+let total = 0;
+let hits = 0;
+for await (const line of rl) {
+  total++;
+  if (line.includes(word)) hits++;
+}
+console.log(`${file}: ${total} 行、そのうち「${word}」を含む行は ${hits} 行`);
+```
+
+```sh
+$ node count-lines.mjs
+README.md: 555 行、そのうち「Stream」を含む行は 24 行
+$ node count-lines.mjs README.md Buffer
+```
+
+`process.argv[2]` はコマンドの1つ目の引数です（第16章で詳しく）。`??` で、引数が無いときの値を決めています（第11章6.3節）。数は、README を直すと変わります。
+
 ## 8. そのほかの便利な API
 
 ### 8.1 util・os・crypto
 
 ```sh
-$ node samples/util-demo.mjs
+$ node samples/util-demo.mjs     # 下の表の関数を動かす（中身は読まなくてよい）
 ```
 
 | 関数 | 何をするか |
@@ -291,6 +452,38 @@ $ node samples/util-demo.mjs
 | `crypto.createHash('sha256')` | ハッシュ（ファイルの指紋など。**パスワードの保存には使わない**。第10部） |
 
 ### 8.2 child_process: 別のプログラムを動かす
+
+**手を動かす**: `run-ls.mjs` を作り、Node.js から `ls` を動かします（完成形は [samples/run-ls.mjs](samples/run-ls.mjs)）。`execFile` はコールバックの関数なので、`promisify` で Promise を返す版にしてから使います（第12章3.3節）。
+
+```js
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
+
+const execFileAsync = promisify(execFile);
+
+const { stdout } = await execFileAsync('ls', ['-1', 'samples']);
+console.log('samples の中:', stdout.trim().split('\n'));
+
+try {
+  await execFileAsync('ls', ['no-such-dir']);
+} catch (err) {
+  console.log('失敗したとき: 終了コード', err.code, '/', err.stderr.trim());
+}
+```
+
+```sh
+$ node run-ls.mjs
+samples の中: [
+  'README.md',
+  'atomic-write-demo.mjs',
+  ...
+]
+失敗したとき: 終了コード 1 / ls: no-such-dir: No such file or directory
+```
+
+`execFile('ls', ['-1', 'samples'])` は、ターミナルで `ls -1 samples` と打つのと同じです（`-1` は1行に1つずつ表示するオプション）。結果は `stdout`（標準出力）に文字列で入ります。
+
+`exec` との違いなども確かめるサンプルです（中身は読まなくてよい）。
 
 ```sh
 $ node samples/child-demo.mjs      # Mac での出力の例（1と2は OS によって変わる）
@@ -343,7 +536,7 @@ Python の `subprocess.run(['ls', '-1'])`（リスト）と `subprocess.run('ls 
 
 ## 練習問題
 
-[exercises/README.md](exercises/README.md) に6問あります。解答は [solutions/README.md](solutions/README.md) です。
+[exercises/README.md](exercises/README.md) に9問あります（基本4問・応用3問・発展2問）。解答は [solutions/README.md](solutions/README.md) です。
 
 ## 参考資料
 

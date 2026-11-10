@@ -1,4 +1,4 @@
-// 練習問題2の模範解答: タスクの REST API を Express で書く
+// 練習問題5の模範解答: タスクの REST API を Express で書く
 import express from 'express';
 
 // 追加: 400 番台のエラー。メッセージは客に見せてよい（第17章の HttpError と同じ考え方）

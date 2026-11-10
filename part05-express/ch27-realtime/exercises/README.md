@@ -1,25 +1,108 @@
 # 第27章 練習問題
 
-本文（[../README.md](../README.md)）を読んでから取り組んでください。模範解答は [../solutions/README.md](../solutions/README.md) にあります。
+本文（[../README.md](../README.md)）の「手を動かす」を終えてから取り組んでください。模範解答は [../solutions/README.md](../solutions/README.md) にあります。
+この練習問題は `~/dev/part05/ch27-realtime/exercises/` で行います。最初に `cd exercises` で移動してください（`cd ~/dev/part05/ch27-realtime/exercises` と打っても構いません）。
 
-| 問題 | テーマ | 使うファイル | 本文の節 | ポート |
-| --- | --- | --- | --- | --- |
-| 1 | どの方法を選ぶか | このページ | 1〜5 | — |
-| 2 | SSE のイベントを書く・読む | [sse-format.mjs](sse-format.mjs)、[sse-format.test.mjs](sse-format.test.mjs) | 3 | — |
-| 3 | イベントを配るハブと、SSE のルート | [event-hub.mjs](event-hub.mjs)、[event-hub.test.mjs](event-hub.test.mjs) | 3 | 空いている番号 |
-| 4 | WebSocket のハンドシェイクとフレーム | [ws-protocol.mjs](ws-protocol.mjs)、[ws-protocol.test.mjs](ws-protocol.test.mjs) | 4.1, 4.2 | — |
-| 5 | WebSocket のチャットのバグを直す | [buggy-chat.mjs](buggy-chat.mjs)、[chat.test.mjs](chat.test.mjs) | 4.3〜4.5 | 9349 |
-| 6 | ロングポーリングの片付け | [long-poll.mjs](long-poll.mjs)、[long-poll.test.mjs](long-poll.test.mjs) | 2 | 空いている番号 |
+| 問題 | 種類 | テーマ | 使うファイル | 本文の節 | ポート |
+| --- | --- | --- | --- | --- | --- |
+| 1 | 基本 | SSE で送る文字列を作る `toSse`・`ping` | [sse-text.mjs](sse-text.mjs)、[sse-text.test.mjs](sse-text.test.mjs) | 3.1 | — |
+| 2 | 基本 | 待っている人の一覧 `createWaiters` | [waiters.mjs](waiters.mjs)、[waiters.test.mjs](waiters.test.mjs) | 2.2 | — |
+| 3 | 基本 | WebSocket で届いたものを確かめる `isAllowedOrigin`・`parseChatMessage` | [chat-message.mjs](chat-message.mjs)、[chat-message.test.mjs](chat-message.test.mjs) | 4.4, 4.5 | — |
+| 4 | 基本 | どの方法を選ぶか（調べる問題） | このページ | 1〜5 | — |
+| 5 | 応用 | SSE のイベントを書く・読む | [sse-format.mjs](sse-format.mjs)、[sse-format.test.mjs](sse-format.test.mjs) | 3 | — |
+| 6 | 応用 | イベントを配るハブと、SSE のルート | [event-hub.mjs](event-hub.mjs)、[event-hub.test.mjs](event-hub.test.mjs) | 3 | 空いている番号 |
+| 7 | 発展 | WebSocket のハンドシェイクとフレーム | [ws-protocol.mjs](ws-protocol.mjs)、[ws-protocol.test.mjs](ws-protocol.test.mjs) | 4.1, 4.2 | — |
+| 8 | 発展 | WebSocket のチャットのバグを直す | [buggy-chat.mjs](buggy-chat.mjs)、[chat.test.mjs](chat.test.mjs) | 4.3〜4.5 | 9349 |
+| 9 | 発展 | ロングポーリングの片付け | [long-poll.mjs](long-poll.mjs)、[long-poll.test.mjs](long-poll.test.mjs) | 2 | 空いている番号 |
 
-- どの問題も、`~/dev/part05/ch27-realtime/exercises` の中で動かします
-- 問題2〜6は `node --test ○○.test.mjs` ですべてのテストが通れば完成です。最初は、問題2が 12 個中 11 個、問題3が 10 個中 8 個、問題4が 11 個中 9 個、問題5が 8 個中 7 個、問題6が 9 個中 6 個失敗します
-- 模範解答は `MODULE=../solutions/sse-format.mjs node --test sse-format.test.mjs` のように確かめられます。問題5は `MODULE=../solutions/chat.mjs node --test chat.test.mjs` です
-- 問題3の `event-hub.mjs` は、同じフォルダの `sse-format.mjs`（問題2）を使います。問題3で送るのは1行の `data` だけなので、問題2が終わっていなくても試せます
-- 問題5のテストは、サーバを別のプロセスで起動します。サーバが落ちると、次のテストの前に起動し直します
+**発展**（7〜9）は、少し長めの問題です。できなくても次の章に進んでかまいません。
+
+## テストの使い方
+
+- 問題4以外は、`○○.mjs` の「ここを書く」を埋める（問題8はバグを直す）と、`node --test ○○.test.mjs` ですべてのテストが通れば完成です。最初は、問題5が 12 個中 11 個、問題6が 10 個中 8 個、問題7が 11 個中 9 個、問題8が 8 個中 7 個、問題9が 9 個中 6 個失敗します。
+- 問題6の `event-hub.mjs` は、同じフォルダの `sse-format.mjs`（問題5）を使います。問題6で送るのは1行の `data` だけなので、問題5が終わっていなくても試せます。
+- 問題8のテストは、サーバを別のプロセスで起動します。サーバが落ちると、次のテストの前に起動し直します。
 
 ---
 
-## 問題1 どの方法を選ぶか
+## 基本
+
+### 問題1 SSE で送る文字列を作る `toSse`・`ping`
+
+SSE で1つのイベントを送るときの文字列を作る関数を、[sse-text.mjs](sse-text.mjs) に作ってください（本文3.1節）。
+
+```js
+toSse({ data: 'hello' });                          // → 'data: "hello"\n\n'
+toSse({ event: 'task', data: { id: 7 }, id: 42 });  // → 'event: task\ndata: {"id":7}\nid: 42\n\n'
+ping();                                            // → ': ping\n\n'
+```
+
+- **`toSse({ event, data, id })`**: `event:`・`data:`・`id:` の順に1行ずつ書き、最後に空の行（`\n`）を足す
+  - `data` は、いつも `JSON.stringify` してから書く（文字列も `"hello"` になる）
+  - `event`・`id` は、`undefined` のときだけ行ごと書かない（`id: 0` は書く）
+- **`ping()`**: 心拍のコメントの行 `: ping` と、空の行
+
+```sh
+$ node --test sse-text.test.mjs
+ℹ pass 6
+ℹ fail 0
+```
+
+ヒント:
+
+- 本文の `sse-clock.mjs` で、`res.write` に渡した文字列と同じ形です。
+- 空の文字列 `let text = ''` に、`text += …` で行を足していきます。
+- `data` の中の改行は、`JSON.stringify` で `\n` の2文字になるので、行が分かれません。JSON にしない文字列を送るときの決まりは、問題5で扱います。
+
+### 問題2 待っている人の一覧 `createWaiters`
+
+ロングポーリングで「新しいものが来たら、待っている全員を起こす」ための一覧を、[waiters.mjs](waiters.mjs) の `createWaiters()` に作ってください（本文2.2節）。
+
+| 関数 | すること |
+| --- | --- |
+| `add(fn)` | `fn` を一覧に入れる。**一覧から外す関数**を返す |
+| `notifyAll(value)` | 一覧の全員を `fn(value)` で呼び、一覧を空にする |
+| `size()` | 一覧に入っている数 |
+
+- 外す関数を2回呼んでも、ほかの人は消えない
+- `notifyAll` の途中で `add` された人は、その回には呼ばない（次の `notifyAll` で呼ぶ）
+
+```sh
+$ node --test waiters.test.mjs
+ℹ pass 6
+ℹ fail 0
+```
+
+ヒント:
+
+- 一覧は `new Set()` にすると、`add`・`delete`・`size` がそのまま使えます。
+- `notifyAll` では、先に `[...一覧]` で配列に写してから `clear()` し、写した配列の全員を呼びます。
+- 外す関数を返すのは、本文の `long-wait.mjs` で `bus.off` を呼んだのと同じ「片付け」を、使う人がいつでもできるようにするためです。
+
+### 問題3 WebSocket で届いたものを確かめる `isAllowedOrigin`・`parseChatMessage`
+
+[chat-message.mjs](chat-message.mjs) に、2つの関数を作ってください（本文4.4・4.5節）。
+
+- **`isAllowedOrigin(origin, allowed)`**: `origin` が、配列 `allowed` のどれかと**完全に同じ**なら `true`。`undefined` や、似ているだけのもの（大文字にしたもの、後ろに何か付いたもの）は `false`
+- **`parseChatMessage(raw)`**: 届いたもの（文字列か `Buffer`）を確かめ、`{ ok: true, value: { type: 'chat', text } }` か `{ ok: false, error: 説明 }` を返す
+  - JSON でなければ `ok: false`（**例外を投げない**）
+  - `type` が `'chat'` で、`text` が文字列。`text` は前後の空白を取って 1〜500 文字
+  - `value` には、空白を取った `text` を入れる
+
+```sh
+$ node --test chat-message.test.mjs
+ℹ pass 6
+ℹ fail 0
+```
+
+ヒント:
+
+- `allowed.includes(origin)` は、完全に同じものがあるかを調べます。
+- `String(raw)` で、`Buffer` も文字列にできます。
+- `JSON.parse` は `try { … } catch { … }` で囲みます。`'null'` や `'123'` も JSON としては正しいので、結果がオブジェクトかどうかも確かめます（`msg === null || typeof msg !== 'object'`）。
+- 本文の `ws-echo.mjs` の `message` の中身を、関数に取り出したものです。
+
+### 問題4 どの方法を選ぶか（調べる問題）
 
 次のそれぞれで、ポーリング・ロングポーリング・SSE・WebSocket・「リアルタイムにしない（ページを読み直したときに新しくなればよい）」のどれを選びますか。理由も書いてください。答えは1つとは限りません。
 
@@ -31,7 +114,11 @@
 6. 会社の中の古いプロキシを通るので、長くつなぎっぱなしの接続が切られやすい環境で、通知を出したい
 7. 株価のように、1秒に何回も値が変わるものを、たくさんの人に見せたい（見る人からは何も送らない）
 
-## 問題2 SSE のイベントを書く・読む
+---
+
+## 応用
+
+### 問題5 SSE のイベントを書く・読む
 
 [sse-format.mjs](sse-format.mjs) の3つの関数を、SSE の仕様（HTML Living Standard の「Server-sent events」）どおりにしてください。
 
@@ -57,7 +144,7 @@
 $ node --test sse-format.test.mjs
 ```
 
-## 問題3 イベントを配るハブと、SSE のルート
+### 問題6 イベントを配るハブと、SSE のルート
 
 [event-hub.mjs](event-hub.mjs) の `createEventHub({ bufferSize })` と `sseRoute(hub, { heartbeatMs, retryMs })` を完成させてください。成果物では、タスクが作られたり変わったりしたときに、これで画面に知らせます。
 
@@ -78,7 +165,11 @@ $ node --test sse-format.test.mjs
 $ node --test event-hub.test.mjs
 ```
 
-## 問題4 WebSocket のハンドシェイクとフレーム
+---
+
+## 発展
+
+### 問題7 WebSocket のハンドシェイクとフレーム
 
 [ws-protocol.mjs](ws-protocol.mjs) を、RFC 6455 どおりにしてください。ふだんは ws ライブラリがすることですが、一度自分で書くと、ライブラリの設定（`maxPayload` など）の意味が分かります。
 
@@ -101,7 +192,7 @@ $ node --test event-hub.test.mjs
 $ node --test ws-protocol.test.mjs
 ```
 
-## 問題5 WebSocket のチャットのバグを直す
+### 問題8 WebSocket のチャットのバグを直す
 
 [buggy-chat.mjs](buggy-chat.mjs) は、ブラウザで2つのタブを開いて試すぶんには、ちゃんと動きます（`node buggy-chat.mjs` で http://127.0.0.1:9349/chat.html）。でも、次の仕様に合わない所が 6 か所あります。
 
@@ -118,7 +209,7 @@ $ node --test chat.test.mjs
 
 確認3では、サーバのプロセスが落ちます。ブラウザから試しているだけでは、「いつも正しい JSON を送る画面」しか使わないので、気づけません。WebSocket の向こうにいるのが、自分の作った画面だけとは限らないことを考えてください。
 
-## 問題6 ロングポーリングの片付け
+### 問題9 ロングポーリングの片付け
 
 [long-poll.mjs](long-poll.mjs) は、サンプルの [polling-demo.mjs](../samples/polling-demo.mjs) と同じ考え方の「待つ」部分（`createWaiter`）と、そのルート（`longPollRoute`）です。ふつうに動きますが、待つのをやめるときの片付けがありません。
 

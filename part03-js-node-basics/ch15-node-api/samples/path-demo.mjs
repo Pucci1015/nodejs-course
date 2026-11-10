@@ -12,7 +12,7 @@ show("path.resolve('/srv', 'data', '/etc', 'x')", path.resolve('/srv', 'data', '
 show("path.normalize('/a//b/./c/../d')", path.normalize('/a//b/./c/../d'));
 
 console.log('--- 分解する');
-const file = '/Users/ryota/dev/memo/2026-11-04 会議.md';
+const file = '/Users/alice/dev/memo/2026-11-04 会議.md';
 show('path.dirname(file)', path.dirname(file));
 show('path.basename(file)', path.basename(file));
 show("path.basename(file, '.md')", path.basename(file, '.md'));
@@ -27,5 +27,5 @@ show("path.isAbsolute('~/dev')", path.isAbsolute('~/dev'));
 show('path.sep / path.delimiter', [path.sep, path.delimiter]);
 
 console.log('--- Windows の形（path.win32）');
-show("path.win32.join('C:\\\\Users', 'ryota', 'a.md')", path.win32.join('C:\\Users', 'ryota', 'a.md'));
+show("path.win32.join('C:\\\\Users', 'alice', 'a.md')", path.win32.join('C:\\Users', 'alice', 'a.md'));
 show("path.posix.join('a', 'b')", path.posix.join('a', 'b'));

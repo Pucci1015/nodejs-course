@@ -16,14 +16,14 @@
 
 ## 準備
 
-第5部のサンプルと練習問題は、外部のパッケージ（Express など）を使います。教材のフォルダ（OneDrive の中）に `node_modules` を作らないように、**第5部のフォルダを `~/dev/part05` にコピーし、そこで動かします**。
+第5部のサンプルと練習問題は、外部のパッケージ（Express など）を使います。教材のフォルダは見本として残しておくため、**第5部のフォルダを `~/dev/part05` にコピーし、そこで動かします**。第23章の最初に、次を1回だけ実行します。
 
 ```sh
-$ N=~/Library/CloudStorage/OneDrive-個人用/program/nodejs
-$ bash $N/part05-express/setup-part05.sh        # ~/dev/part05 を作り、npm ci で入れる
-$ cd ~/dev/part05/ch23-express-intro/samples
-$ node hello-express.mjs
+$ bash （ここに Finder から part05-express フォルダの中の setup-part05.sh をドラッグ）
 ```
+
+- ターミナルに `bash ` と打ってから、Finder で `setup-part05.sh` をターミナルの窓にドラッグすると、ファイルの場所が入ります。そのまま Enter を押します
+- `~/dev/part05` が作られ、`npm ci` で Express などが入ります。終わったら `cd ~/dev/part05/ch23-express-intro` で第23章のフォルダに移ります
 
 - [setup-part05.sh](setup-part05.sh) は、作成先（既定 `~/dev/part05`）が既にあれば、何もせずに終わります。作り直すときは、別の名前を指定するか、中身を確かめてから自分で消してください
 - 入るパッケージとバージョンは [package.json](package.json) と [package-lock.json](package-lock.json) のとおりです（express 5.3.0、zod 4.6.7、pino 10.4.0、ws 8.22.1、cors 2.8.6、morgan 1.12.1、express-session 1.19.0、fastify 5.12.8、hono 4.13.16、@hono/node-server 2.1.6）。`npm ci` は、ロックファイルのとおりに入れます（第3部 第14章 9節）

@@ -1,4 +1,4 @@
-// 練習問題5 解答例: 時間のかかる書き出しを、Ctrl+C（SIGINT）・SIGTERM で安全に止める
+// 練習問題9 解答例: 時間のかかる書き出しを、Ctrl+C（SIGINT）・SIGTERM で安全に止める
 // 使い方: node long-task.mjs <出力ファイル> [--items 件数] [--delay ミリ秒]
 import fs from 'node:fs/promises';
 import path from 'node:path';

@@ -1,5 +1,5 @@
-// 練習問題6: Accept-Encoding を読んで、どの圧縮で返すかを決める
-// 仕様は README の練習問題6を見てください。
+// 練習問題8: Accept-Encoding を読んで、どの圧縮で返すかを決める
+// 仕様は README の練習問題8を見てください。
 // 確かめる: node --test encoding.test.mjs
 
 export function negotiateEncoding(header, available = ['br', 'gzip']) {

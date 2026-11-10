@@ -1,4 +1,4 @@
-// 練習問題2 の解答: promisify と callbackify を自分で作る
+// 練習問題5 の解答: promisify と callbackify を自分で作る
 // 確かめ方: cd ../exercises && MODULE=../solutions/promisify.mjs node --test promisify.test.mjs
 
 /** エラーファーストのコールバックの関数を、Promise を返す関数にする */

@@ -1,9 +1,9 @@
-// 練習問題5の模範解答: ステータスコードと応答の形を直したもの
+// 練習問題9の模範解答: ステータスコードと応答の形を直したもの
 // 確かめ方（exercises の中で）: bash check-design.sh ../solutions/design-api.mjs
 import express from 'express';
 import { z } from 'zod';
 import { createTasks } from '../samples/tasks-db.mjs';
-import { HttpProblem, notFound, problemHandler } from './problem.mjs'; // 追加: 問題2で作ったもの
+import { HttpProblem, notFound, problemHandler } from './problem.mjs'; // 追加: 問題5で作ったもの
 
 z.config(z.locales.ja());
 
@@ -20,7 +20,7 @@ const UpdateTask = z.strictObject({
   status: z.enum(['todo', 'doing', 'done']).optional(),
   dueDate: z.iso.date().optional(),
 });
-// 追加: limit は 1〜100 の整数だけ（練習問題4と同じ考え方）
+// 追加: limit は 1〜100 の整数だけ（練習問題6と同じ考え方）
 const Limit = z.string().regex(/^[1-9][0-9]{0,2}$/).transform(Number).pipe(z.number().max(100));
 
 /** パスの :id を数にする。数字でなければ、そのタスクは無いので 404 */

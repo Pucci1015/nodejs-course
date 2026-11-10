@@ -1,4 +1,4 @@
-// 練習問題4のテスト
+// 練習問題7のテスト
 // 使い方: node --test session.test.mjs
 //         MODULE=../solutions/session.mjs node --test session.test.mjs   （解答例で確かめる）
 // 後半のテストは、127.0.0.1 の空いているポートでサーバを起動して確かめる
@@ -23,10 +23,10 @@ test('newSessionId: 43 文字の base64url。毎回違う', () => {
 
 test('SessionStore: create・get・set・destroy', () => {
   const store = new SessionStore();
-  const id = store.create({ user: 'ryota' });
-  assert.deepEqual(store.get(id), { user: 'ryota' });
-  store.set(id, { user: 'ryota', theme: 'dark' });
-  assert.deepEqual(store.get(id), { user: 'ryota', theme: 'dark' });
+  const id = store.create({ user: 'alice' });
+  assert.deepEqual(store.get(id), { user: 'alice' });
+  store.set(id, { user: 'alice', theme: 'dark' });
+  assert.deepEqual(store.get(id), { user: 'alice', theme: 'dark' });
   store.destroy(id);
   assert.equal(store.get(id), null);
   assert.equal(store.get('no-such-id'), null);
@@ -48,10 +48,10 @@ test('SessionStore: 最後に保存してから ttlMs で切れる。切れた�
 test('SessionStore: regenerate は古い ID を消し、新しい ID を返す', () => {
   const store = new SessionStore();
   const old = store.create({ csrf: 'x' });
-  const fresh = store.regenerate(old, { user: 'ryota' });
+  const fresh = store.regenerate(old, { user: 'alice' });
   assert.notEqual(fresh, old);
   assert.equal(store.get(old), null);
-  assert.deepEqual(store.get(fresh), { user: 'ryota' });
+  assert.deepEqual(store.get(fresh), { user: 'alice' });
 });
 
 test('SessionStore: prune は切れたものを全部消し、数を返す', () => {
@@ -86,7 +86,7 @@ function app(store) {
     if (url.pathname === '/count') req.session.count = (req.session.count ?? 0) + 1;
     if (url.pathname === '/login') {
       req.regenerateSession();
-      req.session.user = 'ryota';
+      req.session.user = 'alice';
     }
     if (url.pathname === '/logout') req.destroySession();
     res.setHeader('Content-Type', 'application/json');
@@ -155,7 +155,7 @@ test('withSession: regenerateSession で ID が変わり、古い ID は使え�
     const r = await s.get('/login', `sid=${before}`);
     const after = sidOf(r);
     assert.ok(after && after !== before, 'ログインで ID が変わっていない');
-    assert.deepEqual(await r.json(), { user: 'ryota' });
+    assert.deepEqual(await r.json(), { user: 'alice' });
     assert.deepEqual(await (await s.get('/count', `sid=${before}`)).json(), { count: 1 }, '古い ID で、前のセッションが続いている');
   } finally {
     await s.close();

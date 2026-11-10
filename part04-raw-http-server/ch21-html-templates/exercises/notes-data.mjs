@@ -1,4 +1,4 @@
-// 練習問題5で使う、読書メモのデータ（buggy-views.mjs と模範解答が同じものを使う）
+// 練習問題8で使う、読書メモのデータ（buggy-views.mjs と模範解答が同じものを使う）
 export const notes = [
   { id: 1, title: 'Tom & Jerry の作り方', memo: 'R&D の話', tags: ['アニメ', '制作'], source: 'https://example.com/tom' },
   { id: 2, title: 'HTML の <p> と <div>', memo: null, tags: [], source: null },

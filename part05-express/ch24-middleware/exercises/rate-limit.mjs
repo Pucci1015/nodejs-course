@@ -1,5 +1,5 @@
-// 練習問題3: リクエストの回数を制限するミドルウェア
-// 要件は exercises/README.md の問題3です。確かめ方:
+// 練習問題5: リクエストの回数を制限するミドルウェア
+// 要件は exercises/README.md の問題5です。確かめ方:
 //   $ node --test rate-limit.test.mjs
 
 /**

@@ -1,4 +1,4 @@
-// 練習問題3のテスト
+// 練習問題6のテスト
 // 使い方: node --test views.test.mjs
 //         MODULE=../solutions/views.mjs node --test views.test.mjs   （解答例で確かめる）
 import { test } from 'node:test';

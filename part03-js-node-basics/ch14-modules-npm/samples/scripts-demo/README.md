@@ -5,7 +5,7 @@
 ```sh
 $ npm run hello                    # npm が渡す環境変数
 $ npm run build                    # prebuild → build → postbuild
-$ npm run args -- --name 山田 -v   # -- の後ろはスクリプトに渡される
+$ npm run args -- --name alice -v   # -- の後ろはスクリプトに渡される
 $ npm run path                     # PATH の先頭に node_modules/.bin が足される
 $ npm run tool                     # node_modules/.bin/my-tool を名前だけで呼ぶ
 $ npm run fail; echo $?            # スクリプトの終了コードが npm の終了コードになる

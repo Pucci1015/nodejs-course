@@ -1,5 +1,5 @@
-// 練習問題3: 受け取った JSON を、安全に混ぜる・選ぶ
-// 仕様は README の練習問題3を見てください。
+// 練習問題6: 受け取った JSON を、安全に混ぜる・選ぶ
+// 仕様は README の練習問題6を見てください。
 // 確かめる: node --test merge.test.mjs
 import { HttpError } from '../../ch17-minimal-server/solutions/app.mjs';
 

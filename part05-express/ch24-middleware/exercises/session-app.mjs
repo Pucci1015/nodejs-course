@@ -1,8 +1,8 @@
-// 練習問題6: express-session の設定と使い方のバグを直す
+// 練習問題8: express-session の設定と使い方のバグを直す
 // 買い物かごとログインのある小さなアプリです。第22章で自分で作ったセッションと同じことを、express-session で正しくしてください。
 //   $ bash check-session.sh                  （このファイルを 127.0.0.1:9318 で起動して確かめる）
 //   $ SESSION_SECRET=…（32文字以上） PORT=9318 node session-app.mjs
-// 仕様は exercises/README.md の問題6です。
+// 仕様は exercises/README.md の問題8です。
 import express from 'express';
 import session from 'express-session';
 

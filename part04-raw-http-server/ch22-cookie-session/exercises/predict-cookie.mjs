@@ -1,4 +1,4 @@
-// 練習問題1: Cookie と乱数・base64url の結果を予想する
+// 練習問題4: Cookie と乱数・base64url の結果を予想する
 // 実行する前に 14 個の結果を予想して書き出してから: node predict-cookie.mjs
 import crypto from 'node:crypto';
 import { parseCookies, serializeCookie } from '../samples/cookie-basic.mjs';

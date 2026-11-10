@@ -2,6 +2,10 @@
 
 | ファイル | 内容 | 本文の節 | ポート |
 | --- | --- | --- | --- |
+| [tasks-if.mjs](tasks-if.mjs) | 「手を動かす」の完成形。if 文を並べたタスクの API | 2 | 9183 |
+| [parse-url.mjs](parse-url.mjs) | 「手を動かす」の完成形。`req.url` を `URL` で分解する（サーバは起動しない） | 3.1 | — |
+| [routes-table.mjs](routes-table.mjs) | 「手を動かす」の完成形。ルートの表を引き、404 と 405 を分ける | 4, 5 | 9183 |
+| [mw.mjs](mw.mjs) | 「手を動かす」の完成形。ミドルウェアを `next` で順に呼ぶ | 10 | 9183 |
 | [if-router.mjs](if-router.mjs) | if 文を並べたルーティング。DELETE も 404 になってしまう | 2 | 9180 |
 | [url-parts.mjs](url-parts.mjs) | `req.url` の例を `URL` で分解する。`//` で始まるとき、`.`・`..`・`%xx`、`searchParams` の注意 | 3 | — |
 | [router.mjs](router.mjs) | いちばん簡単な Router（`SimpleRouter`）。パターンを正規表現に変え、登録した順に試す。404 と 405 | 4 | — |
@@ -9,7 +13,7 @@
 | [urlpattern-demo.mjs](urlpattern-demo.mjs) | 組み込みの `URLPattern` | 8 | — |
 | [middleware-demo.mjs](middleware-demo.mjs) | ミドルウェア（時間を測る、ヘッダを足す、ログインの確認） | 10 | 9182 |
 
-外部のパッケージは使わないので、`npm install` は不要です。サーバのサンプルは、第17章の模範解答（`../../ch17-minimal-server/solutions/`）を `import` しています。
+外部のパッケージは使わないので、`npm install` は不要です。`~/dev/part04/ch18-routing/samples` で（`cd samples` で移ってから）、次のように動かします。サーバのサンプルは、第17章の模範解答（`../../ch17-minimal-server/solutions/`）を `import` しています。
 
 ```sh
 $ node url-parts.mjs

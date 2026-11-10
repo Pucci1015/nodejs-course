@@ -1,4 +1,4 @@
-// 練習問題3: 署名付きの値を作る・確かめる
+// 練習問題6: 署名付きの値を作る・確かめる
 // テスト: node --test signed.test.mjs
 import crypto from 'node:crypto';
 

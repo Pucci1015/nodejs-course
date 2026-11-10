@@ -1,4 +1,4 @@
-// 練習問題2の模範解答: エラーを Problem Details（RFC 9457）の形にそろえる
+// 練習問題5の模範解答: エラーを Problem Details（RFC 9457）の形にそろえる
 import { ZodError } from 'zod';
 
 export const TITLES = {

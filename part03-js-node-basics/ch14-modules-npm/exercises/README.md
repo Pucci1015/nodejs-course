@@ -1,30 +1,108 @@
 # 第14章 練習問題
 
-本文（[../README.md](../README.md)）を読んでから取り組んでください。模範解答は [../solutions/README.md](../solutions/README.md) にあります。
+本文（[../README.md](../README.md)）の「手を動かす」を終えてから取り組んでください。模範解答は [../solutions/README.md](../solutions/README.md) にあります。
+この練習問題は `~/dev/part03/ch14-modules-npm/exercises/` で行います。最初に `cd exercises` で移動してください（`cd ~/dev/part03/ch14-modules-npm/exercises` と打っても構いません）。
 
-| 問題 | テーマ | 使うファイル | 本文の節 |
-| --- | --- | --- | --- |
-| 1 | 循環する import を予想する（ES Modules と CommonJS） | [cycle-esm/](cycle-esm/)、[cycle-cjs/](cycle-cjs/) | 2, 3 |
-| 2 | semver の判定を自分で作る | [semver.mjs](semver.mjs)、[semver.test.mjs](semver.test.mjs) | 8 |
-| 3 | iconv-lite で Shift_JIS の CSV を変換する | [setup-ch14.sh](setup-ch14.sh)、[convert.mjs](convert.mjs)、[check-convert.sh](check-convert.sh) | 4, 7, 9 |
-| 4 | tldts でサイトを判定する（第2部 第9章の続き） | [site.mjs](site.mjs)、[site.test.mjs](site.test.mjs) | 5, 7 |
-| 5 | 公開するパッケージの package.json を整える | [kana-lib/](kana-lib/)、[check-kana-lib.sh](check-kana-lib.sh) | 5, 6, 12 |
-| 6 | 依存関係を調べ、危険に気付く | [setup-ch14.sh](setup-ch14.sh) で作る `~/dev/ch14/deps` | 7, 9, 12 |
+| 問題 | 種類 | テーマ | 使うファイル | 本文の節 |
+| --- | --- | --- | --- | --- |
+| 1 | 基本 | 1つのファイルをモジュールに分ける | [cart-all.mjs](cart-all.mjs)、[cart.mjs](cart.mjs)、[cart-main.mjs](cart-main.mjs)、[cart.test.mjs](cart.test.mjs) | 2 |
+| 2 | 基本 | CommonJS で書き直す | [cart.cjs](cart.cjs)、[cart-cjs.test.mjs](cart-cjs.test.mjs) | 3, 4 |
+| 3 | 基本 | npm scripts を書く | [scripts-practice/](scripts-practice/)、[check-scripts.sh](check-scripts.sh) | 6, 10 |
+| 4 | 基本 | 循環する import を予想する（調べる問題） | [cycle-esm/](cycle-esm/)、[cycle-cjs/](cycle-cjs/) | 2, 3 |
+| 5 | 応用 | iconv-lite で Shift_JIS の CSV を変換する | [packages/](packages/)（`convert.mjs`）、[check-convert.sh](check-convert.sh) | 4, 7, 9 |
+| 6 | 応用 | tldts でサイトを判定する（第2部 第9章の続き） | [packages/](packages/)（`site.mjs`）、[site.test.mjs](site.test.mjs) | 5, 7 |
+| 7 | 応用 | 依存関係を調べ、危険に気付く（調べる問題） | [deps/](deps/) | 7, 9, 12 |
+| 8 | 発展 | semver の判定を自分で作る | [semver.mjs](semver.mjs)、[semver.test.mjs](semver.test.mjs) | 8 |
+| 9 | 発展 | 公開するパッケージの package.json を整える | [kana-lib/](kana-lib/)、[check-kana-lib.sh](check-kana-lib.sh) | 5, 6, 12 |
 
-問題3・4・6 は npm でパッケージを入れるので、教材のフォルダ（OneDrive）ではなく `~/dev/ch14` で作業します。最初に1回だけ、練習用のフォルダを作ってください。
+**発展**（8・9）は、少し長めの問題です。できなくても次の章に進んでかまいません。
 
-```sh
-$ bash setup-ch14.sh          # ~/dev/ch14 を作る（既にあれば何もしない）
-作りました: /Users/ryota/dev/ch14
-  deps/README.md
-  ...
-```
+- 問題5〜7 は `npm install` でパッケージをインターネットから入れるので、インターネットにつながっている必要があります。`npm install` は、`packages` や `deps` のフォルダの中に `node_modules` を作ります。`~/dev/part03` の中なので、教材のフォルダは汚れません。
+- 確認スクリプトは、`bash check-○○.sh` のように `bash` を付けて動かします（第2部と同じです）。
 
-npm のレジストリに接続するので、インターネットにつながっている必要があります。
+## テストの使い方
+
+関数を作る問題は、`node --test ○○.test.mjs` ですべてのテストが通れば完成です（第11章と同じです）。確認スクリプトの問題は、`bash check-○○.sh` で「すべて成功しました」と表示されれば完成です。
 
 ---
 
-## 問題1 循環する import を予想する
+## 基本
+
+### 問題1 1つのファイルをモジュールに分ける
+
+[cart-all.mjs](cart-all.mjs) は、買い物かごの合計を計算して表示するプログラムです。計算の関数（`subtotal`・`withTax`・`formatYen`）と、表示する所が、1つのファイルに書いてあります。
+
+```sh
+$ node cart-all.mjs
+小計: 2,280円
+税込: 2,508円
+軽減税率なら: 2,462円
+```
+
+これを、計算の部品と、表示する所の2つのファイルに分けてください（`cart-all.mjs` は変えません）。
+
+- **[cart.mjs](cart.mjs)**: 3つの関数を移す。`subtotal` と `withTax` は**名前付き**で、`formatYen` は **default** で export する。このファイルを import しただけでは、何も表示しない
+- **[cart-main.mjs](cart-main.mjs)**: `cart.mjs` から3つを import して、`cart-all.mjs` と同じ表示をする。計算の関数は、このファイルには書かない
+
+```sh
+$ node cart-main.mjs
+小計: 2,280円
+...
+$ node --test cart.test.mjs
+ℹ pass 5
+ℹ fail 0
+```
+
+ヒント: 本文2.1節の「手を動かす」の `greet.mjs` と `use-greet.mjs` と同じ形です。default と名前付きを一緒に import するときは、`import formatYen, { subtotal, withTax } from './cart.mjs';` と書きます。
+
+### 問題2 CommonJS で書き直す
+
+問題1の `cart.mjs` と同じ3つの関数を、CommonJS で [cart.cjs](cart.cjs) に書いてください。
+
+- 3つの関数を `module.exports = { subtotal, withTax, formatYen };` の形で外に見せる
+- `require('./cart.cjs')` でも、ES Modules の `import cart from './cart.cjs'` でも、`import { subtotal } from './cart.cjs'` でも使える
+
+```sh
+$ node --test cart-cjs.test.mjs
+ℹ pass 5
+ℹ fail 0
+```
+
+ヒント: 関数の中身は問題1と同じです。違うのは、`export` を書かずに、最後に `module.exports` に入れることだけです（本文3節）。
+
+### 問題3 npm scripts を書く
+
+[scripts-practice/](scripts-practice/) には、名前を受け取ってあいさつする `hello.mjs` と、そのテスト `hello.test.mjs` があります（どちらも完成しています）。`package.json` の `"scripts": {}` の中に、次の5つを書いてください。
+
+| 名前 | 実行するコマンド | 打ち方 |
+| --- | --- | --- |
+| `start` | `node hello.mjs` | `npm start` |
+| `greet` | `node hello.mjs alice` | `npm run greet` |
+| `test` | `node --test` | `npm test` |
+| `pretest` | `echo テストを始めます` | `npm test` の前に、自動で実行される |
+| `check` | `npm test && npm start` | `npm run check` |
+
+```sh
+$ cd scripts-practice
+$ npm start
+
+> scripts-practice@1.0.0 start
+> node hello.mjs
+
+こんにちは、world
+$ cd ..
+$ bash check-scripts.sh
+[OK] 1. npm start で、こんにちは、world
+...
+すべて成功しました
+```
+
+ヒント:
+- `"scripts": { "start": "node hello.mjs", "greet": "..." }` のように、`"名前": "コマンド"` をカンマで区切って並べます。最後の項目の後ろには、カンマを付けません（JSON の決まり）。
+- `echo 文字` は、文字を表示するコマンドです。`&&` は「前のコマンドが成功したら、次のコマンドを実行する」という意味です。
+- `npm run check` の中の `npm test` でも、`pretest` は自動で実行されます。
+
+### 問題4 循環する import を予想する（調べる問題）
 
 `a` が `b` を import し、`b` が `a` を import する、という**循環**は、大きなプロジェクトでは知らないうちに起きます。[cycle-esm/](cycle-esm/) と [cycle-cjs/](cycle-cjs/) には、同じ形の循環を ES Modules と CommonJS で書いたものがあります。
 
@@ -43,7 +121,117 @@ $ node cycle-cjs/main.cjs
 4. CommonJS 版の最後に出る警告は、何を教えてくれているのか
 5. 循環を無くすには、どう直せばよいか（一般的な方法を1つ）
 
-## 問題2 semver の判定を自分で作る
+---
+
+## 応用
+
+### 問題5 iconv-lite で Shift_JIS の CSV を変換する
+
+第2部 第7章で、Node.js だけでは Shift_JIS を**書けない**ことを見ました。そこで予告したとおり、iconv-lite を使って、Windows の Excel と CSV をやり取りする CLI を作ります。
+
+[packages/](packages/) フォルダに移って、iconv-lite をインストールします。
+
+```sh
+$ cd packages
+$ npm install iconv-lite
+```
+
+`npm install` の後で、`package.json`・`package-lock.json`・`node_modules` を見て、次の問いに答えてください。
+
+1. `package.json` の `dependencies` には何が書かれたか。その範囲は、どのバージョンまでを受け入れるか（本文8節の「0.x は特別」）
+2. `node_modules` には、iconv-lite のほかに何が入ったか。それはなぜか（`npm ls --all`、`npm explain パッケージ名`）
+3. iconv-lite は ES Modules か CommonJS か（iconv-lite の `package.json` を見る）。`import iconv from 'iconv-lite'` と書けるのはなぜか（本文4.2節）
+
+次に、[packages/convert.mjs](packages/convert.mjs) を完成させてください。`packages` フォルダで作業します。
+
+- `node convert.mjs to-utf8 入力 出力`: Shift_JIS の CSV を UTF-8 にする。改行は LF にする。BOM は付けない
+- `node convert.mjs to-sjis 入力 出力`: UTF-8 の CSV を Shift_JIS にする（Windows の Excel で開くため）
+  - 入力の先頭に BOM があれば取る。改行は CRLF にする
+  - Mac で打つと出る `〜`（U+301C）は `～`（U+FF5E）に、`−`（U+2212）は `－`（U+FF0D）に置き換える
+  - それでも Shift_JIS にできない文字があれば、**すべて**を「`3行目 1文字目: 𠮷（U+20BB7）は Shift_JIS にできません`」の形で標準エラー出力に書き、終了コード 1 で終わる。出力ファイルは作らない
+- 出力先のフォルダが無ければ作る
+
+```sh
+$ node convert.mjs to-utf8 data/items-sjis.csv out/items.csv
+$ node convert.mjs to-sjis data/order-utf8.csv out/order.csv
+3行目 1文字目: 𠮷（U+20BB7）は Shift_JIS にできません
+$ echo $?
+1
+$ cd ..
+$ bash check-convert.sh
+[OK] 1. to-utf8 が成功する（終了コード 0）
+...
+すべて成功しました
+```
+
+ヒント:
+
+- Windows の「Shift_JIS」は、正確には Microsoft が広げた **CP932**（Windows-31J）です。`①` や `髙` は CP932 にしかありません。iconv-lite に渡す名前を確かめてください
+- iconv-lite は、表せない文字を**黙って `?` にします**。どう見分ければよいでしょうか
+- `𠮷` は、JavaScript の文字列では2つ分（サロゲートペア）です。「1文字目」と数えるには（第11章1節）
+
+最後に、`packages` フォルダで、`package-lock.json` を残したまま `node_modules` を消し（`rm -rf node_modules`。`-rf` はフォルダを中身ごと消すオプションなので、打つ前に場所を確かめる）、`npm ci` で作り直してください。`npm install` との違いを、本文9節の言葉で説明します。
+
+### 問題6 tldts でサイトを判定する
+
+第2部 第9章の練習問題6では、Public Suffix List のごく一部を自分で持って `sameSite` を作りました。そのとき「実際のアプリでは、一覧を更新し続けているライブラリを使う」と書きました。ここでは、そのライブラリ **tldts** を使います。
+
+問題5と同じ [packages/](packages/) フォルダに入れます。
+
+```sh
+$ cd packages
+$ npm install tldts
+$ cd ..
+```
+
+[packages/site.mjs](packages/site.mjs) の2つの関数を、tldts を使って完成させてください。
+
+- `registrableDomain(url)`: URL の登録できるドメイン。IP アドレスと `localhost` は、ホスト名そのもの（IPv6 は `[` `]` を外す）。URL として読めなければ `TypeError`
+- `sameSite(a, b)`: スキームと登録できるドメインが同じなら `true`
+
+テストは、この `exercises` フォルダで実行します。テストは `packages/site.mjs` を読み込みます。
+
+```sh
+$ node --test site.test.mjs
+ℹ pass 6
+ℹ fail 0
+```
+
+`site.mjs` の中の `import ... from 'tldts'` は、テストのファイルの場所（`exercises`）ではなく、`site.mjs` のある `packages` から `node_modules` を探します（本文5.2節）。
+
+できたら、次の問いに答えてください。
+
+1. tldts の `getDomain('alice.github.io')` を、オプション無しで呼ぶと何が返るか。テストの「github.io」の項目を通すには何が必要だったか。その違いは、Public Suffix List のどの部分の違いか（tldts の README と、https://publicsuffix.org/list/ を見る）
+2. 第2部 第9章の練習問題6で自分で作った `sameSite`（Public Suffix List のごく一部だけを持つもの）は、`https://www.city.kawasaki.jp` と `https://www.kawasaki.jp` をどう判定しそうか。tldts ではどうか。どちらが正しいか
+3. tldts のバージョンを上げずに1年使い続けると、どんな問題が起きうるか。それに気付くには、どのコマンドを使うか
+
+### 問題7 依存関係を調べ、危険に気付く（調べる問題）
+
+[deps/](deps/) の `package.json` には、わざと問題のある依存パッケージを入れてあります。**`npm install` する前に** `package.json` と `local/hello-postinstall/` の中身を読んでから、インストールしてください。
+
+```sh
+$ cd deps
+$ cat package.json local/hello-postinstall/package.json local/hello-postinstall/postinstall.cjs     # cat はファイルの中身を表示する
+$ npm install
+```
+
+次の問いに、コマンドの出力を根拠にして答えてください。
+
+1. **install スクリプト**: `npm install` の後、フォルダに `POSTINSTALL-RAN.txt` はできたか。npm はどんな警告を出したか。`node_modules` と `POSTINSTALL-RAN.txt` を消して、`npm ci --ignore-scripts` と `npm ci --strict-allow-scripts` でそれぞれ試すと、どうなるか
+2. **許可の記録**: `npm install-scripts ls` で何が表示されるか。`npm install-scripts approve hello-postinstall` を実行すると、`package.json` はどう変わるか。チームで開発するとき、この記録を Git に入れる意味は何か
+3. **入れ子**: `npm ls --all` を実行する。`ms` が2つの版で入っているのはなぜか。それぞれ `node_modules` のどこにあるか（`npm explain ms`）
+4. **ロックファイル**: `package-lock.json` の `node_modules/ms` の項目にある `resolved` と `integrity` は何のためにあるか
+5. **脆弱性**: `npm audit` は何を報告するか。`npm audit fix`（`--force` なし）で直らないのはなぜか。どう直すのが安全か
+6. **食い違い**: `package.json` の `dependencies` に `"kleur": "^4.1.0"` を手で書き足し、`npm install` をせずに `npm ci` を実行すると、どうなるか。それが CI で役に立つのはなぜか（試した後、書き足した行は消してください）
+7. **古さ**: `npm outdated` は何を表示するか。終了コードは何か（`echo $?`）
+
+最後に、自分がこれから npm でパッケージを入れるときに「入れる前に確かめること」を、5つ以上の箇条書きにまとめてください。
+
+---
+
+## 発展
+
+### 問題8 semver の判定を自分で作る
 
 npm は、`package.json` の範囲（`^1.2.3` など）を満たすバージョンを選ぶのに、`semver` というパッケージを使っています。その中心の部分を、[semver.mjs](semver.mjs) に自分で作ってください。npm の semver パッケージは使いません。
 
@@ -67,83 +255,7 @@ $ node --test semver.test.mjs
 - 範囲は、まず「比較の組」に直すと考えやすくなります。たとえば `^1.2.3` は `>=1.2.3 <2.0.0-0`、`~1.2` は `>=1.2.0 <1.3.0-0`、`1.x` は `>=1.0.0 <2.0.0-0` です。上の境目が `2.0.0` ではなく `2.0.0-0`（`2.0.0` のどのプレリリースよりも小さい版）なのはなぜか、考えてみてください
 - `^` は「一番左の 0 でない数字を変えない」です。`^0.2.3` と `^0.0.3` に注意
 
-## 問題3 iconv-lite で Shift_JIS の CSV を変換する
-
-第2部 第7章で、Node.js だけでは Shift_JIS を**書けない**ことを見ました。そこで予告したとおり、iconv-lite を使って、Windows の Excel と CSV をやり取りする CLI を作ります。
-
-```sh
-$ cd ~/dev/ch14/packages
-$ cp <この教材>/part03-js-node-basics/ch14-modules-npm/exercises/convert.mjs .
-$ npm install iconv-lite
-```
-
-`npm install` の後で、`package.json`・`package-lock.json`・`node_modules` を見て、次の問いに答えてください。
-
-1. `package.json` の `dependencies` には何が書かれたか。その範囲は、どのバージョンまでを受け入れるか（本文8節の「0.x は特別」）
-2. `node_modules` には、iconv-lite のほかに何が入ったか。それはなぜか（`npm ls --all`、`npm explain パッケージ名`）
-3. iconv-lite は ES Modules か CommonJS か（iconv-lite の `package.json` を見る）。`import iconv from 'iconv-lite'` と書けるのはなぜか（本文4.2節）
-
-次に、[convert.mjs](convert.mjs) を完成させてください。
-
-- `node convert.mjs to-utf8 入力 出力`: Shift_JIS の CSV を UTF-8 にする。改行は LF にする。BOM は付けない
-- `node convert.mjs to-sjis 入力 出力`: UTF-8 の CSV を Shift_JIS にする（Windows の Excel で開くため）
-  - 入力の先頭に BOM があれば取る。改行は CRLF にする
-  - Mac で打つと出る `〜`（U+301C）は `～`（U+FF5E）に、`−`（U+2212）は `－`（U+FF0D）に置き換える
-  - それでも Shift_JIS にできない文字があれば、**すべて**を「`3行目 1文字目: 𠮷（U+20BB7）は Shift_JIS にできません`」の形で標準エラー出力に書き、終了コード 1 で終わる。出力ファイルは作らない
-- 出力先のフォルダが無ければ作る
-
-```sh
-$ node convert.mjs to-utf8 data/members-sjis.csv out/members.csv
-$ node convert.mjs to-sjis data/order-utf8.csv out/order.csv
-3行目 1文字目: 𠮷（U+20BB7）は Shift_JIS にできません
-$ echo $?
-1
-$ bash <この教材>/part03-js-node-basics/ch14-modules-npm/exercises/check-convert.sh ~/dev/ch14/packages
-[OK] 1. to-utf8 が成功する（終了コード 0）
-...
-すべて成功しました
-```
-
-ヒント:
-
-- Windows の「Shift_JIS」は、正確には Microsoft が広げた **CP932**（Windows-31J）です。`①` や `髙` は CP932 にしかありません。iconv-lite に渡す名前を確かめてください
-- iconv-lite は、表せない文字を**黙って `?` にします**。どう見分ければよいでしょうか
-- `𠮷` は、JavaScript の文字列では2つ分（サロゲートペア）です。「1文字目」と数えるには（第11章1節）
-
-最後に、`package-lock.json` を残したまま `node_modules` を消し、`npm ci` で作り直してください。`npm install` との違いを、本文9節の言葉で説明します。
-
-## 問題4 tldts でサイトを判定する
-
-第2部 第9章の練習問題6では、Public Suffix List のごく一部を自分で持って `sameSite` を作りました。そのとき「実際のアプリでは、一覧を更新し続けているライブラリを使う」と書きました。ここでは、そのライブラリ **tldts** を使います。
-
-```sh
-$ cd ~/dev/ch14/packages
-$ cp <この教材>/part03-js-node-basics/ch14-modules-npm/exercises/site.mjs .
-$ npm install tldts
-```
-
-[site.mjs](site.mjs) の2つの関数を、tldts を使って完成させてください。
-
-- `registrableDomain(url)`: URL の登録できるドメイン。IP アドレスと `localhost` は、ホスト名そのもの（IPv6 は `[` `]` を外す）。URL として読めなければ `TypeError`
-- `sameSite(a, b)`: スキームと登録できるドメインが同じなら `true`
-
-テストは、この `exercises` フォルダから、`~/dev` の `site.mjs` を指定して実行します。
-
-```sh
-$ MODULE=~/dev/ch14/packages/site.mjs node --test site.test.mjs
-ℹ pass 6
-ℹ fail 0
-```
-
-`site.mjs` の中の `import ... from 'tldts'` は、テストのファイルの場所ではなく、`site.mjs` のある `~/dev/ch14/packages` から `node_modules` を探します（本文5.2節）。
-
-できたら、次の問いに答えてください。
-
-1. tldts の `getDomain('alice.github.io')` を、オプション無しで呼ぶと何が返るか。テストの「github.io」の項目を通すには何が必要だったか。その違いは、Public Suffix List のどの部分の違いか（tldts の README と、https://publicsuffix.org/list/ を見る）
-2. 第2部 第9章の模範解答（`part02-web-basics/ch09-browser/solutions/origin.mjs`）の `sameSite` は、`https://www.city.kawasaki.jp` と `https://www.kawasaki.jp` をどう判定するか。tldts ではどうか。どちらが正しいか
-3. tldts のバージョンを上げずに1年使い続けると、どんな問題が起きうるか。それに気付くには、どのコマンドを使うか
-
-## 問題5 公開するパッケージの package.json を整える
+### 問題9 公開するパッケージの package.json を整える
 
 [kana-lib/](kana-lib/) は、ひらがな・カタカナ・ローマ字を変換する小さなライブラリです。npm に公開する前の状態ですが、`package.json` に問題があります（実際に公開はしません）。
 
@@ -180,25 +292,3 @@ $ bash check-kana-lib.sh
 ヒント: `test/kana.test.mjs` は、パッケージの中から自分の名前（`kana-lib`）で import しています。これは**自己参照**と呼ばれ、`package.json` に `exports` があるときだけ使えます。
 
 考えてみよう: パッケージに入れるファイルを決める方法には、入れるものを書く `files`（許可リスト）と、入れないものを書く `.npmignore`（拒否リスト）があります。`.env` のような秘密の情報を守るには、どちらが安全でしょうか。
-
-## 問題6 依存関係を調べ、危険に気付く
-
-`~/dev/ch14/deps` の `package.json` には、わざと問題のある依存パッケージを入れてあります。**`npm install` する前に** `package.json` と `local/hello-postinstall/` の中身を読んでから、インストールしてください。
-
-```sh
-$ cd ~/dev/ch14/deps
-$ cat package.json local/hello-postinstall/package.json local/hello-postinstall/postinstall.cjs
-$ npm install
-```
-
-次の問いに、コマンドの出力を根拠にして答えてください。
-
-1. **install スクリプト**: `npm install` の後、フォルダに `POSTINSTALL-RAN.txt` はできたか。npm はどんな警告を出したか。`node_modules` と `POSTINSTALL-RAN.txt` を消して、`npm ci --ignore-scripts` と `npm ci --strict-allow-scripts` でそれぞれ試すと、どうなるか
-2. **許可の記録**: `npm install-scripts ls` で何が表示されるか。`npm install-scripts approve hello-postinstall` を実行すると、`package.json` はどう変わるか。チームで開発するとき、この記録を Git に入れる意味は何か
-3. **入れ子**: `npm ls --all` を実行する。`ms` が2つの版で入っているのはなぜか。それぞれ `node_modules` のどこにあるか（`npm explain ms`）
-4. **ロックファイル**: `package-lock.json` の `node_modules/ms` の項目にある `resolved` と `integrity` は何のためにあるか
-5. **脆弱性**: `npm audit` は何を報告するか。`npm audit fix`（`--force` なし）で直らないのはなぜか。どう直すのが安全か
-6. **食い違い**: `package.json` の `dependencies` に `"kleur": "^4.1.0"` を手で書き足し、`npm install` をせずに `npm ci` を実行すると、どうなるか。それが CI で役に立つのはなぜか（試した後、書き足した行は消してください）
-7. **古さ**: `npm outdated` は何を表示するか。終了コードは何か（`echo $?`）
-
-最後に、自分がこれから npm でパッケージを入れるときに「入れる前に確かめること」を、5つ以上の箇条書きにまとめてください。

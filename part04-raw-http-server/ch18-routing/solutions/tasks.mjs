@@ -1,4 +1,4 @@
-// 練習問題4 解答例: タスクの API を、Router（問題3）で書き直したもの
+// 練習問題9 解答例: タスクの API を、Router（問題6）で書き直したもの
 // 使い方: node tasks.mjs   → http://127.0.0.1:9184/api/tasks
 import http from 'node:http';
 import { createApp, HttpError } from '../../ch17-minimal-server/solutions/app.mjs';

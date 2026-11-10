@@ -1,4 +1,4 @@
-// 練習問題5の模範解答: ルートの層。HTTP を読んで確かめ、サービスを呼び、応答の形にする
+// 練習問題8の模範解答: ルートの層。HTTP を読んで確かめ、サービスを呼び、応答の形にする
 import express from 'express';
 import { z } from 'zod';
 import { HttpProblem } from '../../lib/problem.mjs';

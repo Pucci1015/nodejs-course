@@ -4,26 +4,110 @@
 
 | ファイル | 内容 |
 | --- | --- |
-| [promisify.mjs](promisify.mjs) | 問題2: `promisify` と `callbackify` |
-| [map-limit.mjs](map-limit.mjs) | 問題3: `mapLimit` |
-| [retry.mjs](retry.mjs) | 問題4: `retry` |
-| [batch.mjs](batch.mjs) | 問題5: バグを直した `importUsers`・`loadDashboard`・`saveAll` |
-| [fetch-all.mjs](fetch-all.mjs) | 問題6: 調子の悪い API からまとめて取ってくる CLI（同じフォルダの `map-limit.mjs` と `retry.mjs` を使う） |
+| [timers.mjs](timers.mjs) | 問題1: `delay`・`delayFail`・`valueOr` |
+| [total.mjs](total.mjs) | 問題2: 合計が 0 になるバグを直した `totalPrice` |
+| [prices.mjs](prices.mjs) | 問題3: `getPricesSerial`・`getPricesParallel`・`getPricesSettled` |
+| [promisify.mjs](promisify.mjs) | 問題5: `promisify` と `callbackify` |
+| [batch.mjs](batch.mjs) | 問題6: バグを直した `importUsers`・`loadDashboard`・`saveAll` |
+| [retry.mjs](retry.mjs) | 問題7: `retry` |
+| [map-limit.mjs](map-limit.mjs) | 問題8: `mapLimit` |
+| [fetch-all.mjs](fetch-all.mjs) | 問題9: 調子の悪い API からまとめて取ってくる CLI（同じフォルダの `map-limit.mjs` と `retry.mjs` を使う） |
 
-模範解答は、`exercises` フォルダで次のように確かめられます。
+模範解答のテストは、`~/dev/part03/ch12-async/exercises` で次のように実行できます。`MODULE=ファイル` を前に付けると、テストが読み込むファイルを、自分のものから模範解答に切り替えられます。
 
 ```sh
-$ cd ../exercises
+$ MODULE=../solutions/timers.mjs node --test timers.test.mjs
+$ MODULE=../solutions/total.mjs node --test total.test.mjs
+$ MODULE=../solutions/prices.mjs node --test prices.test.mjs
 $ MODULE=../solutions/promisify.mjs node --test promisify.test.mjs
-$ MODULE=../solutions/map-limit.mjs node --test map-limit.test.mjs
-$ MODULE=../solutions/retry.mjs node --test retry.test.mjs
 $ MODULE=../solutions/batch.mjs node --test batch.test.mjs
+$ MODULE=../solutions/retry.mjs node --test retry.test.mjs
+$ MODULE=../solutions/map-limit.mjs node --test map-limit.test.mjs
 $ TARGET=../solutions/fetch-all.mjs bash check-fetch-all.sh
 ```
 
 ---
 
-## 問題1 表示される順番を予想する
+## 問題1 Promise を返す関数を作る
+
+```js
+export function delay(ms, value) {
+  return new Promise((resolve) => setTimeout(() => resolve(value), ms));
+}
+
+export function delayFail(ms, message) {
+  return new Promise((resolve, reject) => setTimeout(() => reject(new Error(message)), ms));
+}
+
+export async function valueOr(promise, fallback) {
+  try {
+    return await promise;
+  } catch {
+    return fallback;
+  }
+}
+```
+
+- `delay` の `return` を忘れると、関数は `undefined` を返し、テスト「delay は Promise を返す」が失敗します。
+- `valueOr` で `return promise;`（`await` なし）と書くと、`try` を抜けた後で失敗するので、`catch` に来ません（本文5.2節）。`valueOr` が返す Promise がそのまま失敗し、テスト「失敗したら fallback を返す」が失敗します。
+- `catch {` のように `(err)` を省くと、「エラーの中身は使わない」という意味になります。
+
+## 問題2 合計が 0 になるバグを直す
+
+```js
+export async function totalPrice(ids, getPrice) {
+  let total = 0;
+  for (const id of ids) {
+    const price = await getPrice(id);
+    total += price;
+  }
+  return total;
+}
+```
+
+`forEach` は、渡した `async` 関数が返す Promise を捨てて、すぐに次へ進みます（本文7.1節）。そのため `return total` の時点では、まだどの値段も届いておらず、`total` は 0 のままでした。値段は 100ms 後に足されますが、もう誰も見ていません。
+
+さらに、`getPrice` が失敗しても `totalPrice` は失敗せず、その失敗は unhandled rejection になります（テスト「問い合わせに失敗したら」）。`for...of` と `await` なら、失敗はその場で例外になり、`totalPrice` が返す Promise の失敗として呼んだ側に届きます。
+
+直す前のファイルでテストを動かすと、4個のうち3個が失敗します（`MODULE=./buggy-total.mjs node --test total.test.mjs`）。
+
+> 問い合わせを同時に行うなら `Promise.all` でも直せます（問題3）。合計を出すだけなら、`const prices = await Promise.all(ids.map((id) => getPrice(id)));` の後に `reduce` で足します。
+
+## 問題3 直列・並行・allSettled で値段を集める
+
+```js
+export async function getPricesSerial(ids, getPrice) {
+  const result = [];
+  for (const id of ids) {
+    result.push(await getPrice(id));
+  }
+  return result;
+}
+
+export async function getPricesParallel(ids, getPrice) {
+  return Promise.all(ids.map((id) => getPrice(id)));
+}
+
+export async function getPricesSettled(ids, getPrice) {
+  const settled = await Promise.allSettled(ids.map((id) => getPrice(id)));
+  const prices = {};
+  const failed = [];
+  settled.forEach((r, i) => {
+    if (r.status === 'fulfilled') {
+      prices[ids[i]] = r.value;
+    } else {
+      failed.push(ids[i]);
+    }
+  });
+  return { prices, failed };
+}
+```
+
+- テストの `getPrice` は、apple が 120ms、bread が 60ms、milk が 30ms かかります。直列なら 210ms、並行なら 120ms です。
+- `Promise.all` の結果は、終わった順（milk、bread、apple）ではなく、**渡した配列の順**です（本文6.2節）。
+- `getPricesSettled` の `forEach` は、Promise を待つ必要が無い（もう全部終わっている）ので、使って構いません。
+
+## 問題4 表示される順番を予想する
 
 ```
 $ node order.mjs
@@ -63,7 +147,7 @@ E: forEach 300
 
 `E` の行が「バラバラの場所」に出るのは、`forEach` の中の処理が、それ以降の `await` と**並行に**動いているからです。本当に順番に処理したいなら `for...of`、同時に処理して全部を待ちたいなら `await Promise.all(list.map(async ...))` と書きます。
 
-## 問題2 promisify と callbackify
+## 問題5 promisify と callbackify
 
 [promisify.mjs](promisify.mjs) を見てください。要点は次のとおりです。
 
@@ -86,61 +170,7 @@ E: forEach 300
 
    模範解答は `queueMicrotask` でチェーンの外に出してから呼んでいます。コールバックが投げた例外は、普通の同期の例外と同じく uncaughtException になります。これは Node.js の `util.callbackify` と同じ振る舞いです。
 
-## 問題3 mapLimit
-
-[map-limit.mjs](map-limit.mjs) を見てください。
-
-「`limit` 個ずつの組に分けて `Promise.all`」という書き方は、分かりやすいのですが不合格です。
-
-```js
-// 不合格: 組の中で一番遅いものを、組の全員が待つ
-for (let i = 0; i < items.length; i += limit) {
-  results.push(...(await Promise.all(items.slice(i, i + limit).map(fn))));
-}
-```
-
-`[1000, 10, 10, 10, 10, 10]` を `limit: 3` で処理すると、この書き方では 1010ms かかりますが、模範解答は「空いた枠にすぐ次を入れる」ので約1000msで終わります（テスト「1つ終わったら、すぐ次を始める」）。
-
-ほかのポイントです。
-
-- **結果は `results[index] = value`**: `push` すると終わった順になります
-- **`Promise.resolve().then(() => fn(...))`**: `fn` が async 関数でなく、同期で例外を投げても、reject として受け取れます
-- **失敗したら `failed = true`**: 以降は `launch` が新しいものを始めません。すでに動いているものは止められません（止めたいなら、`fn` に signal を渡す設計にします。問題6の CLI はそうしています）
-- **`signal.addEventListener('abort', …, { once: true })`**: 中止されたら、動いているものの終わりを待たずに、すぐ rejected にします
-
-もう1つの書き方として、「`limit` 個の**作業者**を作り、それぞれが共有のキューから次の要素を取り出し続ける」形もあります。
-
-```js
-const workers = Array.from({ length: Math.min(limit, list.length) }, async () => {
-  while (next < list.length && !failed) {
-    const index = next++;
-    results[index] = await fn(list[index], index);
-  }
-});
-await Promise.all(workers);
-```
-
-こちらの方が短く、`p-limit` や `p-map` などのパッケージ（第14章）の中身もおおむねこの考え方です。ただ、失敗したときに他の作業者を止める処理や、`signal` への対応を足すと、長さはあまり変わりません。
-
-## 問題4 retry
-
-[retry.mjs](retry.mjs) を見てください。`for` のループで `attempt` を数え、`try`/`catch` で失敗を受け取って、やり直すかどうかを決めます。
-
-つまずきやすいのは、**「中止された理由」を正しく伝える**部分です。
-
-- `node:timers/promises` の `setTimeout` や `fetch` は、signal で中止されると、`signal.reason` ではなく、`name` が `AbortError` のエラーで rejected になります
-- そのため、1回の試行が時間切れになったとき、`fn` から返ってくるのは `AbortError` です。模範解答は `attemptSignal.aborted` を見て、`attemptSignal.reason`（`AbortSignal.timeout` なら `TimeoutError`）に置き換えています
-- 待っている途中で全体が中止されたときも同じです。`wait` 関数の中で `signal.reason` に置き換えています
-- `catch` の最初に `signal?.throwIfAborted()` を置いているのは、「全体が中止されたせいで失敗した試行」をやり直さないためです
-
-ジッター（問題の最後の追加課題）は、`delay` を計算した後に1行足すだけです。
-
-```js
-const delay = Math.min(maxMs, baseMs * factor ** (attempt - 1));
-const actual = jitter ? Math.random() * delay : delay; // 「full jitter」と呼ばれるやり方
-```
-
-## 問題5 非同期のバグを直す
+## 問題6 非同期のバグを直す
 
 [batch.mjs](batch.mjs) を見てください。`// 修正:` のコメントが付いた所が直した場所です。
 
@@ -161,15 +191,69 @@ const actual = jitter ? Math.random() * delay : delay; // 「full jitter」と�
 
 本物のデータベースでは、さらに別のプロセスが同時に同じメールアドレスを登録するかもしれません。最終的には、データベースの**一意制約**（第6部）で守るのが正解です。アプリの中の確認は「なるべく早く気付くため」のものです。
 
-## 問題6 調子の悪い API からまとめて取ってくる CLI
+## 問題7 retry
+
+[retry.mjs](retry.mjs) を見てください。`for` のループで `attempt` を数え、`try`/`catch` で失敗を受け取って、やり直すかどうかを決めます。
+
+つまずきやすいのは、**「中止された理由」を正しく伝える**部分です。
+
+- `node:timers/promises` の `setTimeout` や `fetch` は、signal で中止されると、`signal.reason` ではなく、`name` が `AbortError` のエラーで rejected になります
+- そのため、1回の試行が時間切れになったとき、`fn` から返ってくるのは `AbortError` です。模範解答は `attemptSignal.aborted` を見て、`attemptSignal.reason`（`AbortSignal.timeout` なら `TimeoutError`）に置き換えています
+- 待っている途中で全体が中止されたときも同じです。`wait` 関数の中で `signal.reason` に置き換えています
+- `catch` の最初に `signal?.throwIfAborted()` を置いているのは、「全体が中止されたせいで失敗した試行」をやり直さないためです
+
+ジッター（問題の最後の追加課題）は、`delay` を計算した後に1行足すだけです。
+
+```js
+const delay = Math.min(maxMs, baseMs * factor ** (attempt - 1));
+const actual = jitter ? Math.random() * delay : delay; // 「full jitter」と呼ばれるやり方
+```
+
+## 問題8 mapLimit
+
+[map-limit.mjs](map-limit.mjs) を見てください。
+
+「`limit` 個ずつの組に分けて `Promise.all`」という書き方は、分かりやすいのですが不合格です。
+
+```js
+// 不合格: 組の中で一番遅いものを、組の全員が待つ
+for (let i = 0; i < items.length; i += limit) {
+  results.push(...(await Promise.all(items.slice(i, i + limit).map(fn))));
+}
+```
+
+`[1000, 10, 10, 10, 10, 10]` を `limit: 3` で処理すると、この書き方では 1010ms かかりますが、模範解答は「空いた枠にすぐ次を入れる」ので約1000msで終わります（テスト「1つ終わったら、すぐ次を始める」）。
+
+ほかのポイントです。
+
+- **結果は `results[index] = value`**: `push` すると終わった順になります
+- **`Promise.resolve().then(() => fn(...))`**: `fn` が async 関数でなく、同期で例外を投げても、reject として受け取れます
+- **失敗したら `failed = true`**: 以降は `launch` が新しいものを始めません。すでに動いているものは止められません（止めたいなら、`fn` に signal を渡す設計にします。問題9の CLI はそうしています）
+- **`signal.addEventListener('abort', …, { once: true })`**: 中止されたら、動いているものの終わりを待たずに、すぐ rejected にします
+
+もう1つの書き方として、「`limit` 個の**作業者**を作り、それぞれが共有のキューから次の要素を取り出し続ける」形もあります。
+
+```js
+const workers = Array.from({ length: Math.min(limit, list.length) }, async () => {
+  while (next < list.length && !failed) {
+    const index = next++;
+    results[index] = await fn(list[index], index);
+  }
+});
+await Promise.all(workers);
+```
+
+こちらの方が短く、`p-limit` や `p-map` などのパッケージ（第14章）の中身もおおむねこの考え方です。ただ、失敗したときに他の作業者を止める処理や、`signal` への対応を足すと、長さはあまり変わりません。
+
+## 問題9 調子の悪い API からまとめて取ってくる CLI
 
 [fetch-all.mjs](fetch-all.mjs) を見てください。全体は次の3層になっています。
 
 ```
 main         … 引数、Ctrl+C、結果の表示
-└ mapLimit   … 同時に4つまで（問題3）
+└ mapLimit   … 同時に4つまで（問題8）
   └ fetchItem
-    └ retry  … 5xx・時間切れ・接続失敗をやり直す（問題4）
+    └ retry  … 5xx・時間切れ・接続失敗をやり直す（問題7）
       └ fetch … 1回の HTTP リクエスト（signal で切れる）
 ```
 

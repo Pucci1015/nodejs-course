@@ -1,4 +1,4 @@
-// 練習問題3の模範解答で使う、データの層（exercises/memory-task-repo.mjs と同じもの）
+// 練習問題6の模範解答で使う、データの層（exercises/memory-task-repo.mjs と同じもの）
 // 「どう覚えるか」だけを知っている。決まり（題名が重ならない、など）は、サービスの層で書く
 export function createMemoryTaskRepo(initial = []) {
   const rows = new Map(initial.map((t) => [t.id, { ...t }]));

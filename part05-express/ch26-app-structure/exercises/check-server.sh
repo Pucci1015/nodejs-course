@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 練習問題6の確認スクリプト。サーバを何回か起動して、起動・ログ・止め方を確かめる
+# 練習問題9の確認スクリプト。サーバを何回か起動して、起動・ログ・止め方を確かめる
 # 使い方: bash check-server.sh [確かめるファイル]   （既定は buggy-server.mjs）
 #         bash check-server.sh ../solutions/server.mjs
 set -uo pipefail

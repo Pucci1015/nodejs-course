@@ -1,6 +1,6 @@
 // JSON のボディを受け取る（第20章 6節）
 // 使い方: node json-demo.mjs
-//   curl -i -H 'Content-Type: application/json' -d '{"name":"りょうた","n":1}' http://127.0.0.1:9202/api/echo
+//   curl -i -H 'Content-Type: application/json' -d '{"name":"alice","n":1}' http://127.0.0.1:9202/api/echo
 //   curl -i -H 'Content-Type: application/json' -d '{"name":' http://127.0.0.1:9202/api/echo       → 400
 //   curl -i -d '{"name":"x"}' http://127.0.0.1:9202/api/echo                                       → 415（curl -d は urlencoded）
 //   curl -i -H 'Content-Type: application/json' -d '{"id":9007199254740993,"a":1,"a":2}' http://127.0.0.1:9202/api/echo

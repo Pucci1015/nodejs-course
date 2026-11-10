@@ -1,4 +1,4 @@
-// 練習問題2のテスト
+// 練習問題7のテスト
 // 使い方: node --test web-adapter.test.mjs
 //         MODULE=../solutions/web-adapter.mjs node --test web-adapter.test.mjs   （解答例で確かめる）
 import { test, after } from 'node:test';

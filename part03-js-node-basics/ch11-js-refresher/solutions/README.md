@@ -4,26 +4,108 @@
 
 | ファイル | 内容 |
 | --- | --- |
-| [functions.mjs](functions.mjs) | 問題2: `once`・`memoize`・`debounce`・`pipe` |
-| [stopwatch.mjs](stopwatch.mjs) | 問題3: `this` の問題を直したストップウォッチ |
-| [log-summary.mjs](log-summary.mjs) | 問題4: アクセスログの集計（`node log-summary.mjs ログ` でも動く） |
-| [lru.mjs](lru.mjs) | 問題5: `LRUCache` |
-| [deep.mjs](deep.mjs) | 問題6: `deepEqual` と `setIn` |
+| [counter.mjs](counter.mjs) | 問題1: `start` と `step` を指定できるカウンタ |
+| [tasks.mjs](tasks.mjs) | 問題2: タスクの集計 |
+| [receipt.mjs](receipt.mjs) | 問題3: コピーし忘れを直したレシート |
+| [stopwatch.mjs](stopwatch.mjs) | 問題5: `this` の問題を直したストップウォッチ |
+| [log-summary.mjs](log-summary.mjs) | 問題6: アクセスログの集計（`node log-summary.mjs ログ` でも動く） |
+| [deep.mjs](deep.mjs) | 問題7: `deepEqual` と `setIn` |
+| [functions.mjs](functions.mjs) | 問題8: `once`・`memoize`・`debounce`・`pipe` |
+| [lru.mjs](lru.mjs) | 問題9: `LRUCache` |
 
-模範解答のテストは、`exercises` フォルダで次のように実行できます。
+模範解答のテストは、`~/dev/part03/ch11-js-refresher/exercises` で次のように実行できます。`MODULE=ファイル` を前に付けると、テストが読み込むファイルを、自分のものから模範解答に切り替えられます。
 
 ```sh
-$ cd ../exercises
-$ MODULE=../solutions/functions.mjs node --test functions.test.mjs
+$ MODULE=../solutions/counter.mjs node --test counter.test.mjs
+$ MODULE=../solutions/tasks.mjs node --test tasks.test.mjs
+$ MODULE=../solutions/receipt.mjs node --test receipt.test.mjs
 $ MODULE=../solutions/stopwatch.mjs node --test stopwatch.test.mjs
 $ MODULE=../solutions/log-summary.mjs node --test log-summary.test.mjs
-$ MODULE=../solutions/lru.mjs node --test lru.test.mjs
 $ MODULE=../solutions/deep.mjs node --test deep.test.mjs
+$ MODULE=../solutions/functions.mjs node --test functions.test.mjs
+$ MODULE=../solutions/lru.mjs node --test lru.test.mjs
 ```
 
 ---
 
-## 問題1 結果を予想して、理由を説明する
+## 問題1 カウンタに機能を足す
+
+```js
+export function makeCounter(start = 0, step = 1) {
+  let count = start; // 外からは見えない。返した関数だけが読み書きできる
+  return {
+    increment: () => {
+      count = count + step;
+      return count;
+    },
+    decrement: () => {
+      count = count - step;
+      return count;
+    },
+    reset: () => {
+      count = start;
+      return count;
+    },
+    get: () => count,
+  };
+}
+```
+
+- `count` は `makeCounter` の中の変数なので、返したオブジェクトに `c.count = 100` と書いても、それは**別の**プロパティを足しただけです。4つの関数が見ている `count` は変わりません。
+- `reset` は `start` を覚えている必要があります。`start` も `makeCounter` の引数（変数）なので、4つの関数はこれも覚えています。
+
+## 問題2 配列のメソッドでタスクを集計する
+
+```js
+export function undoneTitles(tasks) {
+  return tasks.filter((t) => !t.done).map((t) => t.title);
+}
+
+export function totalMinutes(tasks, onlyDone = false) {
+  const targets = onlyDone ? tasks.filter((t) => t.done) : tasks;
+  return targets.reduce((sum, t) => sum + t.minutes, 0);
+}
+
+export function countByTag(tasks) {
+  const counts = {};
+  for (const task of tasks) {
+    for (const tag of task.tags) {
+      counts[tag] = (counts[tag] ?? 0) + 1; // まだ無ければ 0 として足す
+    }
+  }
+  return counts;
+}
+
+export function sortByMinutes(tasks) {
+  return tasks.toSorted((a, b) => a.minutes - b.minutes || a.id - b.id);
+}
+```
+
+- `totalMinutes` の `条件 ? A : B` は、条件が真なら A、偽なら B になる式です（三項演算子）。`if` で書いても構いません。
+- `reduce` の2つ目の引数 `0` を忘れると、空の配列で `TypeError` になり、そうでなくても最初の要素（オブジェクト）が `sum` になってしまいます。
+- `countByTag` は `reduce` でも書けますが、2重の `for...of` の方が読みやすいと考えました。`Object.groupBy` はタグが1つのときにしか使えません（タグが2つあるタスクを両方に数えられない）。
+- `sortByMinutes` で `sort` を使うと、テスト「渡した配列の順番は変えない」が失敗します。
+
+## 問題3 コピーし忘れのバグを直す
+
+[receipt.mjs](receipt.mjs) を見てください。直したのは次の2行です。
+
+```js
+  // 直した1: 新しいオブジェクトを作る
+  const options = { ...DEFAULT_OPTIONS, ...overrides };
+  ...
+  // 直した2: toSorted は新しい配列を返す
+  const sorted = items.toSorted((a, b) => a.name.localeCompare(b.name, 'ja'));
+```
+
+1. `const options = DEFAULT_OPTIONS` は、オブジェクトをコピーせず、**同じオブジェクトを指す名前**を作っただけです（8.1節）。続く `Object.assign(options, overrides)` が `DEFAULT_OPTIONS` そのものに `taxRate: 0.08` と `totalLabel: 'お会計'` を書き込むので、3枚目からは既定の設定が「軽減税率・お会計」になってしまいます。スプレッドで新しいオブジェクトを作れば、`DEFAULT_OPTIONS` は変わりません。`{ ...DEFAULT_OPTIONS, ...overrides }` は、後に書いた `overrides` のキーが前のものを上書きします。
+2. `items.sort(...)` は、呼んだ側の `items` を並べ替えます（7.2節）。1枚目を作った後、`items` が `[ノート, ペン]` の順になったので、2枚目の `[items[0]]` が「ペン」ではなく「ノート」になりました。
+
+直す前のファイルでテストを動かすと、5個のうち3個が失敗します（`MODULE=./buggy-receipt.mjs node --test receipt.test.mjs`）。
+
+> 中に配列やオブジェクトがある設定（例: `{ tax: { rate: 0.1 } }`）では、スプレッドは浅いコピーなので、中のオブジェクトは共有されたままです（8.2節）。そのときは `structuredClone` を使うか、中まで作り直します（問題7の `setIn`）。
+
+## 問題4 結果を予想して、理由を説明する
 
 ```
 $ node predict.mjs
@@ -90,31 +172,7 @@ $ node predict.mjs
 
 > 利用者の入力をキーにしてオブジェクトに書き込むと、`__proto__` というキーでプロトタイプそのものを書き換えられてしまう問題（**プロトタイプ汚染**）もあります（第10部 第55章）。
 
-## 問題2 クロージャで関数の部品を作る
-
-[functions.mjs](functions.mjs) を見てください。
-
-- `once` は「呼んだか」（`done`）と「結果」（`result`）を別の変数で持ちます。`result === undefined` で判定すると、`undefined` を返す関数が毎回呼ばれてしまいます。`done = true` を `fn` の呼び出しの**後**に書くので、例外が出たときは `done` が変わりません。
-- `memoize` は `Map` の「入れた順を覚えている」性質を使い、使ったものを `delete` してから `set` し直して最後尾へ移します。先頭が、いちばん長く使われていないものです（問題5と同じ考え方）。
-- `debounce` は、呼ばれるたびに前の `setTimeout` を `clearTimeout` で取り消して予約し直します。最後の `this` と引数を `pending` に覚えておき、`flush` と `cancel` からも使います。テストでは、`t.mock.timers` で時間を進めています（本当に300ミリ秒待たずにテストできる）。
-- `pipe` は、作るときに関数かどうかを確かめます。呼ぶときに確かめると、間違いに気付くのが遅れます。
-
-### 問い
-
-**1.** 返す関数をアロー関数にすると、その中の `this` は `once` を呼んだときの外側の `this`（モジュールの一番外なら `undefined`）に固定されます。`obj.hello = once(function () { ... this.name ... })` のようにメソッドとして使われたとき、**呼ばれたときの `this`**（`obj`）を受け取って `fn.apply(this, args)` で渡すには、自分の `this` を持つ `function` で書く必要があります。
-
-**2.** `args[0]` だけをキーにすると、`add(1, 2)` と `add(1, 3)` が同じキーになり、2回目に間違った結果（3）を返します。`JSON.stringify` でも、次のようなものは区別できません。
-
-| 引数 | `JSON.stringify` |
-| --- | --- |
-| `[undefined]` と `[null]` | どちらも `[null]` |
-| `[NaN]` と `[null]` | どちらも `[null]` |
-| `[new Date(0)]` と `['1970-01-01T00:00:00.000Z']` | どちらも同じ文字列 |
-| `[{ a: 1, b: 2 }]` と `[{ b: 2, a: 1 }]` | 違う文字列になる（同じものなのに、別のキーになる） |
-
-引数の種類が決まっているなら、`key` の関数を自分で書くのが確実です。
-
-## 問題3 this のバグを直す
+## 問題5 this のバグを直す
 
 ### 1. 3つの問題
 
@@ -145,12 +203,12 @@ elapsed 0 timer.elapsed NaN
 | `bind` | `keyboard.on('l', this.lap.bind(this))` | 短い | アロー関数と同じく、毎回新しい関数になる |
 | クラスのフィールドにアロー関数 | `lap = () => { this.laps.push(this.elapsed); };` | どこに渡しても `this` が固定される。同じ関数なので `removeListener` しやすい | インスタンスごとに関数が作られる（プロトタイプで共有されない）。継承した子のクラスで `super.lap()` が使えない |
 
-## 問題4 配列のメソッドでアクセスログを集計する
+## 問題6 配列のメソッドでアクセスログを集計する
 
 [log-summary.mjs](log-summary.mjs) を見てください。ファイルを渡すと、そのまま集計できます。
 
 ```
-$ node log-summary.mjs ../../../part01-mac-dev-env/ch01-terminal-zsh/samples/access.log
+$ node log-summary.mjs ../exercises/access.log     # solutions フォルダで
 {
   total: 80,
   byStatusClass: { '2xx': 43, '3xx': 13, '5xx': 7, '4xx': 17 },
@@ -189,20 +247,7 @@ $ node log-summary.mjs ../../../part01-mac-dev-env/ch01-terminal-zsh/samples/acc
 
 単純な合計なら `reduce`、複雑な処理なら `for...of` のほうが読みやすいことも多いので、読みやすさで選びます。
 
-## 問題5 LRU キャッシュのクラスを作る
-
-[lru.mjs](lru.mjs) を見てください。
-
-- 中身は `#map`（`Map`）で持ちます。`get` や `set` のたびに、そのキーを `delete` してから `set` し直すと、`Map` の最後尾に移ります。先頭が「いちばん長く使われていないもの」になるので、容量を超えたら `this.#map.entries().next().value` で先頭を取り出して捨てます。
-- `has` は `#map.has` を使います。`get(key) !== undefined` で判定すると、値が `undefined` のときに間違えます。
-- `*[Symbol.iterator]()` は**ジェネレータ**（`function*`）で、`for...of` やスプレッド（`[...cache]`）が使えるようになります。Python の `__iter__` と `yield` にあたります。
-- 容量の検査では、`Number.isInteger('2')` が `false`（文字列を数に変換しない）であることを利用しています。グローバルの `isInteger` のような関数は無く、`isNaN('abc')` のような古い関数は文字列を変換してしまうので、`Number.isXxx` を使います。
-
-### 問い
-
-`Map` の `delete`・`set`・`has`・`get` は、要素の数に関係なく、ほぼ一定の時間で終わります（ハッシュ表）。そのため `get` で「使ったことにする」処理も一定の時間です。配列で作ると、キーを探すのに `findIndex`（全体をなめる）、移動に `splice`（後ろを詰める）が必要になり、どちらも要素の数に比例した時間がかかります。キャッシュは大きくなるほど配列では遅くなります。
-
-## 問題6 深い比較と、イミュータブルな更新
+## 問題7 深い比較と、イミュータブルな更新
 
 [deep.mjs](deep.mjs) を見てください。
 
@@ -215,3 +260,40 @@ $ node log-summary.mjs ../../../part01-mac-dev-env/ch01-terminal-zsh/samples/acc
 **1.** 変わった部分だけが新しいオブジェクトになり、変わらない部分は同じオブジェクトのままなので、「この部分は変わったか」を**深く比べずに `===` だけで判定できます**。たとえば `next.tasks === state.tasks` なら、タスクの一覧は1つも変わっていないと分かります。React（第8部 第42章）は、この `===` の比較で「描き直すかどうか」を決めています。オブジェクトを書き換えてしまうと（`state.tasks[0].done = true`）、参照は同じなので「変わっていない」と判断され、画面が更新されません。全体を `structuredClone` してから変えると、今度はすべてが「変わった」ことになり、無駄な描き直しが起きます。
 
 **2.** `assert.deepStrictEqual(0, -0)` は**失敗**します（`Object.is` で比べるため）。このほかにも、`deepStrictEqual` は `Symbol` のキー、`Error` の `message`、ボックス化された値（`new Number(1)`）なども比べます。テストで使う比較の規則が、自分のコードの比較の規則と同じとは限らないので、境目の値（`-0`、`NaN`、`undefined` のキー）は確かめておきます。
+
+## 問題8 クロージャで関数の部品を作る
+
+[functions.mjs](functions.mjs) を見てください。
+
+- `once` は「呼んだか」（`done`）と「結果」（`result`）を別の変数で持ちます。`result === undefined` で判定すると、`undefined` を返す関数が毎回呼ばれてしまいます。`done = true` を `fn` の呼び出しの**後**に書くので、例外が出たときは `done` が変わりません。
+- `memoize` は `Map` の「入れた順を覚えている」性質を使い、使ったものを `delete` してから `set` し直して最後尾へ移します。先頭が、いちばん長く使われていないものです（問題9と同じ考え方）。
+- `debounce` は、呼ばれるたびに前の `setTimeout` を `clearTimeout` で取り消して予約し直します。最後の `this` と引数を `pending` に覚えておき、`flush` と `cancel` からも使います。テストでは、`t.mock.timers` で時間を進めています（本当に300ミリ秒待たずにテストできる）。
+- `pipe` は、作るときに関数かどうかを確かめます。呼ぶときに確かめると、間違いに気付くのが遅れます。
+
+### 問い
+
+**1.** 返す関数をアロー関数にすると、その中の `this` は `once` を呼んだときの外側の `this`（モジュールの一番外なら `undefined`）に固定されます。`obj.hello = once(function () { ... this.name ... })` のようにメソッドとして使われたとき、**呼ばれたときの `this`**（`obj`）を受け取って `fn.apply(this, args)` で渡すには、自分の `this` を持つ `function` で書く必要があります。
+
+**2.** `args[0]` だけをキーにすると、`add(1, 2)` と `add(1, 3)` が同じキーになり、2回目に間違った結果（3）を返します。`JSON.stringify` でも、次のようなものは区別できません。
+
+| 引数 | `JSON.stringify` |
+| --- | --- |
+| `[undefined]` と `[null]` | どちらも `[null]` |
+| `[NaN]` と `[null]` | どちらも `[null]` |
+| `[new Date(0)]` と `['1970-01-01T00:00:00.000Z']` | どちらも同じ文字列 |
+| `[{ a: 1, b: 2 }]` と `[{ b: 2, a: 1 }]` | 違う文字列になる（同じものなのに、別のキーになる） |
+
+引数の種類が決まっているなら、`key` の関数を自分で書くのが確実です。
+
+## 問題9 LRU キャッシュのクラスを作る
+
+[lru.mjs](lru.mjs) を見てください。
+
+- 中身は `#map`（`Map`）で持ちます。`get` や `set` のたびに、そのキーを `delete` してから `set` し直すと、`Map` の最後尾に移ります。先頭が「いちばん長く使われていないもの」になるので、容量を超えたら `this.#map.entries().next().value` で先頭を取り出して捨てます。
+- `has` は `#map.has` を使います。`get(key) !== undefined` で判定すると、値が `undefined` のときに間違えます。
+- `*[Symbol.iterator]()` は**ジェネレータ**（`function*`）で、`for...of` やスプレッド（`[...cache]`）が使えるようになります。Python の `__iter__` と `yield` にあたります。
+- 容量の検査では、`Number.isInteger('2')` が `false`（文字列を数に変換しない）であることを利用しています。グローバルの `isInteger` のような関数は無く、`isNaN('abc')` のような古い関数は文字列を変換してしまうので、`Number.isXxx` を使います。
+
+### 問い
+
+`Map` の `delete`・`set`・`has`・`get` は、要素の数に関係なく、ほぼ一定の時間で終わります（ハッシュ表）。そのため `get` で「使ったことにする」処理も一定の時間です。配列で作ると、キーを探すのに `findIndex`（全体をなめる）、移動に `splice`（後ろを詰める）が必要になり、どちらも要素の数に比例した時間がかかります。キャッシュは大きくなるほど配列では遅くなります。

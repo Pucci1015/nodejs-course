@@ -1,4 +1,4 @@
-// 練習問題6: フォルダの中のファイルの大きさを合計する dirSize を作ってください（du の小さな版）。
+// 練習問題9: フォルダの中のファイルの大きさを合計する dirSize を作ってください（du の小さな版）。
 // 要件は README と dir-size.test.mjs にあります。
 // 確かめ方: node --test dir-size.test.mjs
 //   できたら: node dir-size.mjs ~/dev

@@ -1,4 +1,4 @@
-// 練習問題3のテスト
+// 練習問題5のテスト
 // 使い方: node --test rate-limit.test.mjs
 //         MODULE=../solutions/rate-limit.mjs node --test rate-limit.test.mjs   （解答例で確かめる）
 import { test } from 'node:test';

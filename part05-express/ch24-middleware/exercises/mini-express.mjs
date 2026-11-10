@@ -1,5 +1,5 @@
-// 練習問題2: Express の芯（ミドルウェアの列と next）を自分で作る
-// 要件は exercises/README.md の問題2です。確かめ方:
+// 練習問題7: Express の芯（ミドルウェアの列と next）を自分で作る
+// 要件は exercises/README.md の問題7です。確かめ方:
 //   $ node --test mini-express.test.mjs
 //
 // 作るもの:

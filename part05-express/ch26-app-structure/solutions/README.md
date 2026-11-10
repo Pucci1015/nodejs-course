@@ -1,17 +1,89 @@
 # 第26章 模範解答
 
-| 問題 | 解答のファイル | 確かめ方（`exercises/` で実行） |
+| 問題 | 解答のファイル | 確かめ方（`~/dev/part05/ch26-app-structure/exercises` で実行） |
 | --- | --- | --- |
-| 1 | このページ | — |
-| 2 | [config.mjs](config.mjs) | `MODULE=../solutions/config.mjs node --test config.test.mjs` |
-| 3 | [task-service.mjs](task-service.mjs)（[errors.mjs](errors.mjs)・[memory-task-repo.mjs](memory-task-repo.mjs) は問題のものと同じ） | `MODULE=../solutions/task-service.mjs node --test task-service.test.mjs` |
-| 4 | [request-logger.mjs](request-logger.mjs) | `MODULE=../solutions/request-logger.mjs node --test request-logger.test.mjs` |
-| 5 | [tasks-routes.mjs](tasks-routes.mjs) | `MODULE=../solutions/tasks-routes.mjs node --test tasks-routes.test.mjs` |
-| 6 | [server.mjs](server.mjs)（問題2・4の解答を使う） | `bash check-server.sh ../solutions/server.mjs` |
+| 1 | [env-values.mjs](env-values.mjs) | `MODULE=../solutions/env-values.mjs node --test env-values.test.mjs` |
+| 2 | [health.mjs](health.mjs) | `MODULE=../solutions/health.mjs node --test health.test.mjs` |
+| 3 | [mask-url.mjs](mask-url.mjs) | `MODULE=../solutions/mask-url.mjs node --test mask-url.test.mjs` |
+| 4 | このページ | — |
+| 5 | [config.mjs](config.mjs) | `MODULE=../solutions/config.mjs node --test config.test.mjs` |
+| 6 | [task-service.mjs](task-service.mjs)（[errors.mjs](errors.mjs)・[memory-task-repo.mjs](memory-task-repo.mjs) は問題のものと同じ） | `MODULE=../solutions/task-service.mjs node --test task-service.test.mjs` |
+| 7 | [request-logger.mjs](request-logger.mjs) | `MODULE=../solutions/request-logger.mjs node --test request-logger.test.mjs` |
+| 8 | [tasks-routes.mjs](tasks-routes.mjs) | `MODULE=../solutions/tasks-routes.mjs node --test tasks-routes.test.mjs` |
+| 9 | [server.mjs](server.mjs)（問題5・7の解答を使う） | `bash check-server.sh ../solutions/server.mjs` |
+
+`MODULE=ファイル` を前に付けると、テストが読み込むファイルを、自分のものから模範解答に切り替えられます。
 
 ---
 
-## 問題1 1つのハンドラを、層に分けて考える
+## 問題1 環境変数の値を確かめる `readPort`・`readLogLevel`
+
+```js
+const LEVELS = ['fatal', 'error', 'warn', 'info', 'debug', 'trace'];
+
+export function readPort(text) {
+  if (text === undefined) return { ok: true, value: 3000 };
+  if (!/^[0-9]{1,5}$/.test(text)) return { ok: false, error: 'PORT は 0〜65535 の整数です' };
+  const port = Number(text);
+  if (port > 65535) return { ok: false, error: 'PORT は 0〜65535 の整数です' };
+  return { ok: true, value: port };
+}
+
+export function readLogLevel(text) {
+  if (text === undefined) return { ok: true, value: 'info' };
+  if (!LEVELS.includes(text)) return { ok: false, error: `LOG_LEVEL は ${LEVELS.join('・')} のどれかです` };
+  return { ok: true, value: text };
+}
+```
+
+- `Number(text) || 3000` と書くと、`PORT=abc` が黙って 3000 になります。間違いは間違いとして返し、起動を止めます（本文5.2節）。
+- 説明に値を入れないのは、同じ書き方を `SESSION_SECRET` のような秘密にも使うためです。
+
+## 問題2 ヘルスチェックの Router
+
+```js
+import express from 'express';
+
+export function createHealthRouter({ isReady }) {
+  const router = express.Router();
+
+  router.get('/healthz', (req, res) => {
+    res.set('Cache-Control', 'no-store').json({ status: 'ok' });
+  });
+
+  router.get('/readyz', (req, res) => {
+    res.set('Cache-Control', 'no-store');
+    if (isReady()) return res.json({ status: 'ready' });
+    res.status(503).json({ status: 'not_ready' });
+  });
+
+  return router;
+}
+```
+
+- `isReady` を値（`true`）ではなく関数で受け取るので、止める途中で変わった状態を、そのときに読めます。
+- `/healthz` は何も確かめません。データベースが止まっただけで、プロセスが作り直されないようにするためです（本文7節）。
+
+## 問題3 ログに書く URL の秘密を隠す `maskQuery`
+
+```js
+export function maskQuery(url, names = ['token', 'password']) {
+  const i = url.indexOf('?');
+  if (i === -1) return url;
+  const params = new URLSearchParams(url.slice(i + 1));
+  const hide = names.map((n) => n.toLowerCase());
+  const out = new URLSearchParams();
+  for (const [name, value] of params) {
+    out.append(name, hide.includes(name.toLowerCase()) ? '***' : value);
+  }
+  return `${url.slice(0, i)}?${out}`;
+}
+```
+
+- `url.replace(/token=[^&]*/, 'token=***')` のような書き方は、`xtoken=` まで隠したり、`%74oken=`（`t` をエンコードしたもの）を見逃したりします。`URLSearchParams` で名前と値に分けてから比べます。
+- 問題7の `requestLogger` は、同じ考え方で URL を隠してからログに書きます。
+
+## 問題4 1つのハンドラを、層に分けて考える
 
 ### 1. それぞれの行の仕事
 
@@ -46,7 +118,7 @@
 - **秘密が残る**: `Authorization` ヘッダ（トークン）をそのままログに書いています。ログは多くの人が読める場所に長く残るので、ログを読める人が、そのトークンでなりすませてしまいます
 - **読めない・探せない**: ただの文なので、「どのリクエストのログか」（リクエストの id）、「いつ」「どのくらいかかったか」を、後から機械で探したり数えたりできません。1行1つの JSON にして、決まった名前（`reqId`・`status`・`ms`）で書きます
 
-## 問題2 設定を読んで確かめる
+## 問題5 設定を読んで確かめる
 
 [config.mjs](config.mjs) を見てください。
 
@@ -56,7 +128,7 @@
 - **本番だけの決まり**: zod の `refine` でも書けますが、ほかの項目が全部正しいときにしか動きません（`NODE_ENV` が間違っているときは、そもそも本番かどうかが分かりません）。この解答では、`safeParse` の後に自分で足しました
 - **`Object.freeze`**: 設定を、途中で誰かが書き換えると、どこで変わったのかを探すのが大変です。凍らせておけば、書き換えようとした所で（strict モードなら）`TypeError` になります。ES Modules は、いつも strict モードです
 
-## 問題3 サービスの層
+## 問題6 サービスの層
 
 [task-service.mjs](task-service.mjs) を見てください。
 
@@ -65,17 +137,17 @@
 - **何も変わらなければ version を上げない**: 第25章 7節の ETag は `version` から作ります。同じ値を送っただけで version が上がると、他の人の `If-Match` が 412 になってしまいます
 - **WIP 制限**: 「作業中は 3 つまで」は、データの置き場所や HTTP とは関係のない、この仕事の決まりです。こういう決まりこそ、サービスの層に置きます。第6部でデータベースにしたとき、「数えてから変える」の間に別のリクエストが入らないように、トランザクションを使います（第30章）
 
-## 問題4 リクエストのログのミドルウェア
+## 問題7 リクエストのログのミドルウェア
 
 [request-logger.mjs](request-logger.mjs) を見てください。
 
 - **`X-Request-Id` を確かめる**: 前のプロキシ（ロードバランサなど）が付けた id を引き継ぐと、プロキシのログとアプリのログをつなげられます。ただし、客も好きな値を送れるので、形と長さを決めておきます。改行や制御文字が入ると、テキストのログでは偽の行を作られることがあります（JSON のログなら、改行はエスケープされます）
 - **子のロガー**: `logger.child({ reqId })` で作ったロガーは、何を書いても `reqId` が付きます。ハンドラやサービスの中のログを、リクエストごとに集められます
-- **close で書く**: 第24章 練習問題4と同じです。`finish` は客が先に切ると来ないので、`close` で書き、`res.writableFinished` で見分けます
+- **close で書く**: 第24章 練習問題6と同じです。`finish` は客が先に切ると来ないので、`close` で書き、`res.writableFinished` で見分けます
 - **レベルを分ける**: 監視のツールは「error の行が1分に何行」で知らせを出すことが多いので、客の間違い（4xx）を error にすると、知らせがうるさくなりすぎます
 - 本物のアプリでは、`pino-http` というパッケージが、ほぼ同じことをしてくれます。成果物では、この章の解答を使います
 
-## 問題5 ルートの層と、エラーの読み替え
+## 問題8 ルートの層と、エラーの読み替え
 
 [tasks-routes.mjs](tasks-routes.mjs) を見てください。
 
@@ -83,7 +155,7 @@
 - **読み替えは1か所で**: `mapDomainErrors` は、`problemHandler` の前に置くエラーハンドラです。サービスのエラーを `HttpProblem` にして、`next` で渡します。ルートの中で `try`／`catch` を書かなくてよくなります
 - **形の違う id は 404**: `/api/tasks/abc` は「そういうタスクは無い」ので 404 です（400 にする API もあります。第25章 3.3節のとおり、どちらかに決めて説明書に書きます）。サービスは呼びません
 
-## 問題6 設定・ログ・止め方のバグを直す
+## 問題9 設定・ログ・止め方のバグを直す
 
 [server.mjs](server.mjs) を見てください。
 

@@ -1,4 +1,4 @@
-// 練習問題5 用: isValidSlug に「a を n 個並べて、最後に ! を付けた文字列」を渡し、かかる時間を測る
+// 練習問題6 用: isValidSlug に「a を n 個並べて、最後に ! を付けた文字列」を渡し、かかる時間を測る
 // 使い方: node redos-measure.mjs                       （slug.mjs を測る）
 //         node redos-measure.mjs ../solutions/slug.mjs （模範解答を測る）
 // 1回が 2秒を超えたら、そこで止めます。

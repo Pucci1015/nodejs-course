@@ -1,4 +1,4 @@
-// 練習問題5の模範解答: 第21章のテンプレートエンジンを、Express のビューエンジンにする
+// 練習問題8の模範解答: 第21章のテンプレートエンジンを、Express のビューエンジンにする
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { compile } from '../../lib/template.mjs';

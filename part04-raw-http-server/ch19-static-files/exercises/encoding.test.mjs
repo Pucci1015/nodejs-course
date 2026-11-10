@@ -1,4 +1,4 @@
-// 練習問題6のテスト
+// 練習問題8のテスト
 // 使い方: node --test encoding.test.mjs
 //         MODULE=../solutions/encoding.mjs node --test encoding.test.mjs   （解答例で確かめる）
 import { test } from 'node:test';

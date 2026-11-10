@@ -1,6 +1,6 @@
 // 設定を環境変数から読み、起動するときに1回だけ確かめる（第26章 5節）
-//   $ node config-demo.mjs                                  ← 既定の値で動く（開発のとき）
-//   $ node --env-file=.env.example config-demo.mjs          ← .env.example の値を読む
+//   $ node samples/config-demo.mjs                                  ← 既定の値で動く（開発のとき）
+//   $ node --env-file=samples/.env.example samples/config-demo.mjs          ← .env.example の値を読む
 //   $ PORT=abc LOG_LEVEL=loud node config-demo.mjs          ← 間違いを全部まとめて知らせ、終了コード 1
 //   $ NODE_ENV=production node config-demo.mjs              ← 本番では SESSION_SECRET が無いと起動しない
 import { z } from 'zod';

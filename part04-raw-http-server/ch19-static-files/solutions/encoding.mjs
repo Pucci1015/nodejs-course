@@ -1,4 +1,4 @@
-// 問題6 解答例: Accept-Encoding を読んで、どの圧縮で返すかを決める
+// 問題8 解答例: Accept-Encoding を読んで、どの圧縮で返すかを決める
 //
 // negotiateEncoding('gzip, br;q=0.9', ['br', 'gzip']) → 'gzip'
 // 返すもの: available のどれか / 'identity'（圧縮しない）/ null（どれも受け付けてもらえない → 406 にしてよい）

@@ -1,4 +1,4 @@
-// 練習問題3 の解答: this の問題を直したストップウォッチ
+// 練習問題5 の解答: this の問題を直したストップウォッチ
 // 使い方: node stopwatch.mjs
 // 確かめ方: cd ../exercises && MODULE=../solutions/stopwatch.mjs node --test stopwatch.test.mjs
 import { EventEmitter } from 'node:events';

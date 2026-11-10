@@ -1,5 +1,5 @@
-// 練習問題3: メソッドとパスで、ハンドラを選ぶ Router
-// 仕様は README の練習問題3を見てください。問題2の pattern.mjs を使います。
+// 練習問題6: メソッドとパスで、ハンドラを選ぶ Router
+// 仕様は README の練習問題6を見てください。問題5の pattern.mjs を使います。
 // 確かめる: node --test router.test.mjs
 import { HttpError } from '../../ch17-minimal-server/solutions/app.mjs';
 import { comparePatterns, matchPath, parsePattern } from './pattern.mjs';

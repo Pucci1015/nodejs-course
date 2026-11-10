@@ -12,11 +12,29 @@
 
 | フォルダ | 中身 |
 | --- | --- |
-| [samples/](samples/) | 1つに全部書いた例と、層に分けた例、設定、ログ、止め方 |
+| [samples/](samples/) | 本文で書くプログラムの完成形（`service-split.mjs`・`config-check.mjs`・`pino-log.mjs`・`graceful.mjs`）と、1つに全部書いた例、層に分けた例、設定、ログ、止め方を確かめるプログラム |
 | [exercises/](exercises/) | 練習問題 |
-| [solutions/](solutions/) | 模範解答（問題2〜5は、成果物でも使います） |
+| [solutions/](solutions/) | 模範解答（問題5〜8は、成果物でも使います） |
 
-> この章のサンプルと練習問題は、`~/dev/part05/ch26-app-structure` の中で動かします（[第5部の README](../README.md) の「準備」）。
+> **読み方**
+> - この章のコマンドは、すべて `~/dev/part05/ch26-app-structure/` で実行します（第23章で `setup-part05.sh` を動かして、`~/dev/part05` を作ってあります）。
+>
+>   ```sh
+>   $ cd ~/dev/part05/ch26-app-structure
+>   ```
+>
+> - 「**手を動かす**」の所は、新しいファイルに書いて動かしてください。ファイルの完成形は `samples/` にあります。「中身は読まなくてよい」と書いたサンプルは、動かして結果を見るだけで十分です。
+> - 「手を動かす」のサーバは 9337 番を使います。次のサーバを動かす前に `Ctrl+C` で止めてください。`curl` は別のターミナルで打ちます。
+
+## この章で学ぶことを、後でどこで使うか
+
+| この章で学ぶこと | 後で使う場面 |
+| --- | --- |
+| ルート・サービス・データの層（2・3節） | 成果物のタスク API、第6部（データの層を PostgreSQL に変える） |
+| 使うものを外から渡す（4節） | 第5部からのすべてのテスト、成果物 |
+| 設定と環境変数（5節） | 成果物、第10部（秘密の扱い）、第12部 第60章（本番の設定） |
+| JSON のログ（6節） | 成果物、第12部 第66章（ログを集める） |
+| ヘルスチェックと止め方（7・8節） | 成果物、第12部（Docker・PaaS で動かす） |
 
 ---
 
@@ -66,7 +84,7 @@ app.post('/api/tasks', (req, res) => {
 - **使い回し**: 「同じ題名は作れない」という決まりを、CSV を読み込むコマンドや、第12部のバックグラウンドジョブから使えません。決まりが `req` と `res` の中にあるからです
 - **差し替え**: データの置き場所を PostgreSQL に変えると、決まりの行と、データの行が混ざっているので、全部を読み直すことになります
 
-これをほどくのが、次の2節です。練習問題1で、1行ずつ「どの仕事か」を分けてみます。
+これをほどくのが、次の2節です。練習問題4で、1行ずつ「どの仕事か」を分けてみます。
 
 ## 3. 3つの層に分ける
 
@@ -140,6 +158,67 @@ createApp({ service }).listen(config.port, config.host);
 
 本物を選んでつなぐ場所（`server.mjs`）を、**コンポジションルート**と呼びます。`process.env` を読むのも、`new Date` を渡すのも、ここだけにします。
 
+**手を動かす**: データの層とサービスの層を分け、使うもの（`repo` と `now`）を外から渡す `service-split.mjs` を作ります。サーバは起動しません（完成形は [samples/service-split.mjs](samples/service-split.mjs)）。
+
+```js
+
+// データの層: 保存だけをする。ここではメモリの Map
+function createMemoryRepo() {
+  const rows = new Map();
+  let nextId = 1;
+  return {
+    insert(task) {
+      const row = { id: nextId++, ...task };
+      rows.set(row.id, row);
+      return row;
+    },
+    findById(id) {
+      return rows.get(id) ?? null;
+    },
+  };
+}
+
+// サービスの層: 決まり（題名の長さ、作った時刻）を書く。HTTP も Express も知らない
+function createTaskService({ repo, now }) {
+  return {
+    create(title) {
+      const t = title.trim();
+      if (t === '' || t.length > 100) throw new Error('title は 1〜100 文字です');
+      return repo.insert({ title: t, createdAt: now().toISOString() });
+    },
+    get(id) {
+      return repo.findById(id);
+    },
+  };
+}
+
+// 使うもの（repo と now）を外から渡す
+const service = createTaskService({
+  repo: createMemoryRepo(),
+  now: () => new Date('2026-11-09T09:00:00Z'), // 決まった時刻にすると、結果がいつも同じ
+});
+
+console.log(service.create('  牛乳を買う '));
+console.log(service.get(1));
+try {
+  service.create('   ');
+} catch (err) {
+  console.log('間違い:', err.message);
+}
+```
+
+```sh
+$ node service-split.mjs
+{ id: 1, title: '牛乳を買う', createdAt: '2026-11-09T09:00:00.000Z' }
+{ id: 1, title: '牛乳を買う', createdAt: '2026-11-09T09:00:00.000Z' }
+間違い: title は 1〜100 文字です
+```
+
+- `createTaskService` は、`repo` と `now` を引数で受け取ります。中で `new Map()` や `new Date()` を書いていません。
+- `now` に決まった時刻を返す関数を渡したので、何回動かしても `createdAt` が同じになります。テストで偽物を渡すのと同じ考え方です。
+- `...task` は、`task` の中身をそのまま新しいオブジェクトに入れる書き方です（第3部 第11章）。
+- サービスは `Error` を投げるだけで、ステータスコードを知りません。HTTP に直すのはルートの仕事です（練習問題8）。
+
 ### 4.2 テストで偽物を渡す
 
 外から渡せるので、テストでは偽物を渡せます。
@@ -151,7 +230,7 @@ await assert.rejects(service.create({ title: 'a', dueDate: '2026-11-04' }), Vali
 ```
 
 - サービスのテストは、HTTP もサーバも使わないので速く、失敗したときに場所がすぐ分かります（[layered/task-service.test.mjs](samples/layered/task-service.test.mjs)）
-- ルートのテストは、「呼ばれ方を覚える偽物のサービス」を渡して、HTTP の形だけを確かめます（練習問題5）
+- ルートのテストは、「呼ばれ方を覚える偽物のサービス」を渡して、HTTP の形だけを確かめます（練習問題8）
 - 全部をつないだテスト（本物のサービスとデータの層で、HTTP から）も、少しは書きます。成果物のテストがそれです
 
 Flask では、`unittest.mock.patch` で `datetime.now` などを差し替えることが多いと思います。JavaScript でも、`node:test` の `mock.timers` で `Date` を差し替えられます。ただ、引数で渡す形にしておくと、差し替えの仕組みを使わずに済み、「このサービスは時計を使う」ことが引数を見るだけで分かります。
@@ -173,7 +252,7 @@ Flask では、`unittest.mock.patch` で `datetime.now` などを差し替える
 - `SESSION_SECRET` を本番で設定し忘れても、`|| 'secret'` の既定の値で動いてしまう
 - どの環境変数を使っているのかが、コード全体を探さないと分からない
 
-そこで、起動するときに1回だけ、zod でまとめて確かめます（[samples/config-demo.mjs](samples/config-demo.mjs)）。
+そこで、起動するときに1回だけ、zod でまとめて確かめます（[samples/config-demo.mjs](samples/config-demo.mjs)。`node samples/config-demo.mjs` で動かします。中身は読まなくてよい）。
 
 ```js
 const Env = z.object({
@@ -201,6 +280,45 @@ $ PORT=abc LOG_LEVEL=loud node samples/config-demo.mjs
   PORT: 0〜65535 の整数
   LOG_LEVEL: 無効な選択: …
 ```
+
+**手を動かす**: 環境変数を1回だけ確かめる `config-check.mjs` を作ります。サーバは起動しません（完成形は [samples/config-check.mjs](samples/config-check.mjs)）。
+
+```js
+import { z } from 'zod';
+
+z.config(z.locales.ja()); // 既定の文を日本語にする
+
+const Env = z.object({
+  PORT: z.string().regex(/^[0-9]{1,5}$/, '0〜65535 の整数').transform(Number).pipe(z.number().max(65535)).default(3000),
+  LOG_LEVEL: z.enum(['error', 'warn', 'info', 'debug']).default('info'),
+});
+
+const r = Env.safeParse(process.env);
+if (!r.success) {
+  console.error('設定が正しくありません:');
+  for (const issue of r.error.issues) {
+    console.error(`  ${issue.path.join('.')}: ${issue.message}`); // 名前と理由だけ。値は書かない
+  }
+  process.exitCode = 1;
+} else {
+  const config = Object.freeze({ port: r.data.PORT, logLevel: r.data.LOG_LEVEL });
+  console.log('設定:', config);
+}
+```
+
+```sh
+$ node config-check.mjs
+設定: { port: 3000, logLevel: 'info' }
+$ PORT=abc LOG_LEVEL=loud node config-check.mjs
+設定が正しくありません:
+  PORT: 0〜65535 の整数
+  LOG_LEVEL: 無効な選択: "error"、"warn"、"info"、"debug"のいずれかである必要があります
+```
+
+- `PORT=abc LOG_LEVEL=loud node …` のように、コマンドの前に `名前=値` を並べると、そのコマンドの間だけ環境変数が決まります（第3部 第15章）。
+- 何も決めなければ `.default(…)` の値になります。`PORT` の既定は、文字列ではなく数の `3000` です。
+- エラーの文には、`abc` や `loud` という値を入れていません。秘密の値を間違えたときに、画面やログに残らないようにするためです。
+- `process.exitCode = 1` で、終了コードを 1（失敗）にしています。`echo $?` で確かめられます。
 
 ### 5.3 .env ファイルと `--env-file`
 
@@ -251,7 +369,7 @@ logger.info({ port: 9332 }, '起動しました');
 
 ### 6.2 リクエストごとの id と子のロガー
 
-1つのリクエストの中で、ルート・サービス・データの層がそれぞれログを書くと、どれが同じリクエストのものか分からなくなります。リクエストごとに id を決め、**子のロガー**に持たせます（[samples/logging-demo.mjs](samples/logging-demo.mjs)）。
+1つのリクエストの中で、ルート・サービス・データの層がそれぞれログを書くと、どれが同じリクエストのものか分からなくなります。リクエストごとに id を決め、**子のロガー**に持たせます（[samples/logging-demo.mjs](samples/logging-demo.mjs)。`node samples/logging-demo.mjs` で動かします。中身は読まなくてよい）。
 
 ```js
 app.use((req, res, next) => {
@@ -265,10 +383,65 @@ app.use((req, res, next) => {
 
 500 の応答の本文に `requestId` を入れておくと、客から「このエラーが出ました」と言われたときに、その id でログを探せます。第25章で「500 では中の文を見せない」とした分、ログで追えるようにしておきます。
 
+**手を動かす**: pino で、リクエストごとの id を付けたログを書く `pino-log.mjs` を作ります（完成形は [samples/pino-log.mjs](samples/pino-log.mjs)）。
+
+```js
+import crypto from 'node:crypto';
+import express from 'express';
+import pino from 'pino';
+
+const PORT = 9337;
+const logger = pino({ level: 'info' });
+const app = express();
+app.disable('x-powered-by');
+
+app.use((req, res, next) => {
+  req.id = crypto.randomUUID();
+  res.set('X-Request-Id', req.id);
+  req.log = logger.child({ reqId: req.id }); // ここから書くログには、いつも reqId が付く
+  const start = performance.now();
+  res.once('close', () => {
+    req.log.info({ method: req.method, path: req.path, status: res.statusCode, ms: Math.round(performance.now() - start) }, 'request');
+  });
+  next();
+});
+
+app.get('/hello', (req, res) => {
+  req.log.debug('debug は level が info なので書かれない');
+  req.log.info({ name: 'alice' }, 'あいさつします');
+  res.json({ message: 'こんにちは' });
+});
+
+app.listen(PORT, '127.0.0.1', () => logger.info({ port: PORT }, '起動しました'));
+```
+
+```sh
+$ node pino-log.mjs
+# 別のターミナルで
+$ curl -i http://127.0.0.1:9337/hello
+HTTP/1.1 200 OK
+X-Request-Id: e18de592-5e48-4d1a-8c7b-5fd4bc916f73
+...
+{"message":"こんにちは"}
+```
+
+サーバのターミナルには、次のように出ます（`time` と id は毎回違います）。
+
+```text
+{"level":30,"time":1794251104865,"pid":18656,"hostname":"mac","port":9337,"msg":"起動しました"}
+{"level":30,"time":1794251105771,"pid":18656,"hostname":"mac","reqId":"e18de592-5e48-4d1a-8c7b-5fd4bc916f73","name":"alice","msg":"あいさつします"}
+{"level":30,"time":1794251105777,"pid":18656,"hostname":"mac","reqId":"e18de592-5e48-4d1a-8c7b-5fd4bc916f73","method":"GET","path":"/hello","status":200,"ms":6,"msg":"request"}
+```
+
+- 2行目と3行目は、同じ `reqId` を持っています。`logger.child({ reqId })` で作った子のロガーで書いたからです。
+- `req.log.debug(…)` の行は出ていません。`level: 'info'` より低いからです。
+- `crypto.randomUUID()` は、ぶつからない id（UUID）を作ります。
+- ログの1つ目の引数（オブジェクト）が JSON の項目になり、2つ目の引数（文字列）が `msg` になります。
+
 ### 6.3 ログに書かないもの
 
 - パスワード、トークン、Cookie、`Authorization` ヘッダ、セッションの ID
-- URL のクエリに入った秘密（パスワードの再設定の `token` など。第24章 練習問題4）
+- URL のクエリに入った秘密（パスワードの再設定の `token` など。第24章 練習問題6）
 - 必要以上の個人の情報（メールアドレス、住所）
 
 pino の `redact` は、決めた場所の値を、書く前に置き換えます。ログは多くの人が読める場所に長く残るので、「書いてから消す」ことはできないと考えます。
@@ -293,7 +466,7 @@ pino の `redact` は、決めた場所の値を、書く前に置き換えま�
 
 PaaS や Docker は、新しい版を出すときや、台数を減らすときに、古いプロセスに **SIGTERM** というシグナルを送ります（第3部 第15章）。何も書かなければ、Node.js は SIGTERM ですぐに終わり、処理中のリクエストは途中で切れます。`process.on('SIGTERM', () => process.exit(0))` と書いても同じです。
 
-きれいに止めるには、次の順番にします（[samples/shutdown-demo.mjs](samples/shutdown-demo.mjs)）。
+きれいに止めるには、次の順番にします（[samples/shutdown-demo.mjs](samples/shutdown-demo.mjs)。`node samples/shutdown-demo.mjs` で動かします。中身は読まなくてよい）。
 
 ```text
 SIGTERM
@@ -325,6 +498,64 @@ process.on('SIGINT', () => shutdown('SIGINT'));   // Ctrl+C
 - 時間切れのタイマーは `unref()` します。そうしないと、そのタイマー自体が、プロセスを終わらせなくしてしまいます
 - `process.exit()` は、書きかけのログを捨てることがあります。ふだんは `process.exitCode` を決めて、自然に終わるのを待ちます
 
+**手を動かす**: Ctrl+C（SIGINT）や SIGTERM を受け取ったら、処理中のリクエストを返し終えてから止まる `graceful.mjs` を作ります（完成形は [samples/graceful.mjs](samples/graceful.mjs)）。
+
+```js
+import express from 'express';
+
+const PORT = 9337;
+const app = express();
+app.disable('x-powered-by');
+
+let ready = true;
+app.get('/readyz', (req, res) => res.status(ready ? 200 : 503).json({ ready }));
+app.get('/slow', async (req, res) => {
+  await new Promise((resolve) => setTimeout(resolve, 3000));
+  res.json({ message: '3秒かかる処理が終わりました' });
+});
+
+const server = app.listen(PORT, '127.0.0.1', () => console.log(`http://127.0.0.1:${PORT}/ で待っています（Ctrl+C で止める）`));
+
+let stopping = false;
+function shutdown(signal) {
+  if (stopping) return;
+  stopping = true;
+  ready = false;
+  console.log(`${signal} を受け取りました。処理中のリクエストが終わるのを待ちます`);
+  setTimeout(() => {
+    console.log('時間切れなので、あきらめて止めます');
+    process.exit(1);
+  }, 10_000).unref();
+  server.close(() => {
+    console.log('すべて終わったので止めます');
+    process.exitCode = 0;
+  });
+}
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));
+```
+
+```sh
+$ node graceful.mjs
+http://127.0.0.1:9337/ で待っています（Ctrl+C で止める）
+# 別のターミナルで（3秒かかる）
+$ curl -s http://127.0.0.1:9337/slow
+# curl が待っている間に、サーバのターミナルで Ctrl+C を押す
+```
+
+サーバのターミナルには、次のように出ます。
+
+```text
+SIGINT を受け取りました。処理中のリクエストが終わるのを待ちます
+すべて終わったので止めます
+```
+
+curl には `{"message":"3秒かかる処理が終わりました"}` が返り、その後でサーバが止まります。
+
+- Ctrl+C を押しても、すぐには止まりません。`server.close()` が、処理中の `/slow` が返し終わるのを待つからです。
+- 止める途中で `curl http://127.0.0.1:9337/readyz` を打っても、もう新しい接続は受けません。本物では、止める前に少し待って、`/readyz` の 503 をロードバランサに見せます（上の手順の2）。
+- `10_000` は `10000` と同じです。`_` は、けたを読みやすくするための区切りです。
+
 ### 8.2 Flask では
 
 本番で Flask を動かすときに使う gunicorn は、SIGTERM を受け取ると、ワーカーに「今のリクエストが終わったら止まって」と伝え、決めた時間（gunicorn の `--graceful-timeout`）を過ぎたら強く止めます。この仕事をするのは gunicorn で、Flask のアプリのコードは何もしません。Node.js では、サーバとアプリが同じプロセスなので、アプリのコードの中に書きます。
@@ -340,12 +571,12 @@ task-api/
 ├── src/
 │   ├── server.mjs          起動（コンポジションルート）: loadConfig → logger → repo → service → app → listen → shutdown
 │   ├── app.mjs             createApp({ service, logger, config })
-│   ├── config.mjs          loadConfig（練習問題2）
+│   ├── config.mjs          loadConfig（練習問題5）
 │   ├── errors.mjs          NotFoundError など
-│   ├── routes/tasks.mjs    createTasksRouter（練習問題5）
-│   ├── services/tasks.mjs  createTaskService（練習問題3）
+│   ├── routes/tasks.mjs    createTasksRouter（練習問題8）
+│   ├── services/tasks.mjs  createTaskService（練習問題6）
 │   ├── repositories/memory-tasks.mjs
-│   └── middleware/         requestLogger（練習問題4）、problem（第25章）など
+│   └── middleware/         requestLogger（練習問題7）、problem（第25章）など
 └── test/
 ```
 
@@ -375,7 +606,7 @@ task-api/
 
 ## 練習問題
 
-[exercises/README.md](exercises/README.md) に6問あります。解答は [solutions/README.md](solutions/README.md) です。
+[exercises/README.md](exercises/README.md) に9問あります（基本4問・応用2問・発展3問）。解答は [solutions/README.md](solutions/README.md) です。
 
 ## 参考資料
 

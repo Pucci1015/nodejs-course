@@ -1,4 +1,4 @@
-// 練習問題3のテスト
+// 練習問題6のテスト
 // 使い方: node --test event-hub.test.mjs
 //         MODULE=../solutions/event-hub.mjs node --test event-hub.test.mjs   （解答例で確かめる）
 import { test, after } from 'node:test';

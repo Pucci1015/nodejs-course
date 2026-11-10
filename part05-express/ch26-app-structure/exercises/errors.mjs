@@ -1,4 +1,4 @@
-// 練習問題3・5で使う、サービスの層のエラー（書き換えなくてよい）
+// 練習問題6・8で使う、サービスの層のエラー（書き換えなくてよい）
 // HTTP のステータスは知らない。「無い」「今の状態ではできない」「決まりに合わない」を表す
 export class NotFoundError extends Error {
   name = 'NotFoundError';

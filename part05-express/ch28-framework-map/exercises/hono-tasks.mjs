@@ -1,5 +1,5 @@
-// 練習問題3: Hono のタスク API に、PATCH と DELETE を足す
-// 要件は exercises/README.md の問題3です。確かめ方:
+// 練習問題5: Hono のタスク API に、PATCH と DELETE を足す
+// 要件は exercises/README.md の問題5です。確かめ方:
 //   $ node --test hono-tasks.test.mjs
 //   $ node hono-tasks.mjs            ← 127.0.0.1:9354 で動かして、curl でも試せる
 // ここまでは、サンプルの samples/hono-tasks.mjs と同じです。

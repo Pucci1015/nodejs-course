@@ -1,12 +1,12 @@
 #!/usr/bin/env node
-// 練習問題6 の解答: 調子の悪い API から、たくさんの商品をまとめて取ってくる CLI
+// 練習問題9 の解答: 調子の悪い API から、たくさんの商品をまとめて取ってくる CLI
 // 使い方（先に別のターミナルで ../exercises/flaky-server.mjs を起動しておく）:
 //   node fetch-all.mjs 1-30
 //   node fetch-all.mjs --limit 2 --timeout 300 1 2 3 7 13
 // 確かめ方: cd ../exercises && TARGET=../solutions/fetch-all.mjs ./check-fetch-all.sh
 import { parseArgs } from 'node:util';
-import { mapLimit } from './map-limit.mjs'; // 練習問題3
-import { retry } from './retry.mjs'; // 練習問題4
+import { mapLimit } from './map-limit.mjs'; // 練習問題8
+import { retry } from './retry.mjs'; // 練習問題7
 
 /** HTTP のステータスを持ったエラー。やり直すかどうかの判断に使う */
 class HttpError extends Error {

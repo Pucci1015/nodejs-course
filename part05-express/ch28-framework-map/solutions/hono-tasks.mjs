@@ -1,4 +1,4 @@
-// 練習問題3の模範解答: Hono のタスク API に、PATCH と DELETE を足したもの
+// 練習問題5の模範解答: Hono のタスク API に、PATCH と DELETE を足したもの
 import { serve } from '@hono/node-server';
 import { Hono } from 'hono';
 import { createTaskService, isJson, NotFoundError, parseId, problem, ValidationError } from '../samples/tasks-core.mjs';

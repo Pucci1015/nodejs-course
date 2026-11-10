@@ -1,4 +1,4 @@
-// 練習問題6: 第18章の Router と Express のルーティングを比べる
+// 練習問題7: 第18章の Router と Express のルーティングを比べる
 // 同じルート（GET /tasks、POST /tasks、GET /tasks/:id、GET /tasks/me）を両方に登録し、同じリクエストを送って並べます。
 //   $ node compare-routers.mjs
 //   $ STRICT=1 node compare-routers.mjs      ← Express に strict routing と case sensitive routing を設定する

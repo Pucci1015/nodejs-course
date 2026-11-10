@@ -1,4 +1,4 @@
-// 練習問題6 の解答: 深い比較と、イミュータブルな更新
+// 練習問題7 の解答: 深い比較と、イミュータブルな更新
 // 確かめ方: cd ../exercises && MODULE=../solutions/deep.mjs node --test deep.test.mjs
 
 /** a と b が「中身として」等しいか */

@@ -1,4 +1,4 @@
-// 練習問題1: URL と URLSearchParams の結果を予想する
+// 練習問題4: URL と URLSearchParams の結果を予想する
 // 実行する前に、15 個の結果を予想して書き出してから: node predict-url.mjs
 const base = 'http://localhost';
 const u = (target) => new URL(target, base);

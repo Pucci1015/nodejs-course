@@ -1,5 +1,5 @@
-// 練習問題5: クエリ文字列を、決めた形（スキーマ）に合わせて読む
-// 仕様は README の練習問題5を見てください。
+// 練習問題7: クエリ文字列を、決めた形（スキーマ）に合わせて読む
+// 仕様は README の練習問題7を見てください。
 // 確かめる: node --test query.test.mjs
 import { HttpError } from '../../ch17-minimal-server/solutions/app.mjs';
 

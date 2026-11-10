@@ -1,4 +1,4 @@
-// 練習問題1: フォームと JSON の読み方の結果を予想する
+// 練習問題4: フォームと JSON の読み方の結果を予想する
 // 実行する前に 15 個の結果を予想して書き出してから: node predict-body.mjs
 const form = (s) => new URLSearchParams(s);
 

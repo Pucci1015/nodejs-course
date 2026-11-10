@@ -12,11 +12,28 @@ Node.js は、たくさんの接続を少ないメモリで同時に持てるの
 
 | フォルダ | 中身 |
 | --- | --- |
-| [samples/](samples/) | ポーリング、SSE、WebSocket（手書きと ws）と、ブラウザで開くページ |
+| [samples/](samples/) | 本文で書くプログラムの完成形（`long-wait.mjs`・`sse-clock.mjs`・`ws-echo.mjs`・`ws-client.mjs`）と、ポーリング、SSE、WebSocket（手書きと ws）を確かめるプログラム、ブラウザで開くページ |
 | [exercises/](exercises/) | 練習問題 |
-| [solutions/](solutions/) | 模範解答（問題2の `formatEvent` と問題3の `createEventHub`・`sseRoute` は、成果物でも使います） |
+| [solutions/](solutions/) | 模範解答（問題5の `formatEvent` と問題6の `createEventHub`・`sseRoute` は、成果物でも使います） |
 
-> この章のサンプルと練習問題は、`~/dev/part05/ch27-realtime` の中で動かします（[第5部の README](../README.md) の「準備」）。
+> **読み方**
+> - この章のコマンドは、すべて `~/dev/part05/ch27-realtime/` で実行します（第23章で `setup-part05.sh` を動かして、`~/dev/part05` を作ってあります）。
+>
+>   ```sh
+>   $ cd ~/dev/part05/ch27-realtime
+>   ```
+>
+> - 「**手を動かす**」の所は、新しいファイルに書いて動かしてください。ファイルの完成形は `samples/` にあります。「中身は読まなくてよい」と書いたサンプルは、動かして結果を見るだけで十分です。
+> - 「手を動かす」のサーバは 9347 番を使います。次のサーバを動かす前に `Ctrl+C` で止めてください。`curl` は別のターミナルで打ちます。
+
+## この章で学ぶことを、後でどこで使うか
+
+| この章で学ぶこと | 後で使う場面 |
+| --- | --- |
+| 4つの方法の選び方（1節） | 成果物（SSE を選ぶ）、第8部（画面での受け取り方） |
+| ロングポーリングの片付け（2節） | タイマーと listener を使うすべての所 |
+| SSE と `Last-Event-ID`（3節） | 成果物のタスク API、第8部（React で一覧を新しくする） |
+| WebSocket と Origin の確かめ（4節） | 第10部（Cookie のログインと、なりすましを防ぐ） |
 
 ---
 
@@ -73,9 +90,81 @@ app.get('/api/events/wait', (req, res) => {
 });
 ```
 
-[samples/polling-demo.mjs](samples/polling-demo.mjs) で、2つを比べられます。ロングポーリングは、SSE や WebSocket が使えない古い環境のための方法として、今も使われています。
+[samples/polling-demo.mjs](samples/polling-demo.mjs) で、2つを比べられます（`node samples/polling-demo.mjs` で動かします。中身は読まなくてよい）。ロングポーリングは、SSE や WebSocket が使えない古い環境のための方法として、今も使われています。
 
-大事なのは**片付け**です。待っている間に、タイマーと listener を作っています。「新しいものが来た」「時間切れ」「客が切った」の、どの終わり方でも、両方を片付けないと、少しずつたまっていきます（練習問題6）。
+大事なのは**片付け**です。待っている間に、タイマーと listener を作っています。「新しいものが来た」「時間切れ」「客が切った」の、どの終わり方でも、両方を片付けないと、少しずつたまっていきます（練習問題9）。
+
+**手を動かす**: メッセージが来るまで待つ `long-wait.mjs` を作ります（完成形は [samples/long-wait.mjs](samples/long-wait.mjs)）。
+
+```js
+import { EventEmitter } from 'node:events';
+import express from 'express';
+
+const PORT = 9347;
+const bus = new EventEmitter(); // 「新しいメッセージが来た」を知らせる
+const messages = [];
+
+const app = express();
+app.disable('x-powered-by');
+app.use(express.json());
+
+app.post('/api/messages', (req, res) => {
+  const message = { id: messages.length + 1, text: String(req.body?.text ?? '') };
+  messages.push(message);
+  bus.emit('message', message);
+  res.status(201).json(message);
+});
+
+app.get('/api/messages/wait', (req, res) => {
+  const since = Number(req.query.since ?? 0);
+  const newer = messages.filter((m) => m.id > since);
+  if (newer.length > 0) return res.json(newer); // もうあれば、すぐに返す
+
+  let done = false;
+  const onMessage = (message) => finish(() => res.json([message]));
+  const timer = setTimeout(() => finish(() => res.sendStatus(204)), 10_000); // 10 秒来なければ 204
+
+  function finish(send) {
+    if (done) return;
+    done = true;
+    clearTimeout(timer); // 片付け 1: タイマー
+    bus.off('message', onMessage); // 片付け 2: listener
+    send();
+    console.log(`待っている人: ${bus.listenerCount('message')}`);
+  }
+
+  bus.on('message', onMessage);
+  req.on('close', () => finish(() => {})); // 客が先に切ったら、何も送らずに片付ける
+  console.log(`待っている人: ${bus.listenerCount('message')}`);
+});
+
+app.listen(PORT, '127.0.0.1', () => console.log(`http://127.0.0.1:${PORT}/ で待っています`));
+```
+
+ターミナルを3つ使います。
+
+```sh
+# 1つ目
+$ node long-wait.mjs
+# 2つ目: 答えが返らずに待つ
+$ curl -s 'http://127.0.0.1:9347/api/messages/wait?since=0'
+# 3つ目: メッセージを送ると、2つ目にすぐ返る
+$ curl -s -H 'Content-Type: application/json' -d '{"text":"やあ"}' http://127.0.0.1:9347/api/messages
+{"id":1,"text":"やあ"}
+```
+
+2つ目のターミナルには `[{"id":1,"text":"やあ"}]` が出ます。サーバのターミナルには、待っている人の数が出ます。
+
+```text
+待っている人: 1
+待っている人: 0
+```
+
+- `EventEmitter` は、`on`（受け取る関数を足す）・`off`（外す）・`emit`（知らせる）ができる部品です（第3部 第13章）。`listenerCount` で、足してある関数の数が分かります。
+- URL を `'…'` で囲んでいるのは、`?` をシェルに別の意味で読ませないためです。
+- 2つ目で `since=1` にして待ち、10 秒何も送らないと、何も表示されずに終わります（204）。`curl -i` を付けると `HTTP/1.1 204 No Content` が見えます。
+- 待っている間に2つ目を Ctrl+C で止めても、`req.on('close')` で片付けるので、数が 0 に戻ります。`finish` で `clearTimeout` や `bus.off` を消して試すと、数が減らなくなります。
+- `done` は、「もう返した」の印です。メッセージと時間切れが同時に来ても、2回返さないようにします。
 
 ## 3. Server-Sent Events
 
@@ -118,7 +207,64 @@ app.get('/events', (req, res) => {
 for (const c of clients) c.write(`event: task\ndata: ${JSON.stringify(task)}\nid: ${id}\n\n`);
 ```
 
-`data` に改行が入っていたら、`data:` の行を分けます。`event` や `id` に改行が入ると、そこから先が「別の行」として読まれ、偽のイベントを作れてしまうので、断ります（練習問題2）。
+`data` に改行が入っていたら、`data:` の行を分けます。`event` や `id` に改行が入ると、そこから先が「別の行」として読まれ、偽のイベントを作れてしまうので、断ります（練習問題5）。
+
+**手を動かす**: 1秒ごとに時刻を送る `sse-clock.mjs` を作ります（完成形は [samples/sse-clock.mjs](samples/sse-clock.mjs)）。
+
+```js
+import express from 'express';
+
+const PORT = 9347;
+const app = express();
+app.disable('x-powered-by');
+
+let clients = 0;
+
+app.get('/clock', (req, res) => {
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream; charset=utf-8',
+    'Cache-Control': 'no-cache',
+  });
+  res.write('retry: 3000\n\n'); // 切れたら 3 秒後につなぎ直してほしい
+
+  let id = 0;
+  const timer = setInterval(() => {
+    id += 1;
+    const data = JSON.stringify({ now: new Date().toISOString() });
+    res.write(`event: tick\ndata: ${data}\nid: ${id}\n\n`);
+  }, 1000);
+
+  clients += 1;
+  console.log(`つながりました（今 ${clients} 人）`);
+  req.on('close', () => {
+    clearInterval(timer); // 片付けないと、だれもいないのに書き続ける
+    clients -= 1;
+    console.log(`切れました（今 ${clients} 人）`);
+  });
+});
+
+app.listen(PORT, '127.0.0.1', () => console.log(`http://127.0.0.1:${PORT}/clock で待っています`));
+```
+
+```sh
+$ node sse-clock.mjs
+# 別のターミナルで（Ctrl+C で止める）
+$ curl -N http://127.0.0.1:9347/clock
+retry: 3000
+
+event: tick
+data: {"now":"2026-11-09T09:00:01.911Z"}
+id: 1
+
+event: tick
+data: {"now":"2026-11-09T09:00:02.916Z"}
+id: 2
+...
+```
+
+- `curl -N` の `-N` は「ためずに、届いたらすぐ出す」オプションです。付けないと、まとめて出るまで何も見えないことがあります。
+- `res.writeHead` で、ステータスとヘッダだけを先に送ります。`res.end()` を呼ばないので、応答は終わりません。
+- curl を Ctrl+C で止めると、サーバのターミナルに `切れました（今 0 人）` が出ます。`clearInterval` を消すと、だれもいない接続に書き続けます。
 
 ### 3.2 ブラウザの EventSource
 
@@ -133,11 +279,11 @@ es.addEventListener('task', (e) => {
 `EventSource` は、切れると自分でつなぎ直します。そのとき、最後に受け取った `id` を **`Last-Event-ID`** ヘッダに入れて送ってくれます。サーバが最近のイベントを覚えておけば、切れていた間のものを送り直せます。
 
 ```sh
-$ node samples/sse-demo.mjs        # ブラウザで http://127.0.0.1:9341/sse.html を2つのタブで
+$ node samples/sse-demo.mjs        # 中身は読まなくてよい。ブラウザで http://127.0.0.1:9341/sse.html を2つのタブで
 $ curl -N -H 'Last-Event-ID: 2' http://127.0.0.1:9341/events
 ```
 
-送り直せない（覚えている範囲より古い、サーバを再起動して id が数え直しになった）ときは、`reset` のようなイベントを送り、画面に全部を読み直してもらいます（練習問題3）。
+送り直せない（覚えている範囲より古い、サーバを再起動して id が数え直しになった）ときは、`reset` のようなイベントを送り、画面に全部を読み直してもらいます（練習問題6）。
 
 ### 3.3 気をつけること
 
@@ -174,7 +320,7 @@ Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=
 - 101 を返した後、同じ TCP の接続は HTTP ではなくなり、両方から**フレーム**を送り合います
 - Node.js の HTTP サーバでは、このリクエストは `'request'` ではなく `'upgrade'` のイベントで来ます
 
-[samples/ws-handshake-demo.mjs](samples/ws-handshake-demo.mjs) は、これを `node:http` だけで書いたものです。届いたハンドシェイクと、フレームのバイトを、そのまま見られます。
+[samples/ws-handshake-demo.mjs](samples/ws-handshake-demo.mjs) は、これを `node:http` だけで書いたものです。届いたハンドシェイクと、フレームのバイトを、そのまま見られます（`node samples/ws-handshake-demo.mjs` で動かします。中身は読まなくてよい）。
 
 ### 4.2 フレーム
 
@@ -189,7 +335,7 @@ Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=
 - 客から送るフレームは、必ずマスクします。WebSocket を知らない古いプロキシが、中身を HTTP と取り違えるのを防ぐためです
 - ping と pong は、接続が生きているかを確かめるためのフレームです
 
-ここまでを自分で書くのが練習問題4です。本物では、分かれたフレーム、閉じるときの手順、圧縮など、ほかにも決まりが多いので、ライブラリを使います。
+ここまでを自分で書くのが練習問題7です。本物では、分かれたフレーム、閉じるときの手順、圧縮など、ほかにも決まりが多いので、ライブラリを使います。
 
 ### 4.3 ws ライブラリ
 
@@ -233,8 +379,93 @@ WebSocket の向こうにいるのが、自分の作った画面だけとは限�
 - **サーバが複数台**: 1台のサーバのメモリの中で配ると、ほかの台につながっている人には届きません。Redis の Pub/Sub などで、台の間で配ります（第6部 第34章、第12部 第66章）
 
 ```sh
-$ node samples/ws-demo.mjs        # ブラウザで http://127.0.0.1:9343/chat.html を2つのタブで
+$ node samples/ws-demo.mjs        # 中身は読まなくてよい。ブラウザで http://127.0.0.1:9343/chat.html を2つのタブで
 ```
+
+**手を動かす**: 受け取ったものを全員に配る WebSocket のサーバ `ws-echo.mjs` と、それを試すクライアント `ws-client.mjs` を作ります（完成形は [samples/ws-echo.mjs](samples/ws-echo.mjs)・[samples/ws-client.mjs](samples/ws-client.mjs)）。
+
+```js
+// ws-echo.mjs
+import express from 'express';
+import { WebSocketServer } from 'ws';
+
+const PORT = 9347;
+const ALLOWED_ORIGINS = new Set([`http://127.0.0.1:${PORT}`, `http://localhost:${PORT}`]);
+
+const app = express();
+app.disable('x-powered-by');
+const server = app.listen(PORT, '127.0.0.1', () => console.log(`ws://127.0.0.1:${PORT}/ws で待っています`));
+
+const wss = new WebSocketServer({ noServer: true, maxPayload: 16 * 1024 }); // 1つのメッセージは 16 KiB まで
+
+server.on('upgrade', (req, socket, head) => {
+  if (req.url !== '/ws' || !ALLOWED_ORIGINS.has(req.headers.origin)) {
+    console.log(`断りました: ${req.url} Origin=${req.headers.origin}`);
+    socket.end('HTTP/1.1 403 Forbidden\r\nConnection: close\r\n\r\n');
+    return;
+  }
+  wss.handleUpgrade(req, socket, head, (ws) => wss.emit('connection', ws, req));
+});
+
+wss.on('connection', (ws) => {
+  console.log(`つながりました（今 ${wss.clients.size} 人）`);
+  ws.on('message', (raw) => {
+    let msg;
+    try {
+      msg = JSON.parse(raw.toString());
+    } catch {
+      ws.send(JSON.stringify({ type: 'error', text: 'JSON ではありません' })); // 落ちずに、送った人にだけ返す
+      return;
+    }
+    if (typeof msg?.text !== 'string') {
+      ws.send(JSON.stringify({ type: 'error', text: 'text がありません' }));
+      return;
+    }
+    for (const client of wss.clients) {
+      client.send(JSON.stringify({ type: 'chat', text: msg.text }));
+    }
+  });
+  ws.on('close', () => console.log(`切れました（今 ${wss.clients.size} 人）`));
+});
+```
+
+```js
+// ws-client.mjs
+const origin = process.env.ORIGIN ?? 'http://127.0.0.1:9347';
+const text = process.argv[2] ?? 'こんにちは';
+
+// ブラウザはページのオリジンを Origin に入れる。ここでは、それを手で付ける
+const ws = new WebSocket('ws://127.0.0.1:9347/ws', { headers: { Origin: origin } });
+
+ws.addEventListener('open', () => {
+  console.log('つながりました');
+  ws.send(JSON.stringify({ text }));
+  ws.send('{こわれた JSON'); // わざと間違ったものも送る
+});
+ws.addEventListener('message', (e) => console.log('届いた:', e.data));
+ws.addEventListener('error', () => console.log('つなげませんでした'));
+ws.addEventListener('close', () => console.log('閉じました'));
+
+setTimeout(() => ws.close(), 500); // 少し待ってから閉じる
+```
+
+```sh
+$ node ws-echo.mjs
+# 別のターミナルで
+$ node ws-client.mjs こんにちは
+つながりました
+届いた: {"type":"chat","text":"こんにちは"}
+届いた: {"type":"error","text":"JSON ではありません"}
+閉じました
+$ ORIGIN=http://other.localhost node ws-client.mjs こんにちは
+つなげませんでした
+閉じました
+```
+
+- `process.argv[2]` は、`node ws-client.mjs こんにちは` の `こんにちは` です（第3部 第15章）。
+- 2回目は `Origin` を許していないものにしたので、サーバのターミナルに `断りました: /ws Origin=http://other.localhost` が出ます。
+- `{こわれた JSON` を送っても、サーバは落ちずに、送った人にだけエラーを返しています。`try` を外して試すと、サーバのプロセスが落ちます。
+- ブラウザでない客は、`Origin` を好きに付けられます（4.4節）。`Origin` の確かめは、ブラウザの中のほかのサイトのページから守るためのものです。
 
 ## 5. 成果物では
 
@@ -268,7 +499,7 @@ Socket.IO は、WebSocket の上に、自分の決まり（つなぎ直し、部
 
 ## 練習問題
 
-[exercises/README.md](exercises/README.md) に6問あります。解答は [solutions/README.md](solutions/README.md) です。
+[exercises/README.md](exercises/README.md) に9問あります（基本4問・応用2問・発展3問）。解答は [solutions/README.md](solutions/README.md) です。
 
 ## 参考資料
 

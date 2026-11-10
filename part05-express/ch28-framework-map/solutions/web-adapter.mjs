@@ -1,4 +1,4 @@
-// 練習問題2の模範解答: Node.js の req・res と、Web 標準の Request・Response をつなぐ
+// 練習問題7の模範解答: Node.js の req・res と、Web 標準の Request・Response をつなぐ
 // @hono/node-server や、Next.js を Node.js で動かすときの中身も、大きくはこの形をしている
 import { Readable } from 'node:stream';
 

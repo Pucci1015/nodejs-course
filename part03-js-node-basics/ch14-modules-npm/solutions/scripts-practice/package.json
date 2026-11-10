@@ -1,0 +1,13 @@
+{
+  "name": "scripts-practice",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node hello.mjs",
+    "greet": "node hello.mjs alice",
+    "pretest": "echo テストを始めます",
+    "test": "node --test",
+    "check": "npm test && npm start"
+  }
+}

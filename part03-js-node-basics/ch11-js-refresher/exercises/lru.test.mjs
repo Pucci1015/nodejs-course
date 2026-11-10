@@ -1,4 +1,4 @@
-// 練習問題5 用: lru.mjs の LRUCache クラスのテスト
+// 練習問題9 用: lru.mjs の LRUCache クラスのテスト
 // 使い方: node --test lru.test.mjs
 //   模範解答を試す: MODULE=../solutions/lru.mjs node --test lru.test.mjs
 import { test } from 'node:test';

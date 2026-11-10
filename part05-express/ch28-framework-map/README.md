@@ -12,11 +12,30 @@
 
 | フォルダ | 中身 |
 | --- | --- |
-| [samples/](samples/) | 同じタスク API を4つの書き方で。決まりとデータ（`tasks-core.mjs`）と契約のテストは共通 |
+| [samples/](samples/) | 本文で書くプログラムの完成形（`fastify-try.mjs`・`hono-try.mjs`・`web-serve.mjs`）と、同じタスク API を4つの書き方で書いたもの。決まりとデータ（`tasks-core.mjs`）と契約のテストは共通 |
 | [exercises/](exercises/) | 練習問題 |
 | [solutions/](solutions/) | 模範解答 |
 
-> この章のサンプルと練習問題は、`~/dev/part05/ch28-framework-map` の中で動かします（[第5部の README](../README.md) の「準備」）。fastify・hono・@hono/node-server は、そこで入れてあります。
+> **読み方**
+> - この章のコマンドは、すべて `~/dev/part05/ch28-framework-map/` で実行します（第23章で `setup-part05.sh` を動かして、`~/dev/part05` を作ってあります）。
+>
+>   ```sh
+>   $ cd ~/dev/part05/ch28-framework-map
+>   ```
+>
+> - 「**手を動かす**」の所は、新しいファイルに書いて動かしてください。ファイルの完成形は `samples/` にあります。「中身は読まなくてよい」と書いたサンプルは、動かして結果を見るだけで十分です。
+> - 「手を動かす」のサーバは 9357 番を使います。次のサーバを動かす前に `Ctrl+C` で止めてください。`curl` は別のターミナルで打ちます。
+> - fastify・hono・@hono/node-server は、第23章の `setup-part05.sh` で入れてあります。
+> - 4つの書き方のタスク API（`express-tasks.mjs` など）は、本文に出てくる部分だけ読めば十分です。全部を読む必要はありません。
+
+## この章で学ぶことを、後でどこで使うか
+
+| この章で学ぶこと | 後で使う場面 |
+| --- | --- |
+| Fastify の JSON Schema（3節） | 第7部（スキーマと型をそろえる）、仕事で Fastify に出会ったとき |
+| Web 標準の `Request`・`Response`（4・5節） | 第9部（Next.js の Route Handlers）、第12部（Cloudflare Workers などで動かす） |
+| 契約のテスト（6節） | 成果物のテスト、第6部（データの層を替えても同じかを確かめる） |
+| フレームワークの選び方（10節） | 第9部・第12部で、どこに何を置くかを決めるとき |
 
 ---
 
@@ -117,7 +136,61 @@ Express との違いは、次のとおりです。
 
 Fastify が速いと言われるのは、スキーマを先に知っているので、確かめる関数と JSON にする関数を、起動のときに作っておけるからです（中で ajv と fast-json-stringify を使っています）。
 
-出力のスキーマには、**守り**の意味もあります。データベースから読んだ行に `passwordHash` が入っていても、スキーマに書いていなければ、応答には出ません。練習問題4は、これを使います。
+出力のスキーマには、**守り**の意味もあります。データベースから読んだ行に `passwordHash` が入っていても、スキーマに書いていなければ、応答には出ません。練習問題6は、これを使います。
+
+**手を動かす**: JSON Schema で入力と出力を決めた Fastify のアプリを、ポートを開かずに試す `fastify-try.mjs` を作ります（完成形は [samples/fastify-try.mjs](samples/fastify-try.mjs)）。
+
+```js
+import Fastify from 'fastify';
+
+const app = Fastify({
+  ajv: { customOptions: { removeAdditional: false } }, // 知らない項目は、黙って消さずに断る
+});
+
+const User = {
+  type: 'object',
+  properties: { id: { type: 'integer' }, name: { type: 'string' } },
+  required: ['id', 'name'],
+};
+
+app.post(
+  '/users',
+  {
+    schema: {
+      body: {
+        type: 'object',
+        properties: { name: { type: 'string', minLength: 1, maxLength: 20 } },
+        required: ['name'],
+        additionalProperties: false,
+      },
+      response: { 201: User }, // ここに書いていない項目は、応答に出ない
+    },
+  },
+  async (req, reply) => {
+    const user = { id: 1, name: req.body.name, passwordHash: 'dev-only-hash' }; // データベースから読んだ行のつもり
+    return reply.code(201).send(user);
+  },
+);
+
+// app.inject: ポートを開かずに、リクエストを送ったことにして試す
+for (const body of [{ name: 'alice' }, { name: '' }, { name: 'bob', role: 'admin' }]) {
+  const res = await app.inject({ method: 'POST', url: '/users', payload: body });
+  console.log(JSON.stringify(body), '→', res.statusCode, res.body);
+}
+```
+
+```sh
+$ node fastify-try.mjs
+{"name":"alice"} → 201 {"id":1,"name":"alice"}
+{"name":""} → 400 {"statusCode":400,"code":"FST_ERR_VALIDATION","error":"Bad Request","message":"body/name must NOT have fewer than 1 characters"}
+{"name":"bob","role":"admin"} → 400 {"statusCode":400,"code":"FST_ERR_VALIDATION","error":"Bad Request","message":"body must NOT have additional properties"}
+```
+
+- 1つ目では、ハンドラが `passwordHash` も返しましたが、応答には `id` と `name` だけが出ています。`schema.response` の働きです。
+- 2つ目・3つ目では、ハンドラは呼ばれていません。スキーマに合わないので、Fastify が先に 400 を返しました。
+- `app.inject` は、ポートを開かずに、リクエストを送ったことにして試す仕組みです。`res.statusCode` と `res.body` で結果を見ます。
+- `await` を、関数の外（ファイルのいちばん上）で使っています。`.mjs` のファイルでは、これができます（第3部 第14章）。
+- `removeAdditional: false` を消して動かすと、3つ目が 201 になります。理由は次の 3.2節です。
 
 ### 3.2 既定の設定の落とし穴
 
@@ -133,7 +206,7 @@ Fastify の ajv は、既定で次のように設定されています。どち�
 
 `removeAdditional` は、さらに気づきにくいです。テストで `{ "title": "a", "role": "admin" }` を送ると、201 が返ります。「`role` が断られた」のではなく、「`role` が消えた」のです。サーバの中は安全ですが、客は「`role` を送れた」と思ってしまいます。
 
-サンプルと練習問題4では、次のようにしています。
+サンプルと練習問題6では、次のようにしています。
 
 ```js
 const app = Fastify({
@@ -209,6 +282,55 @@ export default app;
 
 Cloudflare Workers は、Node.js ではありません。ブラウザに近い、Web 標準の API だけがある場所です（最近は Node.js の API も少し使えるようになっています）。Express は `http` に頼っているので、そのままでは動きません。
 
+**手を動かす**: Hono のアプリを、起動せずに試してから、Node.js で動かす `hono-try.mjs` を作ります（完成形は [samples/hono-try.mjs](samples/hono-try.mjs)）。
+
+```js
+import { serve } from '@hono/node-server';
+import { Hono } from 'hono';
+
+const app = new Hono();
+
+app.get('/hello/:name', (c) => c.json({ message: `こんにちは、${c.req.param('name')} さん` }));
+app.post('/echo', async (c) => {
+  const body = await c.req.json(); // ボディは、読むときに初めて読む
+  return c.json({ you_sent: body }, 201);
+});
+
+// app.request: サーバを起動せずに、Web 標準の Response を受け取る
+const res = await app.request('/hello/alice');
+console.log(res.status, res.headers.get('content-type'), await res.json());
+
+const res2 = await app.request('/echo', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ n: 1 }),
+});
+console.log(res2.status, await res2.json());
+
+console.log(res instanceof Response); // Hono が返したのは、Web 標準の Response そのもの
+
+// 同じアプリを Node.js の HTTP サーバで動かす（@hono/node-server が req・res とつなぐ）
+serve({ fetch: app.fetch, port: 9357, hostname: '127.0.0.1' }, () => console.log('http://127.0.0.1:9357/ で待っています'));
+```
+
+```sh
+$ node hono-try.mjs
+200 application/json { message: 'こんにちは、alice さん' }
+201 { you_sent: { n: 1 } }
+true
+http://127.0.0.1:9357/ で待っています
+# 別のターミナルで
+$ curl -s http://127.0.0.1:9357/hello/bob
+{"message":"こんにちは、bob さん"}
+$ curl -s http://127.0.0.1:9357/nothing
+404 Not Found
+```
+
+- `app.request(URL, 設定)` は、`fetch` と同じ形で、サーバを起動せずに `Response` を返します。
+- `res instanceof Response` が `true` なので、Hono が返したのは Web 標準の `Response` そのものです。
+- `serve({ fetch: app.fetch, … })` の `app.fetch` が、4.2節の「1つの関数」です。
+- 作っていない URL には、Hono が `404 Not Found` の文字を返します（`app.notFound` で変えられます）。
+
 ## 5. Web 標準のハンドラと、つなぐもの
 
 ### 5.1 フレームワークなしで書く
@@ -228,7 +350,49 @@ return async function handle(request) {
 };
 ```
 
-小さければ、これで十分です。ルートが増えてくると、if を並べるのがつらくなり、405 や HEAD の扱い、ミドルウェアが欲しくなります。それを作るのが練習問題5の小さなルーターで、それをきちんと作ったものが Hono です。
+小さければ、これで十分です。ルートが増えてくると、if を並べるのがつらくなり、405 や HEAD の扱い、ミドルウェアが欲しくなります。それを作るのが練習問題8の小さなルーターで、それをきちんと作ったものが Hono です。
+
+**手を動かす**: フレームワークなしの `handle(request)` を書き、`@hono/node-server` で動かす `web-serve.mjs` を作ります（完成形は [samples/web-serve.mjs](samples/web-serve.mjs)）。
+
+```js
+import { serve } from '@hono/node-server';
+
+// Request を受け取って Response を返す、ただの関数
+async function handle(request) {
+  const url = new URL(request.url);
+  if (request.method === 'GET' && url.pathname === '/add') {
+    const a = url.searchParams.get('a') ?? ''; // 無ければ null なので、空の文字列にする
+    const b = url.searchParams.get('b') ?? '';
+    if (!/^-?[0-9]{1,9}$/.test(a) || !/^-?[0-9]{1,9}$/.test(b)) {
+      return Response.json({ error: 'a と b は整数です' }, { status: 400 });
+    }
+    return Response.json({ sum: Number(a) + Number(b) });
+  }
+  return new Response('Not Found\n', { status: 404 });
+}
+
+// 起動する前に、関数として呼んで試せる
+const res = await handle(new Request('http://localhost/add?a=1&b=2'));
+console.log(res.status, await res.json());
+
+// Hono のアプリでなくても、fetch の形の関数なら、そのまま動かせる
+serve({ fetch: handle, port: 9357, hostname: '127.0.0.1' }, () => console.log('http://127.0.0.1:9357/ で待っています'));
+```
+
+```sh
+$ node web-serve.mjs
+200 { sum: 3 }
+http://127.0.0.1:9357/ で待っています
+# 別のターミナルで
+$ curl -s 'http://127.0.0.1:9357/add?a=2&b=3'
+{"sum":5}
+$ curl -s 'http://127.0.0.1:9357/add?a=x&b=3'
+{"error":"a と b は整数です"}
+```
+
+- `new URL(request.url).searchParams.get('a')` で、クエリの値を読みます。無ければ `null` です。
+- `Response.json(値, { status })` は、JSON の `Response` を作る、Web 標準の書き方です。
+- `serve` に渡したのは Hono のアプリではなく、自分で書いた関数です。`Request → Response` の形なら、何でも動かせます。
 
 ### 5.2 Next.js の Route Handlers
 
@@ -282,7 +446,7 @@ export function toNodeHandler(handle) {
 | `http://` 決め打ち | TLS の接続でも、ハンドラからは `http://` に見える |
 | HEAD の扱い | HEAD でも本文を書いてしまう |
 
-`@hono/node-server` や Next.js の中にも、同じ仕事をするアダプタがあります。練習問題2で、これを直します。`request.duplex: 'half'` は、「ボディを流れのまま渡す。応答はボディを読み終わってから」という、Node.js の `fetch`（undici）で、流れのボディを渡すときに要る指定です。
+`@hono/node-server` や Next.js の中にも、同じ仕事をするアダプタがあります。練習問題7で、これを直します。`request.duplex: 'half'` は、「ボディを流れのまま渡す。応答はボディを読み終わってから」という、Node.js の `fetch`（undici）で、流れのボディを渡すときに要る指定です。
 
 ## 6. 契約のテストで、同じだと確かめる
 
@@ -303,8 +467,7 @@ contract('Web 標準のハンドラ', web.listen);
 `contract(name, start)` は、`start()` でサーバを起動し、`fetch` で外から叩く7個のテスト（空の一覧、作ると 201 と `Location`、1件を見る、404、422、壊れた JSON の 400 と JSON でないものの 415、間違いの後も作ったのは1つだけ）を作ります。テストは、フレームワークのことを何も知りません。見ているのは、HTTP の約束（ステータス、ヘッダ、JSON）だけです。
 
 ```sh
-$ cd ~/dev/part05/ch28-framework-map/samples
-$ node --test contract.test.mjs
+$ node --test samples/contract.test.mjs
 ℹ pass 28
 ℹ fail 0
 ```
@@ -439,7 +602,7 @@ Flask は、Python の小さな Web フレームワークです。`@app.route('/
 
 ## 練習問題
 
-[exercises/README.md](exercises/README.md) に5問あります。解答は [solutions/README.md](solutions/README.md) です。
+[exercises/README.md](exercises/README.md) に8問あります（基本4問・応用2問・発展2問）。解答は [solutions/README.md](solutions/README.md) です。
 
 ## 参考資料
 

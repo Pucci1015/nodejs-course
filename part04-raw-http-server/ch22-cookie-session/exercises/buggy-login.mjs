@@ -1,7 +1,7 @@
-// 練習問題5: ログインのあるサイト。セッションの扱いにバグがたくさんあります
+// 練習問題8: ログインのあるサイト。セッションの扱いにバグがたくさんあります
 // 確かめる: bash check-login.sh
 // 使い方: node buggy-login.mjs   → ブラウザで http://127.0.0.1:9225/
-//   ユーザー: ryota / dev-only-password、hanako / another-dev-password（この練習用のもの）
+//   ユーザー: alice / dev-only-password、bob / another-dev-password（この練習用のもの）
 import crypto from 'node:crypto';
 import http from 'node:http';
 import { html } from '../../ch21-html-templates/samples/mini-html.mjs';
@@ -9,7 +9,7 @@ import { html } from '../../ch21-html-templates/samples/mini-html.mjs';
 const PORT = Number(process.env.PORT ?? 9225);
 const TTL_MS = Number(process.env.SESSION_TTL_MS ?? 30 * 60 * 1000);
 
-const users = { ryota: 'dev-only-password', hanako: 'another-dev-password' };
+const users = { alice: 'dev-only-password', bob: 'another-dev-password' };
 const sessions = {};
 let nextId = 1;
 

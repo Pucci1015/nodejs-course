@@ -11,11 +11,30 @@
 
 | フォルダ | 中身 |
 | --- | --- |
-| [samples/](samples/) | コールスタック、キューの順番、フェーズ、スレッドプール、サーバが止まる様子、Worker、遅れの測定、プロセスの終わり方 |
+| [samples/](samples/) | 本文で書くプログラムの完成形と、キューの順番・フェーズ・スレッドプール・Worker・遅れの測定・プロセスの終わり方をまとめて確かめるプログラム |
 | [exercises/](exercises/) | 練習問題 |
 | [solutions/](solutions/) | 模範解答 |
 
-> 時間の表示は、この教材の作成時に Node.js 26（4コアの Linux）で実行したものです。Apple Silicon の Mac では、計算はもっと速く、コアの数も多いので、数字は変わります。**大事なのは数字そのものではなく、どれが先に終わるか、どれが待たされるか**です。
+> **読み方**
+> - この章のコマンドは、すべて `~/dev/part03/ch13-event-loop/` で実行します（第11章で第3部のフォルダを `~/dev/part03` にコピーしてあります）。
+>
+>   ```sh
+>   $ cd ~/dev/part03/ch13-event-loop
+>   ```
+>
+> - 「**手を動かす**」の所は、新しいファイルに書いて動かしてください。ファイルの完成形は `samples/` にあります。「中身は読まなくてよい」と書いたサンプルは、動かして結果を見るだけで十分です。
+> - 時間の表示は、この教材の作成時に Node.js 26（4コアの Linux）で実行したものです。Apple Silicon の Mac では、計算はもっと速く、コアの数も多いので、数字は変わります。**大事なのは数字そのものではなく、どれが先に終わるか、どれが待たされるか**です。
+
+## この章で学ぶことを、後でどこで使うか
+
+| この章で学ぶこと | 後で使う場面 |
+| --- | --- |
+| 処理は最後まで実行され、割り込まれない（1節） | 第4部・第5部で「1つのリクエストの重い処理が、全員を待たせる」のを避けるとき |
+| マイクロタスクとタスク（2〜3節） | 第15章の Stream や EventEmitter の順番、第8部の React で「画面がいつ更新されるか」を考えるとき |
+| スレッドプール（4節） | 第10部でパスワードのハッシュ（`scrypt`）を使うとき |
+| Worker と小分け（6節） | 重い集計や画像の処理をサーバに入れるとき（第12部のジョブのキュー） |
+| イベントループの遅れ（7節） | 第12部 第64章・第66章の監視と性能の計測 |
+| プロセスが終わる条件と `unref`（8節） | 第16章の CLI、第11部のテストが終わらないとき、第12部の正しい止め方 |
 
 ---
 
@@ -24,6 +43,33 @@
 ### 1.1 コールスタック
 
 関数を呼ぶと、その関数は**コールスタック**（呼び出しの積み重ね）に積まれ、`return` すると取り除かれます。JavaScript のスレッドは、コールスタックが空になるまで、今の処理を**最後まで**実行します。途中で別の処理が割り込むことはありません（run-to-completion）。
+
+**手を動かす**: `blocking-loop.mjs` を作り、次のように書いて実行します（完成形は [samples/blocking-loop.mjs](samples/blocking-loop.mjs)）。10ms 後に呼ぶタイマーを予約してから、500ms かかる計算をします。`padStart(4)` は、文字列の左を空白で埋めて4文字にするメソッドです（表示をそろえるため）。
+
+```js
+const start = Date.now();
+const t = () => `${String(Date.now() - start).padStart(4)}ms`;
+
+setTimeout(() => console.log(t(), 'タイマーが呼ばれた（10ms 後のはず）'), 10);
+
+console.log(t(), '500ms かかる計算を始める');
+let count = 0;
+while (Date.now() - start < 500) {
+  count++;
+}
+console.log(t(), `計算が終わった（${count} 回まわった）`);
+```
+
+```sh
+$ node blocking-loop.mjs
+   0ms 500ms かかる計算を始める
+ 500ms 計算が終わった（11020100 回まわった）
+ 500ms タイマーが呼ばれた（10ms 後のはず）
+```
+
+`while` の行は、「500ms たつまで `count++` を繰り返す」という意味です（CPU を使い続ける、重い計算の代わり）。タイマーは 10ms で時間が来ていたのに、計算が終わるまで呼ばれませんでした。
+
+同じことを、コールスタックの深さも含めて確かめるサンプルです（中身は読まなくてよい）。
 
 ```sh
 $ node samples/stack-demo.mjs
@@ -78,6 +124,29 @@ $ node samples/stack-demo.mjs
 | **マイクロタスク** | `Promise` の `then`・`catch`・`finally`、`await` の続き、`queueMicrotask` | 今の処理が終わった**直後**。空になるまで全部 |
 | **タスク**（マクロタスク） | タイマー（`setTimeout`・`setInterval`）、I/O のコールバック、`setImmediate` | マイクロタスクが空になった後、1つずつ |
 
+**手を動かす**: `order-basic.mjs` を作り、次の5行を書きます（完成形は [samples/order-basic.mjs](samples/order-basic.mjs)）。`queueMicrotask(関数)` は、関数をマイクロタスクの待ち行列に入れる関数です。**実行する前に**、A〜E がどの順番で表示されるかを予想してから、実行してください。
+
+```js
+console.log('A 同期');
+setTimeout(() => console.log('B setTimeout 0'), 0);
+Promise.resolve().then(() => console.log('C then'));
+queueMicrotask(() => console.log('D queueMicrotask'));
+console.log('E 同期');
+```
+
+```sh
+$ node order-basic.mjs
+A 同期
+E 同期
+C then
+D queueMicrotask
+B setTimeout 0
+```
+
+同期のコード（A・E）→ マイクロタスク（C・D）→ タスク（B）の順です。`setTimeout` の時間が 0 でも、マイクロタスクより後になります。
+
+もう少し多くの種類を並べたサンプルです（中身は読まなくてよい）。
+
 ```sh
 $ node samples/queues-demo.mjs
 同期のコード 1
@@ -106,7 +175,7 @@ function loop() {
 loop();
 ```
 
-重い処理の途中で「他の処理に順番を譲りたい」とき、`await Promise.resolve()` では譲れません。タスクの待ち行列に入る `setImmediate` を使います（6.2節、練習問題3）。
+重い処理の途中で「他の処理に順番を譲りたい」とき、`await Promise.resolve()` では譲れません。タスクの待ち行列に入る `setImmediate` を使います（6.2節、練習問題1・5）。
 
 ブラウザも、同じ「タスクとマイクロタスク」の仕組みで動いています。ブラウザでは、タスクとタスクの間に**画面の描画**が入ります。重い処理で画面が固まるのは、描画の順番が来ないからです。
 
@@ -149,6 +218,8 @@ Node.js のイベントループは、タスクの種類ごとにフェーズ（
 
 ### 3.2 setTimeout(0) と setImmediate
 
+次のサンプルを、何度か実行してみてください（中身は読まなくてよい）。
+
 ```sh
 $ node samples/phases-demo.mjs     # 何度か実行してみる
 (1) timeout (1) immediate (2) immediate (2) timeout
@@ -182,7 +253,7 @@ queueMicrotask
 then の中の then
 ```
 
-ES モジュールの一番外側のコードは、それ自体が Promise の仕組み（マイクロタスク）の中で実行されているため、「今の処理が終わった直後」に、まずマイクロタスクの待ち行列が処理されるからです。タイマーや I/O のコールバックの中では、ES モジュールでも nextTick が先です（練習問題1）。
+ES モジュールの一番外側のコードは、それ自体が Promise の仕組み（マイクロタスク）の中で実行されているため、「今の処理が終わった直後」に、まずマイクロタスクの待ち行列が処理されるからです。タイマーや I/O のコールバックの中では、ES モジュールでも nextTick が先です（練習問題4）。
 
 このように順番が場面で変わるので、**自分のコードでは `process.nextTick` より `queueMicrotask` を使う**のがおすすめです（Node.js のドキュメントも同じことを勧めています）。
 
@@ -204,6 +275,8 @@ ES モジュールの一番外側のコードは、それ自体が Promise の�
 
 スレッドプールは、既定で **4本**です。環境変数 `UV_THREADPOOL_SIZE` で変えられます（最大 1024）。
 
+次のサンプルは、時間のかかるハッシュの計算（`crypto.pbkdf2`、第10部で使うパスワードのハッシュの一種）を8回同時に頼みます（中身は読まなくてよい）。
+
 ```sh
 $ node samples/threadpool-demo.mjs
 CPU のコア数: 4、UV_THREADPOOL_SIZE: （未設定 = 4）
@@ -219,7 +292,7 @@ pbkdf2 を 8 回、非同期で同時に実行します
   400ms 8 番目が終わった
   400ms すべて終わった。50ms ごとのタイマーは 7 回動いた（空いていれば約 7 回）
 
-$ UV_THREADPOOL_SIZE=2 node samples/threadpool-demo.mjs | tail -1
+$ UV_THREADPOOL_SIZE=2 node samples/threadpool-demo.mjs | tail -1      # 環境変数を付けて実行し、最後の1行だけ表示
   586ms すべて終わった。50ms ごとのタイマーは 11 回動いた（空いていれば約 11 回）
 
 $ node samples/threadpool-demo.mjs sync | tail -1
@@ -234,24 +307,74 @@ $ node samples/threadpool-demo.mjs sync | tail -1
 
 ### 4.3 スレッドプールが埋まると
 
-スレッドプールは、ファイル・DNS・crypto で**共有**です。重い crypto でスレッドが全部埋まると、関係の無いファイルの読み込みや名前解決まで待たされます。練習問題4で、実際に確かめます。
+スレッドプールは、ファイル・DNS・crypto で**共有**です。重い crypto でスレッドが全部埋まると、関係の無いファイルの読み込みや名前解決まで待たされます。練習問題7で、実際に確かめます。
 
 ## 5. イベントループを止める
 
 ### 5.1 1つの重いリクエストが、全員を待たせる
 
-```sh
-$ node samples/blocking-demo.mjs
---- /slow-async を送り、50ms 後に /fast を送る
-/slow-async  1021ms
-/fast           9ms
---- /slow を送り、50ms 後に /fast を送る
-/slow        1004ms
-/fast         954ms
+**手を動かす**: `block-server.mjs` を作り、次のように書きます（完成形は [samples/block-server.mjs](samples/block-server.mjs)）。`/slow` は3秒**計算する**、`/wait` は3秒**待つ**だけ、それ以外はすぐに返すサーバです。
+
+```js
+import http from 'node:http';
+
+function busy(ms) {
+  const end = Date.now() + ms;
+  while (Date.now() < end) {
+    // 何もしないで回り続ける（重い計算の代わり）
+  }
+}
+
+const server = http.createServer((req, res) => {
+  if (req.url === '/slow') {
+    busy(3000);
+    res.end('slow: 3秒計算した\n');
+    return;
+  }
+  if (req.url === '/wait') {
+    setTimeout(() => res.end('wait: 3秒待った\n'), 3000);
+    return;
+  }
+  res.end('fast\n');
+});
+
+server.listen(9133, '127.0.0.1', () => {
+  console.log('http://127.0.0.1:9133/ で待っています（Ctrl+C で止める）');
+});
 ```
 
-- `/slow-async` は1秒**待つ**だけ（タイマー）です。待っている間、スレッドは空いているので、`/fast` はすぐに返ります
-- `/slow` は1秒**計算する**（CPU を使い続ける）処理です。その間、スレッドは計算で埋まっているので、`/fast` は `/slow` が終わるまで待たされました
+ターミナルを2つ使います。ターミナル1でサーバを起動し、ターミナル2で `/slow` を送った直後に `/fast` を送ります。
+
+```sh
+# ターミナル1（~/dev/part03/ch13-event-loop で）
+$ node block-server.mjs
+
+# ターミナル2
+$ curl -s http://127.0.0.1:9133/slow &
+$ curl -s -w '%{time_total}秒\n' http://127.0.0.1:9133/fast
+fast
+2.804790秒
+slow: 3秒計算した
+```
+
+- コマンドの最後の `&` は、「そのコマンドを裏で動かし、終わるのを待たずに次のコマンドを打てるようにする」という意味です。`[1] 12345` や `[1]  + done ...` のような行も表示されますが、裏で動かしたコマンドの番号と、それが終わったという知らせです。
+- `-w '%{time_total}秒\n'` は、curl が「全体でかかった時間」を最後に表示するオプションです（第2部 第7章）。
+
+`/fast` はすぐに返すはずなのに、約3秒待たされました。`/slow` の計算が終わるまで、サーバのスレッドが空かないからです。次に `/slow` を `/wait` に変えて、同じことをしてみてください。
+
+```sh
+$ curl -s http://127.0.0.1:9133/wait &
+$ curl -s -w '%{time_total}秒\n' http://127.0.0.1:9133/fast
+fast
+0.001042秒
+```
+
+今度は `/fast` がすぐに返りました。`/wait` は**待っている**だけで、その間スレッドは空いているからです。
+
+- **待つ**処理（タイマー、ファイル、ネットワーク）は、他のリクエストを待たせない
+- **計算する**処理（CPU を使い続ける）は、その間、他のすべてのリクエストを待たせる
+
+終わったら、ターミナル1で Ctrl+C を押してサーバを止めます。同じことを1つのプログラムで確かめるサンプルもあります（`node samples/blocking-demo.mjs`。中身は読まなくてよい）。
 
 Flask を開発用サーバ（スレッドあり）や gunicorn のワーカーを複数立てて動かしていれば、1つのリクエストが重くても、別のスレッドやプロセスが他のリクエストに応えます。Node.js は1つのスレッドで全員に応えるので、**1つのリクエストの重い計算が、全員の待ち時間になります**。
 
@@ -263,7 +386,7 @@ Flask を開発用サーバ（スレッドあり）や gunicorn のワーカー�
 | 同期の I/O | リクエストの処理の中で `fs.readFileSync`、`execSync` | 非同期版を使う。起動時に1回だけ読む設定ファイルなら同期でもよい |
 | 大きすぎるデータ | 100MB の `JSON.parse`・`JSON.stringify`、巨大な配列の `sort` | 大きさを制限する、ストリームで少しずつ処理する（第15章） |
 | 同期の crypto | `pbkdf2Sync`、`scryptSync`、`bcrypt` の同期版 | 非同期版を使う |
-| 正規表現 | ある入力でバックトラックが爆発する正規表現（ReDoS） | 正規表現を直す、入力の長さを制限する（練習問題5） |
+| 正規表現 | ある入力でバックトラックが爆発する正規表現（ReDoS） | 正規表現を直す、入力の長さを制限する（練習問題6） |
 | 終わらないループ | `while (!done) {}` で何かを待つ | ループで待たず、イベントやタイマーを使う |
 
 特に気を付けたいのは、**利用者が送ってきたデータの大きさや中身によって、処理時間が大きく変わる**ものです。悪意のある人が、わざと重くなるデータを送ってサーバを止める攻撃（DoS、サービス妨害）に使われます。
@@ -290,6 +413,8 @@ import { countPrimes } from './primes.mjs';
 
 parentPort.postMessage(countPrimes(workerData.from, workerData.to));
 ```
+
+`new URL('./primes-worker.mjs', import.meta.url)` は、「このファイルと同じフォルダの `primes-worker.mjs`」という意味です。Worker を使った完成形が、次のサンプルです（中身は読まなくてよい。練習問題2で、同じ形の関数を自分で書きます）。
 
 ```sh
 $ node samples/worker-demo.mjs
@@ -318,7 +443,44 @@ for (let i = 0; i < items.length; i++) {
 }
 ```
 
-Worker より簡単で、データのコピーもいりません。ただし、全体にかかる時間は少し長くなり、その間メインのスレッドの CPU を使っていることに変わりはありません。練習問題3で、時間で区切る版を作ります。
+**手を動かす**: `yield-loop.mjs` を作り、次のように書いて実行します（完成形は [samples/yield-loop.mjs](samples/yield-loop.mjs)）。500ms の計算を 50ms ずつ10回に分け、その合間に順番を譲ります。100ms ごとのタイマーが、計算の途中でも動くかを見ます。
+
+```js
+const start = Date.now();
+const t = () => `${String(Date.now() - start).padStart(4)}ms`;
+
+function busy(ms) {
+  const end = Date.now() + ms;
+  while (Date.now() < end) {
+    // 重い計算の代わり
+  }
+}
+
+const nextTask = () => new Promise((resolve) => setImmediate(resolve));
+
+const timer = setInterval(() => console.log(t(), 'タイマー（100ms ごと）'), 100);
+
+for (let i = 0; i < 10; i++) {
+  busy(50);
+  await nextTask();
+}
+console.log(t(), '計算が終わった');
+clearInterval(timer);
+```
+
+```sh
+$ node yield-loop.mjs
+ 100ms タイマー（100ms ごと）
+ 202ms タイマー（100ms ごと）
+ 302ms タイマー（100ms ごと）
+ 402ms タイマー（100ms ごと）
+ 502ms タイマー（100ms ごと）
+ 502ms 計算が終わった
+```
+
+計算の途中でも、タイマーが予定どおり動きました。`await nextTask();` を `await Promise.resolve();` に変えて実行すると、タイマーは1回も表示されません（2.2節）。`clearInterval(timer)` は、`setInterval` のタイマーを止める関数です。
+
+Worker より簡単で、データのコピーもいりません。ただし、全体にかかる時間は少し長くなり、その間メインのスレッドの CPU を使っていることに変わりはありません。練習問題1で関数にし、練習問題5で、件数ではなく時間で区切る版を作ります。
 
 ### 6.3 そもそも、Node.js でやらない
 
@@ -334,6 +496,8 @@ Node.js が得意なのは「たくさんの I/O を待つ」ことで、苦手�
 
 サーバが止まっているかどうかは、「タイマーが予定より何 ms 遅れて呼ばれたか」で測れます。Node.js には、そのための `perf_hooks.monitorEventLoopDelay` があります。
 
+次のサンプルで、わざと止めたときの遅れを測ります（中身は読まなくてよい）。
+
 ```sh
 $ node samples/loop-delay-demo.mjs
 何もしない 1秒
@@ -346,13 +510,33 @@ $ node samples/loop-delay-demo.mjs
 
 **平均だけを見てはいけない**ことが分かります。「1回だけ 300ms 止める」の平均は 15.9ms ですが、その 300ms の間に来たリクエストは、全部 300ms 待たされています。サーバの遅さは、99パーセンタイル（遅い方から1%の値）や最大で見るのが一般的です。
 
-本番のサーバでは、この値をログや監視の仕組み（第12部）に送り、遅れが大きくなったら知らせるようにします。練習問題6で、簡単な見張りを自分で作ります。
+本番のサーバでは、この値をログや監視の仕組み（第12部）に送り、遅れが大きくなったら知らせるようにします。練習問題9で、簡単な見張りを自分で作ります。
 
 どこで止まっているかを調べるには、CPU プロファイル（どの関数にどれだけ時間がかかったかの記録）を取ります。`node --cpu-prof server.mjs` で実行すると、終了時に `.cpuprofile` ファイルができ、Chrome の DevTools の Performance パネルに読み込んで見られます。第1部 第4章の、DevTools でデバッグする方法（`--inspect`）からも取れます。
 
 ## 8. プロセスはいつ終わるのか
 
 Node.js のプロセスは、**イベントループに待つものが無くなったら**終わります。「待つもの」とは、まだ動いていないタイマー、開いているソケット（`listen` 中のサーバを含む）、実行中のファイル操作や子プロセスなどです。
+
+**手を動かす**: `unref-demo.mjs` を作り、次の3行を書いて実行します（完成形は [samples/unref-demo.mjs](samples/unref-demo.mjs)）。
+
+```js
+const watcher = setInterval(() => console.log('見張り中'), 300);
+watcher.unref();
+setTimeout(() => console.log('1秒の仕事が終わった'), 1000);
+```
+
+```sh
+$ node unref-demo.mjs
+見張り中
+見張り中
+見張り中
+1秒の仕事が終わった
+```
+
+1秒の仕事が終わると、`setInterval` が残っていてもプロセスが終わりました。次に、`watcher.unref();` の行を消して実行してみてください。今度は「見張り中」がいつまでも表示され、プロセスが終わりません（Ctrl+C で止めます）。`setInterval` のタイマーが「待つもの」として残っているからです。
+
+いくつかの場面をまとめたサンプルです（中身は読まなくてよい）。
 
 ```sh
 $ node samples/exit-demo.mjs 2
@@ -401,7 +585,7 @@ Python にも `asyncio` を使う ASGI のフレームワーク（FastAPI など
 
 ## 練習問題
 
-[exercises/README.md](exercises/README.md) に6問あります。解答は [solutions/README.md](solutions/README.md) です。
+[exercises/README.md](exercises/README.md) に9問あります（基本4問・応用3問・発展2問）。解答は [solutions/README.md](solutions/README.md) です。
 
 ## 参考資料
 

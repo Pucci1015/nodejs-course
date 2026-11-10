@@ -1,4 +1,4 @@
-// 練習問題2の模範解答: Express の芯（ミドルウェアの列と next）
+// 練習問題7の模範解答: Express の芯（ミドルウェアの列と next）
 // Express の本物（router パッケージの index.js・layer.js・route.js）も、大きくはこの形をしている
 const METHODS = ['get', 'post', 'put', 'patch', 'delete'];
 

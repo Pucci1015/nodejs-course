@@ -1,5 +1,5 @@
 // zod で入力を確かめる（第25章 5節）
-//   $ node zod-demo.mjs
+//   $ node samples/zod-demo.mjs
 import { z } from 'zod';
 
 z.config(z.locales.ja()); // 既定の文を日本語にする（自分で書いた文は、そのまま）

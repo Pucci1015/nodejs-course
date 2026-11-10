@@ -1,4 +1,4 @@
-// 練習問題2: 伝言板の小さなサーバ。ブラウザで / を開くと動いているように見えますが、バグがたくさんあります
+// 練習問題7: 伝言板の小さなサーバ。ブラウザで / を開くと動いているように見えますが、バグがたくさんあります
 // 確かめる: bash check-server.sh
 // 使い方: node buggy-server.mjs   → http://127.0.0.1:9177/
 import fs from 'node:fs/promises';
@@ -6,7 +6,7 @@ import http from 'node:http';
 
 const PORT = Number(process.env.PORT ?? 9177);
 const messages = [
-  { id: 1, name: 'りょうた', text: 'はじめまして' },
+  { id: 1, name: 'alice', text: 'はじめまして' },
   { id: 2, name: 'Node', text: 'こんにちは、世界' },
 ];
 let nextId = 3;

@@ -1,4 +1,4 @@
-// 練習問題2: 途中で落ちても壊れない書き込みと、取りこぼさない更新を作ってください。
+// 練習問題5: 途中で落ちても壊れない書き込みと、取りこぼさない更新を作ってください。
 // 要件は README と atomic.test.mjs にあります。
 // 確かめ方: node --test atomic.test.mjs
 import fs from 'node:fs/promises';
