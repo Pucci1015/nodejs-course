@@ -1,5 +1,5 @@
 // ポーリングとロングポーリングを比べる（第27章 2節）
-//   $ node polling-demo.mjs
+//   $ node samples/polling-demo.mjs
 //   別のターミナルで:
 //     curl -s 'http://127.0.0.1:9340/api/events?since=0'          ← すぐに返る（新しいものが無ければ空）
 //     curl -s 'http://127.0.0.1:9340/api/events/wait?since=0'     ← 新しいものが来るまで待つ（最長 25 秒）

@@ -1,5 +1,5 @@
-// 練習問題4: アクセスログのミドルウェア
-// 応答が終わったら、1回だけ write({ … }) を呼ぶ。要件は exercises/README.md の問題4です。確かめ方:
+// 練習問題6: アクセスログのミドルウェア
+// 応答が終わったら、1回だけ write({ … }) を呼ぶ。要件は exercises/README.md の問題6です。確かめ方:
 //   $ node --test access-log.test.mjs
 
 /**

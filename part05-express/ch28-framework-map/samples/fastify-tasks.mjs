@@ -1,5 +1,5 @@
 // 同じタスク API を Fastify で（第28章 3節）
-//   $ node fastify-tasks.mjs          ← 127.0.0.1:9351
+//   $ node samples/fastify-tasks.mjs          ← 127.0.0.1:9351
 // Fastify は、ルートに JSON Schema を書くと、入力を確かめ、出力を速く JSON にしてくれる
 import Fastify from 'fastify';
 import { createTaskService, NotFoundError, parseId, problem, ValidationError } from './tasks-core.mjs';

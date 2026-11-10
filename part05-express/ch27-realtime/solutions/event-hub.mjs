@@ -1,4 +1,4 @@
-// 練習問題3の模範解答: イベントを配る「ハブ」と、SSE のルート
+// 練習問題6の模範解答: イベントを配る「ハブ」と、SSE のルート
 import { formatEvent } from './sse-format.mjs';
 
 /**

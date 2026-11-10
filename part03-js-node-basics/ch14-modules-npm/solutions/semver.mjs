@@ -1,4 +1,4 @@
-// 練習問題2 の解答: semver の parse・compare・satisfies を自分で作る
+// 練習問題8 の解答: semver の parse・compare・satisfies を自分で作る
 // 確かめ方: cd ../exercises && MODULE=../solutions/semver.mjs node --test semver.test.mjs
 //
 // 考え方: 範囲（"^1.2.3 || >=2.0.0-beta <3"）を、まず「比較の組（>=1.2.3 <2.0.0-0 など）」に直してから判定する。

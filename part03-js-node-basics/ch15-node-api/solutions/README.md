@@ -4,26 +4,126 @@
 
 | ファイル | 内容 |
 | --- | --- |
-| [atomic.mjs](atomic.mjs) | 問題2: `writeFileAtomic` と `updateJson` |
-| [lines.mjs](lines.mjs) | 問題3: `createLineSplitter` |
-| [log-stream.mjs](log-stream.mjs) | 問題4: `summarizeLogFile`（`node log-stream.mjs ログ` でも動く） |
-| [job-queue.mjs](job-queue.mjs) | 問題5: `JobQueue` |
-| [dir-size.mjs](dir-size.mjs) | 問題6: `dirSize` と `formatBytes`（`node dir-size.mjs フォルダ` で、中身ごとの大きさを表示する） |
+| [json-files.mjs](json-files.mjs) | 問題1: `readJson`・`writeJson`・`listMarkdown` |
+| [step-counter.mjs](step-counter.mjs) | 問題2: `StepCounter` |
+| [env-report.mjs](env-report.mjs) | 問題3: `commandVersion` と `envReport`（`node env-report.mjs` でも動く） |
+| [atomic.mjs](atomic.mjs) | 問題5: `writeFileAtomic` と `updateJson` |
+| [lines.mjs](lines.mjs) | 問題6: `createLineSplitter` |
+| [job-queue.mjs](job-queue.mjs) | 問題7: `JobQueue` |
+| [log-stream.mjs](log-stream.mjs) | 問題8: `summarizeLogFile`（`node log-stream.mjs ログ` でも動く） |
+| [dir-size.mjs](dir-size.mjs) | 問題9: `dirSize` と `formatBytes`（`node dir-size.mjs フォルダ` で、中身ごとの大きさを表示する） |
 
-模範解答は、`exercises` フォルダで次のように確かめられます。
+模範解答のテストは、`~/dev/part03/ch15-node-api/exercises` で次のように実行できます。`MODULE=ファイル` を前に付けると、テストが読み込むファイルを、自分のものから模範解答に切り替えられます。
 
 ```sh
-$ cd ../exercises
+$ MODULE=../solutions/json-files.mjs node --test json-files.test.mjs
+$ MODULE=../solutions/step-counter.mjs node --test step-counter.test.mjs
+$ MODULE=../solutions/env-report.mjs node --test env-report.test.mjs
 $ MODULE=../solutions/atomic.mjs node --test atomic.test.mjs
 $ MODULE=../solutions/lines.mjs node --test lines.test.mjs
-$ MODULE=../solutions/log-stream.mjs node --test log-stream.test.mjs
 $ MODULE=../solutions/job-queue.mjs node --test job-queue.test.mjs
+$ MODULE=../solutions/log-stream.mjs node --test log-stream.test.mjs
 $ MODULE=../solutions/dir-size.mjs node --test dir-size.test.mjs
 ```
 
 ---
 
-## 問題1 path と Buffer の結果を予想する
+## 問題1 JSON のファイルを読み書きする
+
+```js
+export async function readJson(file, fallback) {
+  try {
+    const text = await fs.readFile(file, 'utf8');
+    return JSON.parse(text);
+  } catch (err) {
+    if (err.code === 'ENOENT') return fallback;
+    throw err;
+  }
+}
+
+export async function writeJson(file, data) {
+  await fs.mkdir(path.dirname(file), { recursive: true });
+  await fs.writeFile(file, JSON.stringify(data, null, 2) + '\n');
+}
+
+export async function listMarkdown(dir) {
+  const entries = await fs.readdir(dir, { withFileTypes: true });
+  return entries
+    .filter((e) => e.isFile() && e.name.endsWith('.md'))
+    .map((e) => e.name)
+    .toSorted();
+}
+```
+
+- `readJson` で、どんな失敗でも `fallback` を返すようにすると、「JSON が壊れている」ことに気付けません。設定ファイルが壊れたまま、既定の設定で動き続けてしまいます。**知っている失敗（ENOENT）だけを扱い、知らない失敗は投げ直す**のが基本です。
+- `JSON.parse` の `SyntaxError` も、同じ `try` の中で起きるので `catch` に来ます。`err.code` は `undefined` なので、投げ直されます。
+- `writeJson` は、途中で落ちると壊れたファイルが残ります（本文3.4節）。壊れない版は、問題5の `writeFileAtomic` で作ります。
+
+## 問題2 イベントを出すカウンタ
+
+```js
+export class StepCounter extends EventEmitter {
+  #value = 0;
+  #limit;
+
+  constructor(limit) {
+    super();
+    this.#limit = limit;
+  }
+
+  get value() {
+    return this.#value;
+  }
+
+  increment() {
+    this.#value++;
+    this.emit('change', this.#value);
+    if (this.#value === this.#limit) {
+      this.emit('limit', this.#value);
+    }
+    return this.#value;
+  }
+
+  reset() {
+    const before = this.#value;
+    this.#value = 0;
+    this.emit('reset', before);
+  }
+}
+```
+
+- `super()` を呼ぶ前に `this` を使うと、`ReferenceError` になります。継承したクラスの `constructor` では、最初に `super()` を呼びます。
+- `emit` は同期なので、`increment()` から戻る前に、リスナーはすべて呼ばれ終わっています（テスト「change は increment() の中で出る」。本文5節）。
+- `limit` を「`>=` のとき」にすると、limit を超えた後も毎回 `'limit'` が出ます。「ちょうど届いたとき」は `===` で比べます。
+
+## 問題3 開発の環境を調べる CLI
+
+```js
+export async function commandVersion(cmd, args = ['--version']) {
+  try {
+    const { stdout } = await execFileAsync(cmd, args);
+    return stdout.trim();
+  } catch (err) {
+    if (err.code === 'ENOENT') return null;
+    throw err;
+  }
+}
+
+export async function envReport() {
+  const [npm, git] = await Promise.all([commandVersion('npm'), commandVersion('git')]);
+  return { node: process.version, npm, git, platform: process.platform, arch: process.arch, home: os.homedir() };
+}
+
+if (import.meta.main) {
+  console.log(JSON.stringify(await envReport(), null, 2));
+}
+```
+
+- コマンドが見つからないとき、`err.code` は `'ENOENT'`（文字列）です。コマンドが動いて失敗したとき（終了コードが 0 以外）は、`err.code` に**終了コード（数）**が入ります。同じ `code` という名前で、中身の種類が違うことに注意してください。
+- `execFile` はシェルを通さないので、`cmd` や `args` に `;` などが入っていても、コマンドとして実行されません（本文8.2節）。
+- 第1部の頃は、同じことを `node -v`・`npm -v` を手で打って集めていました。手でやっていたことを、`execFile` と JSON で自動にするのが、CLI を作る第一歩です（第16章）。
+
+## 問題4 path と Buffer の結果を予想する
 
 ```
 $ node predict.mjs
@@ -62,7 +162,7 @@ $ node predict.mjs
 
 12・13 は、Mac で実際に起きる問題です。macOS のファイルシステムは、ファイル名を NFD に近い形で返すことがあり、`'café.txt' === ファイル名` が `false` になることがあります。名前を比べる前に、両方を `normalize('NFC')` すると安全です。
 
-## 問題2 途中で落ちても壊れない書き込みと、取りこぼさない更新
+## 問題5 途中で落ちても壊れない書き込みと、取りこぼさない更新
 
 [atomic.mjs](atomic.mjs) を見てください。
 
@@ -90,7 +190,7 @@ $ node predict.mjs
 2. `updateJson` の順番待ちは、そのプロセスのメモリの中にある `Map` です。別のプロセスは、その `Map` を見られません。プロセスをまたいで守るには、**ロックファイル**（`flag: 'wx'` で `data.json.lock` を作れた人だけが更新し、終わったら消す。作れなければ少し待ってやり直す）や、OS のファイルロックを使います。ロックを持ったままプロセスが落ちたときの扱い（古いロックを見分ける）まで考える必要があり、難しい問題です。データを複数のプロセスから更新するなら、データベース（第6部）を使うのが普通です。
 3. 起動したときに、`.<名前>.*.tmp` に当てはまるファイルで、**作られてから十分に時間がたったもの**（たとえば1時間以上前の `mtime`）を消します。今まさに別のプロセスが書いている一時ファイルを消さないよう、時間で区別します。
 
-## 問題3 バイトのチャンクを1行ずつにする Transform
+## 問題6 バイトのチャンクを1行ずつにする Transform
 
 [lines.mjs](lines.mjs) を見てください。
 
@@ -102,18 +202,7 @@ $ node predict.mjs
 
 「考えてみよう」の答え: 上限が無いと、改行を送らずにデータを送り続けるだけで、`rest` が大きくなり続け、サーバのメモリを使い果たします（第13章の ReDoS と同じく、少ない手間でサーバを止められる DoS）。外から来るデータを読むときは、「1行の長さ」「全体の大きさ」「かかる時間」に、必ず上限を付けます。第4部 第20章で、リクエストのボディにも上限を付けます。
 
-## 問題4 大きなログ（.gz も）を少しずつ集計する
-
-[log-stream.mjs](log-stream.mjs) を見てください。
-
-- **.gz**: `fs.createReadStream(file).pipe(zlib.createGunzip())` の後ろに `readline` をつなぎます。`pipe` は読む側のエラーを伝えないので、`input.on('error', (err) => gunzip.destroy(err))` で伝えています。これが無いと、無い `.gz` を渡したときに `ENOENT` が `for await` に届かず、プロセスがエラーで終わってしまいます。`pipeline` を使えばこの心配は無いのですが、`readline` には「Readable」を渡す必要があるため、ここでは `pipe` を使っています
-- **少しずつ集計する**: 行を配列に溜めず、1行ごとに数を足すだけにしています。メモリに残るのは、パスごとの数（`Map`）と、いくつかの数だけです
-- **first と last**: 第11章の模範解答は、全部の時刻を配列にしてから `Math.min(...times)` で求めていました。スプレッド構文（`...`）は、配列の要素を**関数の引数**として渡すので、要素が十数万を超えると、引数がコールスタックに載り切らず、`RangeError: Maximum call stack size exceeded` になります。1件ずつ比べれば、件数に関係なく動きます
-- **壊れた .gz**: gunzip が途中でエラーを出すと、`for await` が例外を投げるので、途中までの集計を返さずに rejected になります
-
-「できたら」の答え: 第11章の `summarize` は、15万行で `RangeError: Maximum call stack size exceeded` になります。上のとおり、`Math.min(...times)` のせいです。小さなデータで正しく動くコードが、大きなデータで壊れる典型的な例です。`reduce` や `for` で1件ずつ比べるように直します。
-
-## 問題5 EventEmitter で進み具合を知らせる仕事の列
+## 問題7 EventEmitter で進み具合を知らせる仕事の列
 
 [job-queue.mjs](job-queue.mjs) を見てください。
 
@@ -128,7 +217,18 @@ $ node predict.mjs
 1. `'error'` のリスナーが無いと、`emit('error')` は例外を投げます。仕事の失敗のたびに、列の中の処理（`then` の中）で例外が投げられ、unhandled rejection でプロセスが終わったり、`#running--` が実行されずに列が止まったりします。使う人に「必ず `error` のリスナーを付けてください」と求めるより、ふつうに起きる失敗には別の名前（`failed`）を使う方が安全です。
 2. 仕事が失敗すると、`add` が返した Promise が rejected になり、誰も `catch` していなければ unhandled rejection でプロセスが終わります。対策として、「`add` は Promise を返さず、結果はイベントだけで知らせる」「結果の Promise が欲しい人だけが使う、別のメソッド（`addAndWait` など）を用意する」といった設計があります。どちらが良いかは使い方しだいですが、「Promise を返すなら、使う人が `catch` する責任を持つ」ことは、ドキュメントに書いておくべきです。
 
-## 問題6 フォルダの大きさを数える（du の小さな版）
+## 問題8 大きなログ（.gz も）を少しずつ集計する
+
+[log-stream.mjs](log-stream.mjs) を見てください。
+
+- **.gz**: `fs.createReadStream(file).pipe(zlib.createGunzip())` の後ろに `readline` をつなぎます。`pipe` は読む側のエラーを伝えないので、`input.on('error', (err) => gunzip.destroy(err))` で伝えています。これが無いと、無い `.gz` を渡したときに `ENOENT` が `for await` に届かず、プロセスがエラーで終わってしまいます。`pipeline` を使えばこの心配は無いのですが、`readline` には「Readable」を渡す必要があるため、ここでは `pipe` を使っています
+- **少しずつ集計する**: 行を配列に溜めず、1行ごとに数を足すだけにしています。メモリに残るのは、パスごとの数（`Map`）と、いくつかの数だけです
+- **first と last**: 第11章の模範解答は、全部の時刻を配列にしてから `Math.min(...times)` で求めていました。スプレッド構文（`...`）は、配列の要素を**関数の引数**として渡すので、要素が十数万を超えると、引数がコールスタックに載り切らず、`RangeError: Maximum call stack size exceeded` になります。1件ずつ比べれば、件数に関係なく動きます
+- **壊れた .gz**: gunzip が途中でエラーを出すと、`for await` が例外を投げるので、途中までの集計を返さずに rejected になります
+
+「できたら」の答え: 第11章の `summarize` は、15万行で `RangeError: Maximum call stack size exceeded` になります。上のとおり、`Math.min(...times)` のせいです。小さなデータで正しく動くコードが、大きなデータで壊れる典型的な例です。`reduce` や `for` で1件ずつ比べるように直します。
+
+## 問題9 フォルダの大きさを数える（du の小さな版）
 
 [dir-size.mjs](dir-size.mjs) を見てください。
 

@@ -4,27 +4,143 @@
 
 | ファイル | 内容 |
 | --- | --- |
-| [parse-cli.mjs](parse-cli.mjs) | 問題2: `parseCli` と `UsageError` |
-| [grep.mjs](grep.mjs) | 問題3: 直した grep |
-| [confirm.mjs](confirm.mjs) | 問題4: `confirm`、`NotInteractiveError`、`CancelledError` |
-| [long-task.mjs](long-task.mjs) | 問題5: シグナルで安全に止まる書き出し |
-| [load-config.mjs](load-config.mjs) | 問題6: `loadConfig` と `ConfigError` |
+| [greet-cli.mjs](greet-cli.mjs) | 問題1: あいさつする CLI |
+| [upper.mjs](upper.mjs) | 問題2: 標準入力を大文字にする CLI |
+| [countdown.mjs](countdown.mjs) | 問題3: Ctrl+C で止められるカウントダウン |
+| [parse-cli.mjs](parse-cli.mjs) | 問題5: `parseCli` と `UsageError` |
+| [confirm.mjs](confirm.mjs) | 問題6: `confirm`、`NotInteractiveError`、`CancelledError` |
+| [load-config.mjs](load-config.mjs) | 問題7: `loadConfig` と `ConfigError` |
+| [grep.mjs](grep.mjs) | 問題8: 直した grep |
+| [long-task.mjs](long-task.mjs) | 問題9: シグナルで安全に止まる書き出し |
 
-模範解答は、`exercises` フォルダで次のように確かめられます。
+模範解答は、`~/dev/part03/ch16-cli/exercises` で次のように確かめられます。`MODULE=ファイル` を前に付けると、テストが読み込むファイルを、自分のものから模範解答に切り替えられます。
 
 ```sh
-$ cd ../exercises
+$ MODULE=../solutions/greet-cli.mjs node --test greet-cli.test.mjs
+$ MODULE=../solutions/upper.mjs node --test upper.test.mjs
+$ MODULE=../solutions/countdown.mjs node --test countdown.test.mjs
 $ MODULE=../solutions/parse-cli.mjs node --test parse-cli.test.mjs
-$ bash check-grep.sh ../solutions/grep.mjs
 $ MODULE=../solutions/confirm.mjs node --test confirm.test.mjs
 $ MODULE=../solutions/confirm.mjs node confirm-demo.mjs
-$ bash check-long-task.sh ../solutions/long-task.mjs
 $ MODULE=../solutions/load-config.mjs node --test load-config.test.mjs
+$ bash check-grep.sh ../solutions/grep.mjs
+$ bash check-long-task.sh ../solutions/long-task.mjs
 ```
 
 ---
 
-## 問題1 リダイレクトとパイプの結果を予想する
+## 問題1 あいさつする CLI を parseArgs で作る
+
+```js
+const options = {
+  shout: { type: 'boolean', short: 's' },
+  times: { type: 'string', short: 't', default: '1' },
+  help: { type: 'boolean', short: 'h' },
+};
+
+let parsed;
+try {
+  parsed = parseArgs({ args: process.argv.slice(2), options, allowPositionals: true });
+} catch (err) {
+  console.error(`エラー: ${err.message}`);
+  console.error(USAGE);
+  process.exitCode = 2;
+}
+
+if (parsed) {
+  const { values, positionals } = parsed;
+  if (values.help) {
+    console.log(USAGE);
+  } else if (!/^[1-9]\d*$/.test(values.times)) {
+    console.error(`エラー: --times には 1 以上の整数を書いてください: ${values.times}`);
+    process.exitCode = 2;
+  } else {
+    const names = positionals.length > 0 ? positionals : ['world'];
+    for (let i = 0; i < Number(values.times); i++) {
+      for (const name of names) {
+        const text = `こんにちは、${name}`;
+        console.log(values.shout ? `${text.toUpperCase()}！` : text);
+      }
+    }
+  }
+}
+```
+
+- `times` を `type: 'string'` にしているのは、`parseArgs` に数の型が無いからです。文字列のまま正規表現で確かめてから `Number` にします。`Number('')` が `0`、`Number('1.5')` が `1.5` になるのを避けられます。
+- `--help` は他のチェックより先に見ます。「`--times 0 --help`」でも使い方が出るほうが親切です。
+- `process.exit(2)` ではなく `process.exitCode = 2` にして、`if (parsed)` で残りを飛ばしています。出力を途中で捨てない書き方です（本文6.1節）。
+
+## 問題2 標準入力を大文字にして出す CLI
+
+```js
+let values;
+try {
+  ({ values } = parseArgs({ args: process.argv.slice(2), options: { number: { type: 'boolean', short: 'n' } } }));
+} catch (err) {
+  console.error(`エラー: ${err.message}`);
+  process.exitCode = 2;
+}
+
+if (values) {
+  if (process.stdin.isTTY) {
+    console.error('使い方: printf "...\\n" | node upper.mjs [-n]（標準入力をパイプで渡してください）');
+    process.exitCode = 2;
+  } else {
+    const chunks = [];
+    for await (const chunk of process.stdin) {
+      chunks.push(chunk);
+    }
+    const text = Buffer.concat(chunks).toString('utf8');
+    const lines = text.split('\n');
+    if (lines.at(-1) === '') lines.pop();
+    lines.forEach((line, i) => {
+      const upper = line.toUpperCase();
+      console.log(values.number ? `${i + 1}: ${upper}` : upper);
+    });
+  }
+}
+```
+
+- `chunks.push(chunk.toString())` と、チャンクごとに文字列にすると、テスト「日本語が、チャンクの境目で切れて届いても化けない」が失敗します。「あ」は UTF-8 で3バイトなので、1バイト目と残りが別のチャンクで届くと、どちらも文字として読めないからです。Buffer のまま集めて、最後に1回だけ文字列にします。
+- `({ values } = ...)` の外側の `( )` は、`let` で先に宣言した変数に、分割代入で入れるときの書き方です（`{` で始まると、ブロックと見なされてしまうため）。
+- 入力が空のときは、`''.split('\n')` が `['']` になり、`pop` で `[]` になるので、何も出しません。
+
+## 問題3 Ctrl+C で止められるカウントダウン
+
+```js
+const arg = process.argv[2] ?? '5';
+if (!/^[1-9]\d*$/.test(arg)) {
+  console.error(`エラー: 秒数には 1 以上の整数を書いてください: ${arg}`);
+  process.exitCode = 2;
+} else {
+  let n = Number(arg);
+  console.log(n);
+  const timer = setInterval(() => {
+    n--;
+    if (n > 0) {
+      console.log(n);
+    } else {
+      clearInterval(timer);
+      console.log('発射！');
+    }
+  }, TICK_MS);
+
+  let stopping = false;
+  process.on('SIGINT', () => {
+    if (stopping) process.exit(130);
+    stopping = true;
+    clearInterval(timer);
+    console.error('中止しました');
+    process.exitCode = 130;
+  });
+}
+```
+
+- `process.on('SIGINT', ...)` を書くと、Ctrl+C で**勝手には止まらなくなります**。自分で `clearInterval` しないと、数え続けてしまいます。
+- 片付けの途中で固まったときのために、2回目の Ctrl+C ではすぐに `process.exit(130)` で終わります（本文8.2節）。
+- 130 は「128 + シグナルの番号（SIGINT は 2）」です。シェルは、Ctrl+C で止まったコマンドの終了コードをこの数にします。
+
+## 問題4 リダイレクトとパイプの結果を予想する
 
 ```
 ### 1. node streams.mjs > out.txt; cat out.txt
@@ -85,7 +201,7 @@ err 1
 
 ファイルの中の順番（9番の `out 1`・`err 1`・`out 2`）は、出した順のままです。`console.log` と `console.error` は、ファイルに書くときは同期で書かれるからです（本文6.1節）。
 
-## 問題2 サブコマンドのある CLI の引数を解析する
+## 問題5 サブコマンドのある CLI の引数を解析する
 
 [parse-cli.mjs](parse-cli.mjs) の流れは次のとおりです。
 
@@ -110,41 +226,7 @@ const COMMANDS = {
 - ヘルプは、ほかの検査より**先に**探します。`done x --nope --help` のように間違いがあっても、ヘルプを求めている人にはヘルプを見せます。ただし `add -- --help` の `--help` はタイトルなので、`--` より前だけを見ます
 - `parseArgs` の `strict` を外してはいけません。外すと、`--tga` のような打ち間違いが黙って無視されます
 
-## 問題3 パイプの中で壊れる grep を直す
-
-[grep.mjs](grep.mjs) で直したところには `// 修正:`、足したところには `// 追加:` を付けています。
-
-| NG | 何が起きていたか | 直し方 |
-| --- | --- | --- |
-| 3, 4a, 5 | 最後の `process.exit(0)` と、エラーのときに `return` するだけで、終了コードがいつも 0 | `main` が終了コードを返し、`process.exitCode` に入れる |
-| 4b, 4c, 5 | エラーを `console.log`（stdout）に出していた。`> out.txt` するとファイルに混ざる | `console.error` に出す |
-| 6 | `\x1b[1;31m` を自分で書いていて、出力先を見ていなかった | `styleText` に任せる（`validateStream: true`、`stream: process.stdout`）。`always` のときだけ `validateStream: false` |
-| 9 | `process.exit(0)` で、まだパイプに書けていない分を捨てていた | `process.exitCode` にして、書き終わるのを待ってから自然に終わる |
-| 10 | `head` が閉じた後の書き込みで EPIPE。`'error'` のリスナーが無いので落ちた | `process.stdout.on('error')` で EPIPE を受け取り、`process.exit(0)` |
-| 11a, 11b | チャンクごとに `toString()` して `split('\n')` していた。境目で、UTF-8 の文字が切れて `�`（U+FFFD）になり、行も2つに割れる | `readline` に任せる（中で `StringDecoder` を使い、行もつなぐ） |
-
-```sh
-$ bash check-grep.sh ../solutions/grep.mjs
-[OK] 1. 見つかった行を出す
-...
-[OK] 11b. 文字化け（U+FFFD）が無い
-
-すべて成功しました
-```
-
-**9番が少ししか切れない理由**: `buggy-grep.mjs` は、`write` が `false` を返したら `'drain'` を待つ（背圧を守る）ので、書き終わっていない分は、いつも Stream のバッファ（`highWaterMark`、16KB）くらいしか溜まっていません。`process.exit` で捨てられるのはその分だけです。`exit-demo.mjs` は 10MB を1回の `write` で渡したので、パイプに入りきらなかったほとんどが捨てられました。どちらにしても、`process.exit` で終わらせれば何かが切れる可能性がある、ということです。
-
-**EPIPE の後に `process.exit(0)` を使う理由**: 本文6.1節では「`exit` ではなく `exitCode`」でしたが、EPIPE の後は、もう誰も読んでいないので、捨てて困る出力がありません。むしろ `exitCode` にして続けると、残りのファイルを最後まで読んで、書けない出力を作り続けます。
-
-**つまずきやすいところ**
-
-- バグの版では、`events.once(process.stdout, 'drain')` ではなく `new Promise((r) => process.stdout.once('drain', r))` で待っていました。`events.once` は、待っている間に `'error'` が来ると Promise を rejected にするので、たまたま EPIPE を「受け取って」しまい、落ちずにエラーが握りつぶされることがあります。どちらで待つ場合も、EPIPE は `process.stdout.on('error')` で、はっきり扱います
-- `console.log` で書いていれば、10番は NG になりません（本文7節。`console` は書き込みのエラーを無視します）。ただし背圧を守らないので、大きな入力ではメモリを使い続けます
-- `re.test` を `g` フラグ付きの正規表現で繰り返すときは、`lastIndex` が前の結果を覚えています。行ごとに `re.lastIndex = 0` にします（第11章）
-- 本物の `grep` は、パターンが空文字列にマッチする（`grep ''`）ときも全部の行を出します。`highlight` でマッチが空のときに色を付けないのは、空の色付き文字列（制御文字だけ）を出さないためです
-- 確認スクリプトの8番（`FORCE_COLOR=1`）は、バグの版でも成功しています。いつも色を付けていたからです。直した版では `styleText` が `FORCE_COLOR` を見て色を付けます
-
-## 問題4 「本当に消しますか？」と聞く関数
+## 問題6 「本当に消しますか？」と聞く関数
 
 ```js
 export async function confirm(message, { input = process.stdin, output = process.stderr, assumeYes = false, defaultAnswer = false, maxTries = 3 } = {}) {
@@ -191,7 +273,62 @@ $ echo $?
 - `output` の既定を `process.stdout` にすると、`memo rm 3 > log.txt` のときに質問がファイルに入り、画面には何も出ずに止まって見えます
 - 「端末でなければ断る」のは、`yes | memo rm --all`（`yes` は `y` を出し続けるコマンド）のような使い方で、確かめたことにならないためです。自動で進めたい人には `--yes` という**はっきりした**方法を用意します
 
-## 問題5 Ctrl+C で止めても壊れない書き出し
+## 問題7 設定を重ねて読み込む
+
+[load-config.mjs](load-config.mjs) は、`set(key, value, source)` で値と出どころを一緒に記録しながら、弱い順に重ねます。
+
+```js
+const config = { dir: path.join(home, 'memos'), editor: 'vi', color: true };
+const sources = { dir: 'default', editor: 'default', color: 'default' };
+const set = (key, value, source) => { config[key] = value; sources[key] = source; };
+
+// 1. 設定ファイル → 2. 環境変数 → 3. 引数 の順に set していく
+```
+
+**つまずきやすいところ**
+
+- `{ ...defaults, ...fromFile, ...fromEnv, ...fromArgs }` と混ぜる方法（本文9節のサンプル）でも、値は正しく重なります。ただし、`fromFile` に `undefined` の値が入っていると、それで上書きされてしまいます（`{ ...{ a: 1 }, ...{ a: undefined } }` は `{ a: undefined }`）。値が「ある」ときだけ入れるように書きます
+- 空の環境変数を「ある」と扱うと、`EDITOR=` のときにエディタが空文字列になり、後で `spawn('')` が失敗します。`??` は空文字列を素通りさせるので、空文字列を `undefined` にしてから `??` でつなぎます
+- `JSON.parse('null')` は `null`、`JSON.parse('[1]')` は配列です。「正しい JSON」と「設定として正しい」は別なので、オブジェクトかどうかも確かめます
+- 設定ファイルの `dir` の相対パスを `cwd` から解決すると、どのフォルダで `memo` を実行したかで、メモの場所が変わってしまいます。設定ファイルの中の相対パスは、設定ファイルのあるフォルダから解決します
+- `fs.existsSync` で確かめてから読むと、「無い」と「読めない（権限が無い、フォルダだった）」の区別がつきません。読んでみて、`err.code` で場合分けします（第15章3.3節）
+- 型の違う値（`"color": "no"`）を黙って既定の値にすると、利用者は設定が効かない理由が分かりません。エラーにして、ファイルと項目の名前を出します。逆に、知らない項目（`colour` の打ち間違い）は、新しい版の設定ファイルを古い版で読むこともあるので、警告にとどめます
+
+## 問題8 パイプの中で壊れる grep を直す
+
+[grep.mjs](grep.mjs) で直したところには `// 修正:`、足したところには `// 追加:` を付けています。
+
+| NG | 何が起きていたか | 直し方 |
+| --- | --- | --- |
+| 3, 4a, 5 | 最後の `process.exit(0)` と、エラーのときに `return` するだけで、終了コードがいつも 0 | `main` が終了コードを返し、`process.exitCode` に入れる |
+| 4b, 4c, 5 | エラーを `console.log`（stdout）に出していた。`> out.txt` するとファイルに混ざる | `console.error` に出す |
+| 6 | `\x1b[1;31m` を自分で書いていて、出力先を見ていなかった | `styleText` に任せる（`validateStream: true`、`stream: process.stdout`）。`always` のときだけ `validateStream: false` |
+| 9 | `process.exit(0)` で、まだパイプに書けていない分を捨てていた | `process.exitCode` にして、書き終わるのを待ってから自然に終わる |
+| 10 | `head` が閉じた後の書き込みで EPIPE。`'error'` のリスナーが無いので落ちた | `process.stdout.on('error')` で EPIPE を受け取り、`process.exit(0)` |
+| 11a, 11b | チャンクごとに `toString()` して `split('\n')` していた。境目で、UTF-8 の文字が切れて `�`（U+FFFD）になり、行も2つに割れる | `readline` に任せる（中で `StringDecoder` を使い、行もつなぐ） |
+
+```sh
+$ bash check-grep.sh ../solutions/grep.mjs
+[OK] 1. 見つかった行を出す
+...
+[OK] 11b. 文字化け（U+FFFD）が無い
+
+すべて成功しました
+```
+
+**9番が少ししか切れない理由**: `buggy-grep.mjs` は、`write` が `false` を返したら `'drain'` を待つ（背圧を守る）ので、書き終わっていない分は、いつも Stream のバッファ（`highWaterMark`、16KB）くらいしか溜まっていません。`process.exit` で捨てられるのはその分だけです。`exit-demo.mjs` は 10MB を1回の `write` で渡したので、パイプに入りきらなかったほとんどが捨てられました。どちらにしても、`process.exit` で終わらせれば何かが切れる可能性がある、ということです。
+
+**EPIPE の後に `process.exit(0)` を使う理由**: 本文6.1節では「`exit` ではなく `exitCode`」でしたが、EPIPE の後は、もう誰も読んでいないので、捨てて困る出力がありません。むしろ `exitCode` にして続けると、残りのファイルを最後まで読んで、書けない出力を作り続けます。
+
+**つまずきやすいところ**
+
+- バグの版では、`events.once(process.stdout, 'drain')` ではなく `new Promise((r) => process.stdout.once('drain', r))` で待っていました。`events.once` は、待っている間に `'error'` が来ると Promise を rejected にするので、たまたま EPIPE を「受け取って」しまい、落ちずにエラーが握りつぶされることがあります。どちらで待つ場合も、EPIPE は `process.stdout.on('error')` で、はっきり扱います
+- `console.log` で書いていれば、10番は NG になりません（本文7節。`console` は書き込みのエラーを無視します）。ただし背圧を守らないので、大きな入力ではメモリを使い続けます
+- `re.test` を `g` フラグ付きの正規表現で繰り返すときは、`lastIndex` が前の結果を覚えています。行ごとに `re.lastIndex = 0` にします（第11章）
+- 本物の `grep` は、パターンが空文字列にマッチする（`grep ''`）ときも全部の行を出します。`highlight` でマッチが空のときに色を付けないのは、空の色付き文字列（制御文字だけ）を出さないためです
+- 確認スクリプトの8番（`FORCE_COLOR=1`）は、バグの版でも成功しています。いつも色を付けていたからです。直した版では `styleText` が `FORCE_COLOR` を見て色を付けます
+
+## 問題9 Ctrl+C で止めても壊れない書き出し
 
 [long-task.mjs](long-task.mjs) の要点は、「シグナルのリスナーでは印を付けるだけ」です。
 
@@ -235,24 +372,3 @@ $ bash check-long-task.sh ../solutions/long-task.mjs
 - 一時ファイルの名前に PID を入れ、`wx` で開くのは、2つ同時に動かしても、同じ一時ファイルを取り合わないためです
 - 2回目のシグナルで `process.exit` したときは、一時ファイルが残ります。名前を `.` で始めて目立たないようにし、次に動かしたときや、別のコマンドで掃除できるようにしておくのが現実的です
 - `kill -9`（SIGKILL）は受け取れません。どんなに丁寧に書いても、一時ファイルが残る可能性はあります。だからこそ「元のファイルを直接書き換えない」ことが大事です
-
-## 問題6 設定を重ねて読み込む
-
-[load-config.mjs](load-config.mjs) は、`set(key, value, source)` で値と出どころを一緒に記録しながら、弱い順に重ねます。
-
-```js
-const config = { dir: path.join(home, 'memos'), editor: 'vi', color: true };
-const sources = { dir: 'default', editor: 'default', color: 'default' };
-const set = (key, value, source) => { config[key] = value; sources[key] = source; };
-
-// 1. 設定ファイル → 2. 環境変数 → 3. 引数 の順に set していく
-```
-
-**つまずきやすいところ**
-
-- `{ ...defaults, ...fromFile, ...fromEnv, ...fromArgs }` と混ぜる方法（本文9節のサンプル）でも、値は正しく重なります。ただし、`fromFile` に `undefined` の値が入っていると、それで上書きされてしまいます（`{ ...{ a: 1 }, ...{ a: undefined } }` は `{ a: undefined }`）。値が「ある」ときだけ入れるように書きます
-- 空の環境変数を「ある」と扱うと、`EDITOR=` のときにエディタが空文字列になり、後で `spawn('')` が失敗します。`??` は空文字列を素通りさせるので、空文字列を `undefined` にしてから `??` でつなぎます
-- `JSON.parse('null')` は `null`、`JSON.parse('[1]')` は配列です。「正しい JSON」と「設定として正しい」は別なので、オブジェクトかどうかも確かめます
-- 設定ファイルの `dir` の相対パスを `cwd` から解決すると、どのフォルダで `memo` を実行したかで、メモの場所が変わってしまいます。設定ファイルの中の相対パスは、設定ファイルのあるフォルダから解決します
-- `fs.existsSync` で確かめてから読むと、「無い」と「読めない（権限が無い、フォルダだった）」の区別がつきません。読んでみて、`err.code` で場合分けします（第15章3.3節）
-- 型の違う値（`"color": "no"`）を黙って既定の値にすると、利用者は設定が効かない理由が分かりません。エラーにして、ファイルと項目の名前を出します。逆に、知らない項目（`colour` の打ち間違い）は、新しい版の設定ファイルを古い版で読むこともあるので、警告にとどめます

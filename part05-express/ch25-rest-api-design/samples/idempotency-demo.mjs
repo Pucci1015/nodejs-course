@@ -1,5 +1,5 @@
 // Idempotency-Key で、POST を送り直しても二重に作らない（第25章 8節）
-//   $ node idempotency-demo.mjs
+//   $ node samples/idempotency-demo.mjs
 //   別のターミナルで（同じキーで2回送る）:
 //     KEY=$(uuidgen)
 //     curl -si -X POST -H 'Content-Type: application/json' -H "Idempotency-Key: $KEY" -d '{"title":"牛乳"}' http://127.0.0.1:9324/api/tasks | grep -iE '^(HTTP|idempotent-replayed)|^\{'

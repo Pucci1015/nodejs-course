@@ -11,8 +11,8 @@ import { SimpleRouter } from './router.mjs';
 
 const PORT = 9181;
 let tasks = [
-  { id: 1, title: '牛乳を買う', owner: 'ryota' },
-  { id: 2, title: '第18章を読む', owner: 'ryota' },
+  { id: 1, title: '牛乳を買う', owner: 'alice' },
+  { id: 2, title: '第18章を読む', owner: 'alice' },
 ];
 
 function findTask(id) {
@@ -24,7 +24,7 @@ function findTask(id) {
 const router = new SimpleRouter()
   .add('GET', '/api/tasks', (req, res) => sendJson(res, 200, tasks))
   // SimpleRouter は登録した順に試すので、/api/tasks/me は /api/tasks/:id より先に書く必要がある
-  .add('GET', '/api/tasks/me', (req, res) => sendJson(res, 200, tasks.filter((t) => t.owner === 'ryota')))
+  .add('GET', '/api/tasks/me', (req, res) => sendJson(res, 200, tasks.filter((t) => t.owner === 'alice')))
   .add('GET', '/api/tasks/:id', (req, res, { id }) => sendJson(res, 200, findTask(id)))
   .add('DELETE', '/api/tasks/:id', (req, res, { id }) => {
     const task = findTask(id);

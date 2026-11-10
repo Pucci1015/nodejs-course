@@ -1,0 +1,12 @@
+{
+  "name": "ch14-deps",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "debug": "^4.3.0",
+    "hello-postinstall": "file:./local/hello-postinstall",
+    "minimist": "1.2.5",
+    "ms": "2.0.0"
+  }
+}

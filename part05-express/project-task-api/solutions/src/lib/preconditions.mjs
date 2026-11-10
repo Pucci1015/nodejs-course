@@ -1,4 +1,4 @@
-// 第25章 練習問題6の模範解答（ch25-rest-api-design/solutions/preconditions.mjs）のコピー。そのまま使う
+// 第25章 練習問題8の模範解答（ch25-rest-api-design/solutions/preconditions.mjs）のコピー。そのまま使う
 // If-Match・If-None-Match を、RFC 9110 13.2.2 の順番どおりに確かめる
 
 /**

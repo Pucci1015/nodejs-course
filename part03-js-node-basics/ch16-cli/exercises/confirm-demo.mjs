@@ -1,4 +1,4 @@
-// 練習問題4: confirm() を実際の端末で試す
+// 練習問題6: confirm() を実際の端末で試す
 // 使い方:
 //   node confirm-demo.mjs                 （端末で答える。Ctrl+C・Ctrl+D も試す）
 //   node confirm-demo.mjs --yes           （聞かずに進む）

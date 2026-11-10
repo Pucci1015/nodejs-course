@@ -1,4 +1,4 @@
-// 練習問題2: HTML を組み立てるときの小さな道具
+// 練習問題5: HTML を組み立てるときの小さな道具
 // テスト: node --test html-helpers.test.mjs
 import { SafeHtml, escapeHtml } from '../samples/mini-html.mjs';
 

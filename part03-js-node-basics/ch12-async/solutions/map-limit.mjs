@@ -1,4 +1,4 @@
-// 練習問題3 の解答: 同時に動かす数を制限して、すべての要素に非同期の関数を適用する
+// 練習問題8 の解答: 同時に動かす数を制限して、すべての要素に非同期の関数を適用する
 // 確かめ方: cd ../exercises && MODULE=../solutions/map-limit.mjs node --test map-limit.test.mjs
 
 export async function mapLimit(items, limit, fn, { signal } = {}) {

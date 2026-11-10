@@ -40,7 +40,7 @@ console.log('\n== 4. async 関数は、必ず Promise を返す ==');
 async function getUser(id) {
   if (id <= 0) throw new RangeError(`id が正しくありません: ${id}`); // throw は reject になる
   await delay(10);
-  return { id, name: 'ryota' }; // return は resolve になる
+  return { id, name: 'alice' }; // return は resolve になる
 }
 console.log('  getUser(1) の戻り値:', getUser(1));
 console.log('  await した値:', await getUser(1));

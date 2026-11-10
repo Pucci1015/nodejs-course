@@ -1,5 +1,5 @@
-// 練習問題6: ミドルウェアをつなぐ compose
-// 仕様は README の練習問題6を見てください。
+// 練習問題8: ミドルウェアをつなぐ compose
+// 仕様は README の練習問題8を見てください。
 // 確かめる: node --test compose.test.mjs
 
 export function compose(...middlewares) {

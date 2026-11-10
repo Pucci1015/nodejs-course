@@ -1,8 +1,8 @@
-// 練習問題4: メモのアプリのバグを直す
+// 練習問題9: メモのアプリのバグを直す
 // 動くように見えますが、確認スクリプトでいくつも失敗します。バグを直して、すべての確認を通してください。
 //   $ bash check-notes.sh                    （このファイルを 127.0.0.1:9309 で起動して確かめる）
 //   $ PORT=9309 node buggy-notes.mjs         （自分で起動して、curl で試すとき）
-// 仕様は exercises/README.md の問題4の表です。
+// 仕様は exercises/README.md の問題9の表です。
 import express from 'express';
 
 const app = express();

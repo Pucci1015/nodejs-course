@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 練習問題2の確認スクリプト。サーバを 127.0.0.1:9177 で起動して確かめ、最後に止める
+# 練習問題7の確認スクリプト。サーバを 127.0.0.1:9177 で起動して確かめ、最後に止める
 # 使い方: bash check-server.sh [確かめるファイル]   （既定は buggy-server.mjs）
 #         bash check-server.sh ../solutions/server.mjs
 set -uo pipefail

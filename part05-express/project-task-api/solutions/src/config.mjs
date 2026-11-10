@@ -1,4 +1,4 @@
-// 第26章 練習問題2の模範解答（ch26-app-structure/solutions/config.mjs）のコピー。成果物で使う設定を足した（「追加（成果物）」「変更（成果物）」）
+// 第26章 練習問題5の模範解答（ch26-app-structure/solutions/config.mjs）のコピー。成果物で使う設定を足した（「追加（成果物）」「変更（成果物）」）
 // 設定を環境変数から読み、起動するときに1回だけ確かめる
 import crypto from 'node:crypto';
 import { z } from 'zod';
@@ -48,7 +48,7 @@ const Env = z.object({
   // 追加（成果物）: ここから下
   CURSOR_SECRET: z.string().min(32, '32 文字以上').optional(), // ページのカーソルに署名する鍵（第25章 6節）
   RATE_LIMIT_PER_MINUTE: int(0, 100_000).default(120), // 書き換え（POST・PATCH・DELETE）を、1つの IP から1分に何回まで。0 なら数えない
-  MAX_DOING: int(1, 100).default(3), // 作業中（doing）にできるタスクの数（第26章 練習問題3の WIP 制限）
+  MAX_DOING: int(1, 100).default(3), // 作業中（doing）にできるタスクの数（第26章 練習問題6の WIP 制限）
   SSE_HEARTBEAT_MS: int(100, 600_000).default(15_000), // SSE の心拍（第27章 5節）
 });
 

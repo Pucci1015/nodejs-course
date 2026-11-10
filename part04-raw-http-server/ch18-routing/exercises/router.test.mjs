@@ -1,4 +1,4 @@
-// 練習問題3のテスト。Router を第17章の createApp で包んでサーバを起動し、fetch で確かめる
+// 練習問題6のテスト。Router を第17章の createApp で包んでサーバを起動し、fetch で確かめる
 // 使い方: node --test router.test.mjs
 //         MODULE=../solutions/router.mjs node --test router.test.mjs   （解答例で確かめる）
 import { test } from 'node:test';

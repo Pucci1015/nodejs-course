@@ -2,7 +2,7 @@
 //   $ SESSION_SECRET=$(node -e "console.log(require('node:crypto').randomBytes(32).toString('base64url'))") node session-demo.mjs
 //   別のターミナルで（-c と -b で Cookie を保存して送り返す）:
 //     curl -si -c /tmp/ch24.jar http://127.0.0.1:9314/me                   ← Set-Cookie は付かない（空のセッションは作らない）
-//     curl -si -c /tmp/ch24.jar -b /tmp/ch24.jar -d 'name=ryota' http://127.0.0.1:9314/login | grep -i set-cookie
+//     curl -si -c /tmp/ch24.jar -b /tmp/ch24.jar -d 'name=alice' http://127.0.0.1:9314/login | grep -i set-cookie
 //     curl -s  -b /tmp/ch24.jar http://127.0.0.1:9314/me
 //     curl -si -c /tmp/ch24.jar -b /tmp/ch24.jar -X POST http://127.0.0.1:9314/logout | grep -i set-cookie
 //   （パスワードの確かめは省いた。本物のログインは第22章と第10部）

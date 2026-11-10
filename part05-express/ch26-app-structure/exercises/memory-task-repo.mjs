@@ -1,4 +1,4 @@
-// 練習問題3で使う、データの層（書き換えなくてよい）
+// 練習問題6で使う、データの層（書き換えなくてよい）
 // 「どう覚えるか」だけを知っている。決まり（題名が重ならない、など）は、サービスの層で書く
 export function createMemoryTaskRepo(initial = []) {
   const rows = new Map(initial.map((t) => [t.id, { ...t }]));

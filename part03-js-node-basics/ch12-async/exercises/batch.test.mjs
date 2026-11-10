@@ -1,4 +1,4 @@
-// 練習問題5 用: buggy-batch.mjs のテスト
+// 練習問題6 用: buggy-batch.mjs のテスト
 // 使い方: node --test batch.test.mjs
 //   模範解答を試す: MODULE=../solutions/batch.mjs node --test batch.test.mjs
 import { test } from 'node:test';
@@ -35,48 +35,48 @@ function fakeDb({ failOn } = {}) {
 }
 
 const rows = [
-  { name: ' 佐藤 ', email: 'sato@example.com' },
-  { name: '鈴木', email: 'Suzuki@Example.com ' },
-  { name: '高橋', email: 'takahashi@example.com' },
+  { name: ' alice ', email: 'alice@example.com' },
+  { name: 'bob', email: 'Bob@Example.com ' },
+  { name: 'carol', email: 'carol@example.com' },
 ];
 
 test('importUsers: 全員を保存し終わってから、件数を返す', async () => {
   const db = fakeDb();
   assert.deepEqual(await importUsers(rows, db), { created: 3, skipped: 0 });
-  assert.deepEqual([...db.users.keys()], ['sato@example.com', 'suzuki@example.com', 'takahashi@example.com']);
-  assert.equal(db.users.get('sato@example.com').name, '佐藤');
+  assert.deepEqual([...db.users.keys()], ['alice@example.com', 'bob@example.com', 'carol@example.com']);
+  assert.equal(db.users.get('alice@example.com').name, 'alice');
 });
 
 test('importUsers: すでにいるメールアドレスは飛ばす', async () => {
   const db = fakeDb();
-  db.users.set('suzuki@example.com', { name: '鈴木（登録済み）', email: 'suzuki@example.com' });
+  db.users.set('bob@example.com', { name: 'bob（登録済み）', email: 'bob@example.com' });
   assert.deepEqual(await importUsers(rows, db), { created: 2, skipped: 1 });
-  assert.equal(db.users.get('suzuki@example.com').name, '鈴木（登録済み）');
+  assert.equal(db.users.get('bob@example.com').name, 'bob（登録済み）');
 });
 
 test('importUsers: rows の中で重複しているメールアドレスも、2回目からは飛ばす', async () => {
   const db = fakeDb();
-  const dup = [...rows, { name: '佐藤（2回目）', email: 'SATO@example.com' }];
+  const dup = [...rows, { name: 'alice（2回目）', email: 'ALICE@example.com' }];
   assert.deepEqual(await importUsers(dup, db), { created: 3, skipped: 1 });
-  assert.equal(db.users.get('sato@example.com').name, '佐藤');
+  assert.equal(db.users.get('alice@example.com').name, 'alice');
 });
 
 test('importUsers: 保存に失敗したら rejected になる（unhandled rejection にしない）', async () => {
-  const db = fakeDb({ failOn: 'suzuki@example.com' });
-  await assert.rejects(importUsers(rows, db), { message: 'suzuki@example.com を保存できません' });
+  const db = fakeDb({ failOn: 'bob@example.com' });
+  await assert.rejects(importUsers(rows, db), { message: 'bob@example.com を保存できません' });
   await sleep(50); // 取り残された処理があれば、ここで unhandled rejection になってテストが失敗する
 });
 
 test('loadDashboard: 3つを同時に取りに行く', async () => {
   const api = {
-    getUser: async (id) => (await sleep(60), { id, name: '佐藤' }),
+    getUser: async (id) => (await sleep(60), { id, name: 'alice' }),
     getPosts: async () => (await sleep(60), ['投稿1', '投稿2']),
     getNotices: async () => (await sleep(60), ['お知らせ']),
   };
   const start = performance.now();
   const result = await loadDashboard(api, 7);
   const elapsed = performance.now() - start;
-  assert.deepEqual(result, { user: { id: 7, name: '佐藤' }, posts: ['投稿1', '投稿2'], notices: ['お知らせ'] });
+  assert.deepEqual(result, { user: { id: 7, name: 'alice' }, posts: ['投稿1', '投稿2'], notices: ['お知らせ'] });
   assert.ok(elapsed < 150, `${elapsed.toFixed(0)}ms かかった（同時なら 60ms 程度のはず）`);
 });
 

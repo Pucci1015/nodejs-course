@@ -1,4 +1,4 @@
-// 問題3 解答例: 受け取った JSON を、安全に混ぜる・選ぶ
+// 問題6 解答例: 受け取った JSON を、安全に混ぜる・選ぶ
 import { HttpError } from '../../ch17-minimal-server/solutions/app.mjs';
 
 // オブジェクトの仕組みに関わる名前。受け取ったデータに入っていたら断る

@@ -1,4 +1,4 @@
-// 練習問題2 用: promisify.mjs の promisify と callbackify のテスト
+// 練習問題5 用: promisify.mjs の promisify と callbackify のテスト
 // 使い方: node --test promisify.test.mjs
 //   模範解答を試す: MODULE=../solutions/promisify.mjs node --test promisify.test.mjs
 import { test } from 'node:test';

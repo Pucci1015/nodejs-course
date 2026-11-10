@@ -59,5 +59,5 @@ for (const [index, task] of tasks.entries()) {
   if (index >= 2) break; // for...of は break できる（forEach はできない）
   console.log(index, task.title);
 }
-const map = new Map([['ryota', 3], ['hanako', 5]]); // キーに何でも使える。入れた順を保つ
+const map = new Map([['alice', 3], ['bob', 5]]); // キーに何でも使える。入れた順を保つ
 for (const [name, n] of map) console.log(`${name}: ${n}`);

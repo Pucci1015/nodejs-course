@@ -12,11 +12,29 @@
 
 | フォルダ | 中身 |
 | --- | --- |
-| [samples/](samples/) | Problem Details、zod、`validate` ミドルウェア、ページ分け、ETag、冪等キー |
+| [samples/](samples/) | 本文で書くプログラムの完成形（`problem-api.mjs`・`zod-try.mjs`・`etag-lock.mjs`）と、Problem Details、zod、`validate` ミドルウェア、ページ分け、ETag、冪等キーを確かめるプログラム |
 | [exercises/](exercises/) | 練習問題 |
-| [solutions/](solutions/) | 模範解答（問題2の `problemHandler`、問題3の `paginate`、問題4の `parseListQuery` は、成果物でも使います） |
+| [solutions/](solutions/) | 模範解答（問題5の `problemHandler`、問題7の `paginate`、問題6の `parseListQuery` は、成果物でも使います） |
 
-> この章のサンプルと練習問題は、`~/dev/part05/ch25-rest-api-design` の中で動かします（[第5部の README](../README.md) の「準備」）。
+> **読み方**
+> - この章のコマンドは、すべて `~/dev/part05/ch25-rest-api-design/` で実行します（第23章で `setup-part05.sh` を動かして、`~/dev/part05` を作ってあります）。
+>
+>   ```sh
+>   $ cd ~/dev/part05/ch25-rest-api-design
+>   ```
+>
+> - 「**手を動かす**」の所は、新しいファイルに書いて動かしてください。ファイルの完成形は `samples/` にあります。「中身は読まなくてよい」と書いたサンプルは、動かして結果を見るだけで十分です。
+> - 「手を動かす」のサーバは 9327 番を使います。次のサーバを動かす前に `Ctrl+C` で止めてください。`curl` は別のターミナルで打ちます。
+
+## この章で学ぶことを、後でどこで使うか
+
+| この章で学ぶこと | 後で使う場面 |
+| --- | --- |
+| URL・メソッド・ステータスコードの決め方（2・3節） | 成果物のタスク API、第7部（TypeScript で API を書く） |
+| Problem Details（4節） | 第26章からすべての API、成果物 |
+| zod で入力を確かめる（5節） | 第7部 第38章（型と共有する）、成果物 |
+| カーソルのページ分け（6節） | 第6部（データベースで同じことをする）、成果物 |
+| ETag と If-Match、冪等キー（7・8節） | 成果物、第6部 第30章、第12部 第64章 |
 
 ---
 
@@ -215,11 +233,82 @@ Content-Type: application/problem+json
 
 ボディの中の場所は、JSON Pointer（RFC 6901）で示します。`#/tags/1` は「`tags` の2番目（0から数える）」です。クエリやパスの間違いは、`{ "parameter": "limit", "detail": "…" }` のように名前で示します。どちらも RFC 9457 の例で使われている書き方です。
 
+次のサンプルで確かめます（中身は読まなくてよい）。
+
 ```sh
 $ node samples/problem-demo.mjs
 $ curl -si http://127.0.0.1:9320/api/tasks/99
 $ curl -si -X POST -H 'Content-Type: application/json' -d '{"title":' http://127.0.0.1:9320/api/tasks
 ```
+
+**手を動かす**: 201・204 と、Problem Details のエラーを返す `problem-api.mjs` を作ります（完成形は [samples/problem-api.mjs](samples/problem-api.mjs)）。
+
+```js
+import http from 'node:http';
+import express from 'express';
+
+const PORT = 9327;
+const app = express();
+app.disable('x-powered-by');
+app.use(express.json());
+
+const tasks = new Map([[1, { id: 1, title: '牛乳を買う' }]]);
+let nextId = 2;
+
+// エラーを Problem Details（application/problem+json）で返す
+function sendProblem(res, status, detail) {
+  res.status(status).type('application/problem+json').json({
+    type: 'about:blank',
+    title: http.STATUS_CODES[status], // 404 → 'Not Found'
+    status,
+    detail,
+    instance: res.req.originalUrl,
+  });
+}
+
+app.get('/api/tasks/:id', (req, res) => {
+  const task = tasks.get(Number(req.params.id));
+  if (!task) return sendProblem(res, 404, `タスク ${req.params.id} はありません`);
+  res.json(task);
+});
+
+app.post('/api/tasks', (req, res) => {
+  const title = typeof req.body?.title === 'string' ? req.body.title.trim() : '';
+  if (title === '') return sendProblem(res, 422, 'title を入力してください');
+  const task = { id: nextId++, title };
+  tasks.set(task.id, task);
+  res.status(201).location(`/api/tasks/${task.id}`).json(task); // 作ったら 201 と Location
+});
+
+app.delete('/api/tasks/:id', (req, res) => {
+  if (!tasks.delete(Number(req.params.id))) return sendProblem(res, 404, `タスク ${req.params.id} はありません`);
+  res.sendStatus(204); // 消したら、本文なしの 204
+});
+
+app.listen(PORT, '127.0.0.1', () => console.log(`http://127.0.0.1:${PORT}/ で待っています（Ctrl+C で止める）`));
+```
+
+```sh
+$ node problem-api.mjs
+# 別のターミナルで
+$ curl -i http://127.0.0.1:9327/api/tasks/99
+HTTP/1.1 404 Not Found
+Content-Type: application/problem+json; charset=utf-8
+...
+{"type":"about:blank","title":"Not Found","status":404,"detail":"タスク 99 はありません","instance":"/api/tasks/99"}
+$ curl -si -H 'Content-Type: application/json' -d '{"title":"卵"}' http://127.0.0.1:9327/api/tasks | grep -E 'HTTP|Location'
+HTTP/1.1 201 Created
+Location: /api/tasks/2
+$ curl -s -H 'Content-Type: application/json' -d '{"title":" "}' http://127.0.0.1:9327/api/tasks
+{"type":"about:blank","title":"Unprocessable Entity","status":422,"detail":"title を入力してください","instance":"/api/tasks"}
+$ curl -si -X DELETE http://127.0.0.1:9327/api/tasks/1 | head -1
+HTTP/1.1 204 No Content
+```
+
+- `http.STATUS_CODES` は、Node.js が持っている「ステータス → 名前」の表です。422 の名前は、古い呼び方の `Unprocessable Entity` になっています（RFC 9110 では `Unprocessable Content`）。
+- `res.type('application/problem+json')` で Content-Type を決めてから `json` を呼ぶと、その Content-Type のまま JSON を返します。
+- `res.req` は、その応答のリクエストです。`instance` に元の URL を入れています。
+- `res.sendStatus(204)` は、本文なしで 204 を返します。
 
 ### 4.2 1か所にまとめる
 
@@ -255,7 +344,7 @@ app.use(problemHandler());  // HttpProblem・ZodError・body-parser のエラー
 
 **500 のときは、例外の文を客に見せません。** 例外の文には、データベースの接続先、ファイルの場所、SQL の文などが入っていることがあります。客には決めた文だけを返し、詳しいことはサーバのログに書きます（第26章で、ログに `instance` やリクエストの id を書いて、客の問い合わせとつなげる方法を扱います）。
 
-これを、きちんと作るのが練習問題2です。
+これを、きちんと作るのが練習問題5です。
 
 ## 5. 入力を確かめる（zod）
 
@@ -293,9 +382,64 @@ if (r.success) {
 - `strictObject` は、知らない項目があると間違いにします。ふつうの `z.object` は、知らない項目を**黙って取り除きます**
 - 型も取り出せます（`z.infer<typeof CreateTask>`）。第7部 第38章で、TypeScript の型と共有します
 
+次のサンプルで確かめます（中身は読まなくてよい）。
+
 ```sh
 $ node samples/zod-demo.mjs
 ```
+
+**手を動かす**: zod で入力を確かめる `zod-try.mjs` を作ります。サーバは起動しません（完成形は [samples/zod-try.mjs](samples/zod-try.mjs)）。
+
+```js
+import { z } from 'zod';
+
+z.config(z.locales.ja()); // 既定の文を日本語にする
+
+const CreateTask = z.strictObject({
+  title: z.string().trim().min(1, 'title を入力してください').max(100),
+  status: z.enum(['todo', 'doing', 'done']).default('todo'),
+  tags: z.array(z.string().trim().min(1)).max(5).default([]),
+});
+
+const inputs = [
+  { title: '  牛乳を買う ' },
+  { title: '', status: 'later' },
+  { title: 'x', owner: 'alice' },
+];
+for (const input of inputs) {
+  const r = CreateTask.safeParse(input);
+  if (r.success) {
+    console.log('OK  ', JSON.stringify(input), '→', JSON.stringify(r.data));
+  } else {
+    console.log('NG  ', JSON.stringify(input));
+    for (const issue of r.error.issues) console.log('     ', issue.path.join('.') || '(全体)', issue.message);
+  }
+}
+
+// クエリは文字列で届く。形を決めてから数にする
+const Limit = z.string().regex(/^[1-9][0-9]{0,2}$/, '1〜100 の整数').transform(Number).pipe(z.number().max(100));
+for (const text of ['20', '2e1', '500']) {
+  const r = Limit.safeParse(text);
+  console.log('limit', JSON.stringify(text), '→', r.success ? r.data : r.error.issues[0].message);
+}
+```
+
+```sh
+$ node zod-try.mjs
+OK   {"title":"  牛乳を買う "} → {"title":"牛乳を買う","status":"todo","tags":[]}
+NG   {"title":"","status":"later"}
+      title title を入力してください
+      status 無効な選択: "todo"、"doing"、"done"のいずれかである必要があります
+NG   {"title":"x","owner":"alice"}
+      (全体) 認識されていないキー: "owner"
+limit "20" → 20
+limit "2e1" → 1〜100 の整数
+limit "500" → 大きすぎる値: numberは100以下である必要があります
+```
+
+- `safeParse` の結果の `data` には、空白を取った `title` と、既定の `status`・`tags` が入りました。
+- 間違いは、最初の1つで止まらずに、全部が `issues` に入ります。`issue.path` は場所（`['title']`）で、`join('.')` で文字にしています。
+- `Limit` は 5.2節で説明します。`transform(Number)` で数に変え、`pipe(…)` で、変えた後の値をもう一度確かめています。
 
 ### 5.2 クエリは文字列で届く
 
@@ -315,7 +459,7 @@ $ node samples/zod-demo.mjs
 const Limit = z.string().regex(/^[1-9][0-9]{0,2}$/, '1〜100 の整数').transform(Number).pipe(z.number().max(100));
 ```
 
-Express 5 のクエリの読み方（`simple`）では、`?a[b]=1` は `{ 'a[b]': '1' }` という名前の文字列で、入れ子のオブジェクトにはなりません（第23章）。それでも、同じ名前を2回書くと配列になるので、「1回だけ」も確かめます。これをまとめて書くのが練習問題4です。
+Express 5 のクエリの読み方（`simple`）では、`?a[b]=1` は `{ 'a[b]': '1' }` という名前の文字列で、入れ子のオブジェクトにはなりません（第23章）。それでも、同じ名前を2回書くと配列になるので、「1回だけ」も確かめます。これをまとめて書くのが練習問題6です。
 
 ### 5.3 ミドルウェアにする
 
@@ -343,6 +487,8 @@ app.post('/api/tasks', validate({ body: CreateTask }), (req, res) => {
 
 Express 5 の `req.query` は、読むたびに URL から作り直す値で、書き換えられません。確かめた後の値は `req.valid` のような別の場所に入れます。
 
+次のサンプルで確かめます（中身は読まなくてよい）。
+
 ```sh
 $ node samples/validate-demo.mjs
 $ curl -s -X POST -H 'Content-Type: application/json' -d '{"title":"","dueDate":"明日","owner":1}' http://127.0.0.1:9321/api/tasks
@@ -358,7 +504,7 @@ if (!r.success) throw …;
 tasks.update(id, req.body); // ← 確かめたのに、確かめる前の値を使っている
 ```
 
-`z.object` は知らない項目を取り除いた `r.data` を返しますが、`req.body` には `id` や `createdAt` が残ったままです。これで、客が `{"id": 1}` を送るだけで、別のタスクの id を書き換えられてしまいます（練習問題5の確認14・15）。項目を1つずつ選んで代入する書き方（`Object.assign(task, req.body)` の代わりに `task.title = data.title`）も、同じ理由で安全です。
+`z.object` は知らない項目を取り除いた `r.data` を返しますが、`req.body` には `id` や `createdAt` が残ったままです。これで、客が `{"id": 1}` を送るだけで、別のタスクの id を書き換えられてしまいます（練習問題9の確認14・15）。項目を1つずつ選んで代入する書き方（`Object.assign(task, req.body)` の代わりに `task.title = data.title`）も、同じ理由で安全です。
 
 ## 6. ページ分け・絞り込み・並べ替え
 
@@ -379,6 +525,8 @@ tasks.update(id, req.body); // ← 確かめたのに、確かめる前の値を
 
 オフセットのずれは、サンプルで確かめられます。1ページ目を読んだ後に、新しいタスクが先頭に1つ増えると、2ページ目の最初に、1ページ目の最後と同じものがもう一度出ます。
 
+次のサンプルで確かめます（中身は読まなくてよい）。
+
 ```sh
 $ node samples/pagination-demo.mjs
 $ curl -s 'http://127.0.0.1:9322/offset?limit=3&offset=0'
@@ -398,7 +546,7 @@ $ curl -s 'http://127.0.0.1:9322/offset?limit=3&offset=3'
 - **カーソルの中身は客に作らせない**: カーソルは、サーバが作って渡す「しおり」です。中身を読めても困りませんが、作り変えられると思わない条件になるので、第22章の署名を付けます
 - **次があるか**: `limit + 1` 件を取ってみて、1件多ければ次のページがあります。次が無ければ `nextCursor` は `null` にします
 
-データベースでは、この条件を `WHERE (created_at, id) < ($1, $2) ORDER BY created_at DESC, id DESC LIMIT 21` と書き、索引を使って速く探せます（第6部 第30章）。メモリの配列で、これを書くのが練習問題3です。
+データベースでは、この条件を `WHERE (created_at, id) < ($1, $2) ORDER BY created_at DESC, id DESC LIMIT 21` と書き、索引を使って速く探せます（第6部 第30章）。メモリの配列で、これを書くのが練習問題7です。
 
 ### 6.3 次のページの知らせ方
 
@@ -443,10 +591,65 @@ PATCH /api/tasks/1（If-Match なし）         → 428（どの版を見たの�
 
 「ぶつかることは少ないので、先にロックせず、ぶつかったときに断る」ので、**楽観的ロック**と呼びます。B さんの画面は、412 を受け取ったら読み直して、「他の人が先に変更しました」と知らせます。
 
+次のサンプルで確かめます（中身は読まなくてよい）。
+
 ```sh
 $ node samples/etag-demo.mjs
 $ curl -si http://127.0.0.1:9323/api/tasks/1 | grep -iE '^(etag|HTTP)'
 ```
+
+**手を動かす**: 版の数から ETag を作り、`If-Match` を確かめる `etag-lock.mjs` を作ります（完成形は [samples/etag-lock.mjs](samples/etag-lock.mjs)）。
+
+```js
+import express from 'express';
+
+const PORT = 9327;
+const app = express();
+app.disable('x-powered-by');
+app.set('etag', false); // Express の自動の（弱い）ETag を止めて、自分で付ける
+app.use(express.json());
+
+const task = { id: 1, title: '牛乳を買う', version: 1 };
+const etagOf = (t) => `"${t.version}"`; // 強い ETag
+
+app.get('/api/tasks/1', (req, res) => {
+  res.set('ETag', etagOf(task)).json(task);
+});
+
+app.patch('/api/tasks/1', (req, res) => {
+  const ifMatch = req.get('if-match');
+  if (ifMatch === undefined) {
+    return res.status(428).json({ error: 'If-Match を付けてください' });
+  }
+  if (ifMatch !== etagOf(task)) {
+    return res.status(412).json({ error: '他の人が先に変えました。読み直してください' });
+  }
+  if (typeof req.body?.title === 'string') task.title = req.body.title;
+  task.version += 1;
+  res.set('ETag', etagOf(task)).json(task);
+});
+
+app.listen(PORT, '127.0.0.1', () => console.log(`http://127.0.0.1:${PORT}/ で待っています（Ctrl+C で止める）`));
+```
+
+```sh
+$ node etag-lock.mjs
+# 別のターミナルで
+$ curl -si http://127.0.0.1:9327/api/tasks/1 | grep -E 'HTTP|ETag'
+HTTP/1.1 200 OK
+ETag: "1"
+$ curl -si -X PATCH -H 'Content-Type: application/json' -H 'If-Match: "1"' -d '{"title":"牛乳と卵"}' http://127.0.0.1:9327/api/tasks/1 | grep -E 'HTTP|ETag'
+HTTP/1.1 200 OK
+ETag: "2"
+$ curl -si -X PATCH -H 'Content-Type: application/json' -H 'If-Match: "1"' -d '{"title":"x"}' http://127.0.0.1:9327/api/tasks/1 | head -1
+HTTP/1.1 412 Precondition Failed
+$ curl -si -X PATCH -H 'Content-Type: application/json' -d '{"title":"x"}' http://127.0.0.1:9327/api/tasks/1 | head -1
+HTTP/1.1 428 Precondition Required
+```
+
+- 2回目の PATCH は、A さんと B さんの B さんです。古い版 `"1"` を見ていたので 412 になり、A さんの変更は消えません。
+- `curl -X PATCH` は、メソッドを PATCH にして送るオプションです。
+- ここでは `If-Match` を「文字列が同じか」で比べています。仕様どおりの比べ方（`*` や、いくつも並べたもの）は、練習問題8で作ります。
 
 ### 7.3 ETag の作り方
 
@@ -458,7 +661,7 @@ $ curl -si http://127.0.0.1:9323/api/tasks/1 | grep -iE '^(etag|HTTP)'
 
 `If-None-Match` に ETag を入れた GET は、変わっていなければ 304（本文なし）になります。画面が「前に読んだものから変わったか」を安く確かめられます。
 
-`If-Match` と `If-None-Match` を、仕様どおりに（ETag の並び、`*`、強い比べ方と弱い比べ方、確かめる順番）書くのが練習問題6です。
+`If-Match` と `If-None-Match` を、仕様どおりに（ETag の並び、`*`、強い比べ方と弱い比べ方、確かめる順番）書くのが練習問題8です。
 
 ## 8. 冪等キー（POST の送り直し）
 
@@ -491,6 +694,8 @@ Content-Type: application/json
 - サーバの失敗（500）や、入力の間違い（422）は覚えません。送り直して、やり直せるようにするためです
 - 覚えておく期間を決めます（24 時間など）。本物は、データベースに、期限つきで置きます（第6部 第30章）。Stripe などの決済の API が、この方法を使っています
 - `Idempotency-Key` ヘッダは、IETF で標準にするための案が話し合われています
+
+次のサンプルで確かめます（中身は読まなくてよい）。
 
 ```sh
 $ node samples/idempotency-demo.mjs
@@ -554,7 +759,7 @@ OpenAPI の説明書から、画面を作る人が試せるページ（Swagger U
 
 ## 練習問題
 
-[exercises/README.md](exercises/README.md) に6問あります。解答は [solutions/README.md](solutions/README.md) です。
+[exercises/README.md](exercises/README.md) に9問あります（基本4問・応用2問・発展3問）。解答は [solutions/README.md](solutions/README.md) です。
 
 ## 参考資料
 

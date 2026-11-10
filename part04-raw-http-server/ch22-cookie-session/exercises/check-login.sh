@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 練習問題5の確認スクリプト。サーバを 127.0.0.1:9225 で起動して確かめ、最後に止める
+# 練習問題8の確認スクリプト。サーバを 127.0.0.1:9225 で起動して確かめ、最後に止める
 # 使い方: bash check-login.sh [確かめるファイル]   （既定は buggy-login.mjs）
 #         bash check-login.sh ../solutions/login.mjs
 # セッションの期限を短くする（SESSION_TTL_MS=1500）ので、全部で 10 秒ほどかかる
@@ -71,8 +71,8 @@ check "5. 知らない ID が来たら、使わずに新しい ID にする" yes
 TOKEN="$(echo "$R" | csrf_in)"
 
 echo "--- ログインの失敗"
-check "6. CSRF トークンの無いログインは 403" 403 "$(req POST /login "$A" 'name=ryota&password=wrong' | status)"
-R="$(req POST /login "$A" "csrf=$TOKEN&name=ryota&password=wrong")"
+check "6. CSRF トークンの無いログインは 403" 403 "$(req POST /login "$A" 'name=alice&password=wrong' | status)"
+R="$(req POST /login "$A" "csrf=$TOKEN&name=alice&password=wrong")"
 check "7. パスワードが違えば 303 で /login へ" "303 /login" "$(echo "$R" | status) $(echo "$R" | header Location)"
 check "8. その知らせは「ユーザー名かパスワードが違います」" yes "$(req GET /login "$A" | grep -qF 'ユーザー名かパスワードが違います' && echo yes || echo no)"
 check "9. 知らせは1回だけ表示する" no "$(req GET /login "$A" | grep -qF 'class="flash"' && echo yes || echo no)"
@@ -80,13 +80,13 @@ req POST /login "$A" "csrf=$TOKEN&name=nobody&password=wrong" > /dev/null
 check "10. 無いユーザーでも、同じ知らせ" yes "$(req GET /login "$A" | grep -qF 'ユーザー名かパスワードが違います' && echo yes || echo no)"
 
 echo "--- ログイン"
-R="$(req POST /login "$A" "csrf=$TOKEN&name=ryota&password=dev-only-password")"
+R="$(req POST /login "$A" "csrf=$TOKEN&name=alice&password=dev-only-password")"
 B="$(echo "$R" | cookie_line | sid_in)"
 [ -z "$B" ] && B="$A"
 check "11. 正しければ 303 で / へ" "303 /" "$(echo "$R" | status) $(echo "$R" | header Location)"
 check "12. ログインしたら ID が変わる" yes "$([ "$A" != "$B" ] && echo yes || echo no)"
 R="$(req GET /me "$B")"
-check "13. 新しい ID で /me は 200 と名前" '200 {"name":"ryota"}' "$(echo "$R" | status) $(echo "$R" | tail -1)"
+check "13. 新しい ID で /me は 200 と名前" '200 {"name":"alice"}' "$(echo "$R" | status) $(echo "$R" | tail -1)"
 check "14. /me に Cache-Control: no-store" no-store "$(echo "$R" | header Cache-Control)"
 check "15. ログイン前の ID では、ログインしていない（401）" 401 "$(req GET /me "$A" | status)"
 check "16. Cookie が無ければ 401" 401 "$(req GET /me | status)"
@@ -101,7 +101,7 @@ check "19. ログアウトした ID は、もう使えない（401）" 401 "$(re
 echo "--- 期限"
 R="$(req GET /login)"
 D="$(echo "$R" | cookie_line | sid_in)"
-R="$(req POST /login "$D" "csrf=$(echo "$R" | csrf_in)&name=hanako&password=another-dev-password")"
+R="$(req POST /login "$D" "csrf=$(echo "$R" | csrf_in)&name=bob&password=another-dev-password")"
 E="$(echo "$R" | cookie_line | sid_in)"
 [ -z "$E" ] && E="$D"
 check "20. 期限の前は 200" 200 "$(req GET /me "$E" | status)"

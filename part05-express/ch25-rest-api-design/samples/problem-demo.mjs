@@ -1,5 +1,5 @@
 // エラーを Problem Details（RFC 9457）の形で返す（第25章 4節）
-//   $ node problem-demo.mjs
+//   $ node samples/problem-demo.mjs
 //   別のターミナルで:
 //     curl -si http://127.0.0.1:9320/api/tasks/99
 //     curl -si -X POST -H 'Content-Type: application/json' -d '{"title":' http://127.0.0.1:9320/api/tasks

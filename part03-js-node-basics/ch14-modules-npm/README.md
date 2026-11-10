@@ -11,9 +11,31 @@ Node.js には、古い CommonJS と新しい ES Modules の2つのモジュー�
 
 | フォルダ | 中身 |
 | --- | --- |
-| [samples/](samples/) | ES Modules・CommonJS・その混ぜ方、モジュールの解決（`exports`・`imports`）、npm scripts |
+| [samples/](samples/) | 本文で書くプログラムの完成形（`try/`・`my-app/`）と、ES Modules・CommonJS・その混ぜ方・モジュールの解決・npm scripts を確かめるプログラム |
 | [exercises/](exercises/) | 練習問題 |
 | [solutions/](solutions/) | 模範解答 |
+
+> **読み方**
+> - この章のコマンドは、`~/dev/part03/ch14-modules-npm/` で実行します（第11章で第3部のフォルダを `~/dev/part03` にコピーしてあります）。
+>
+>   ```sh
+>   $ cd ~/dev/part03/ch14-modules-npm
+>   ```
+>
+> - 「**手を動かす**」の所は、新しいファイルに書いて動かしてください。ファイルの完成形は `samples/try/` と `samples/my-app/` にあります。「中身は読まなくてよい」と書いたサンプルは、動かして結果を見るだけで十分です。
+> - サンプルを動かすときに `cd samples/esm` のように別のフォルダへ移ったら、終わった後で `cd ~/dev/part03/ch14-modules-npm` で戻ってください。
+> - 7節と練習問題の一部では、`npm install` でインターネットからパッケージを入れます。入る場所は `~/dev/part03` の中なので、教材のフォルダは汚れません。
+
+## この章で学ぶことを、後でどこで使うか
+
+| この章で学ぶこと | 後で使う場面 |
+| --- | --- |
+| `import`・`export`（2節） | これから書くすべてのファイル。第4部でサーバを複数のファイルに分けるとき |
+| CommonJS と、その混ぜ方（3〜4節） | 古いパッケージや記事を読むとき。第5部で Express（CommonJS のパッケージ）を import するとき |
+| `package.json` と `npm install`（6〜7節） | 第5部の Express、第6部のデータベースのドライバ、第8部の React など、パッケージを使うすべての場面 |
+| ロックファイルと `npm ci`（9節） | 第11部の CI、第12部の本番へのデプロイ |
+| npm scripts（10節） | 第5部以降の `npm start`・`npm test`・`npm run dev` |
+| 依存パッケージの危険（12節） | 第10部（安全）、第11部（Dependabot と `npm audit`） |
 
 > npm の表示は、この教材の作成時の Node.js 26.13・npm 11.20 のものです。npm は Node.js より速く変わるので、表示や既定の動きが違うときは、`npm help <コマンド>` と公式のドキュメント（参考資料）で確かめてください。
 
@@ -51,6 +73,41 @@ export default function describe() {  // default export（1つのモジュール
 import describe, { count, increment, VERSION } from './counter.mjs';
 import * as counter from './counter.mjs';   // 名前空間 import（すべてをオブジェクトとして受け取る）
 ```
+
+**手を動かす**: `greet.mjs` と `use-greet.mjs` の2つのファイルを作ります（完成形は [samples/try/](samples/try/)）。
+
+```js
+// greet.mjs
+export const DEFAULT_NAME = 'alice';
+
+export function greet(name = DEFAULT_NAME) {
+  return `こんにちは、${name}さん`;
+}
+
+export default function shout(text) {
+  return `${text}！`;
+}
+```
+
+```js
+// use-greet.mjs
+import shout, { greet, DEFAULT_NAME } from './greet.mjs';
+
+console.log(greet());
+console.log(shout(greet('bob')));
+console.log('既定の名前:', DEFAULT_NAME);
+```
+
+```sh
+$ node use-greet.mjs
+こんにちは、aliceさん
+こんにちは、bobさん！
+既定の名前: alice
+```
+
+`{ }` の中は名前付きの export を、`{ }` の外（`shout`）は default export を受け取ります。`use-greet.mjs` の `import` を `import { greet, nothing } from './greet.mjs';` に変えて実行すると、「`greet.mjs` は `nothing` を export していない」という `SyntaxError` になります。export していない名前は使えないことを確かめたら、元に戻してください。
+
+もっと多くの書き方を確かめるサンプルです（中身は読まなくてよい）。
 
 ```sh
 $ cd samples/esm
@@ -104,6 +161,43 @@ module.exports = { count, increment() { count++; }, getCount() { return count; }
 const counter = require('./counter.cjs');
 ```
 
+**手を動かす**: 2.1節の `greet.mjs` を、CommonJS で書き直します。`greet.cjs` と `use-greet.cjs` を作ってください（完成形は [samples/try/](samples/try/)）。
+
+```js
+// greet.cjs
+const DEFAULT_NAME = 'alice';
+
+function greet(name = DEFAULT_NAME) {
+  return `こんにちは、${name}さん`;
+}
+
+function shout(text) {
+  return `${text}！`;
+}
+
+module.exports = { DEFAULT_NAME, greet, shout };
+```
+
+```js
+// use-greet.cjs
+const { greet, shout } = require('./greet.cjs');
+
+console.log(greet());
+console.log(shout(greet('bob')));
+console.log('__dirname:', __dirname);
+```
+
+```sh
+$ node use-greet.cjs
+こんにちは、aliceさん
+こんにちは、bobさん！
+__dirname: /Users/alice/dev/part03/ch14-modules-npm
+```
+
+`export` の代わりに最後の `module.exports = { ... }` で外に見せ、`import` の代わりに `require(...)` で受け取ります。`__dirname`（このファイルのあるフォルダ）は、CommonJS では最初から使えます。
+
+もっと多くの性質を確かめるサンプルです（中身は読まなくてよい）。
+
 ```sh
 $ cd samples/cjs
 $ node main.cjs
@@ -153,6 +247,31 @@ Node.js は、ファイルがどちらの形式かを、次の順で決めます
 
 ### 4.2 ES Modules から CommonJS を読む
 
+**手を動かす**: ES Modules から、3節の `greet.cjs` を import してみます。`mix.mjs` を作って実行してください（完成形は [samples/try/mix.mjs](samples/try/mix.mjs)）。
+
+```js
+// mix.mjs
+import greetCjs from './greet.cjs';
+import { greet } from './greet.cjs';
+
+console.log(greetCjs);
+console.log(greet('carol'));
+```
+
+```sh
+$ node mix.mjs
+{
+  DEFAULT_NAME: 'alice',
+  greet: [Function: greet],
+  shout: [Function: shout]
+}
+こんにちは、carolさん
+```
+
+default（`greetCjs`）には `module.exports` のオブジェクトがそのまま入り、名前付き（`{ greet }`）でも取り出せました。
+
+次のサンプルで、取り出せない場合も確かめます（中身は読まなくてよい）。
+
 ```sh
 $ cd samples/interop
 $ node from-esm.mjs
@@ -176,7 +295,7 @@ $ node from-cjs.cjs
   default: { kind: 'default export のオブジェクト' },
   greet: [Function: greet]
 }
-   名前付きの export: こんにちは、山田さん
+   名前付きの export: こんにちは、aliceさん
    default export   : { kind: 'default export のオブジェクト' }
 2. トップレベル await を使うものを require すると: ERR_REQUIRE_ASYNC_MODULE
 3. 動的 import なら読める: true
@@ -205,11 +324,13 @@ $ node from-cjs.cjs
 パッケージ名は、import したファイルのフォルダから**上に向かって**、`node_modules/パッケージ名` を探します。
 
 ```
-/Users/ryota/dev/ch14/packages/src/app.mjs で import 'tldts' と書くと:
-  /Users/ryota/dev/ch14/packages/src/node_modules/tldts   ← 無い
-  /Users/ryota/dev/ch14/packages/node_modules/tldts       ← あった！
-  （無ければ /Users/ryota/dev/ch14/node_modules/tldts、/Users/ryota/dev/node_modules/tldts … と / まで）
+~/dev/part03/ch14-modules-npm/my-app/src/app.mjs で import 'ms' と書くと:
+  ~/dev/part03/ch14-modules-npm/my-app/src/node_modules/ms   ← 無い
+  ~/dev/part03/ch14-modules-npm/my-app/node_modules/ms       ← あった！
+  （無ければ ~/dev/part03/ch14-modules-npm/node_modules/ms、~/dev/part03/node_modules/ms … と / まで）
 ```
+
+（`my-app` は、7節の「手を動かす」で作るフォルダです。）
 
 Python の `pip install` がパッケージを「その Python 環境（venv）」に入れるのに対し、npm は「**そのプロジェクトのフォルダ**」の `node_modules` に入れます。venv を作って有効にする、という手順が要らない代わりに、プロジェクトごとに `node_modules` ができます。
 
@@ -260,7 +381,7 @@ $ node app.mjs
 
 `import.meta.resolve(名前)` を使うと、その名前がどのファイルになるかを、読み込まずに調べられます（4）。「なぜか違うファイルが読まれる」ときの調べ方として覚えておいてください。
 
-> `samples/resolve/node_modules/tiny-lib` は、説明のために**手で書いた**パッケージです。npm install したものではありません。普通は `node_modules` を Git に入れませんが（第1部 第3章のグローバル ignore）、この教材のフォルダは Git のリポジトリではないので、そのまま置いています。
+> `samples/resolve/node_modules/tiny-lib` は、説明のために**手で書いた**パッケージです。npm install したものではありません。普通は `node_modules` を Git に入れませんが、教材のリポジトリでは、この2つ（`samples/resolve/node_modules` と `samples/scripts-demo/node_modules`）だけは `.gitignore` の例外にして、Git に入れています。
 
 ### 5.4 package.json の imports
 
@@ -307,7 +428,7 @@ $ node app.mjs
 | `dependencies` | 動かすのに必要なパッケージ |
 | `devDependencies` | 開発のときだけ必要なパッケージ（テスト、リンター、ビルドの道具）。`npm install --save-dev` で入れる |
 | `exports`・`imports` | 外に見せる入り口、内部の別名（5節） |
-| `files` | `npm publish` するときにパッケージに入れるファイル（練習問題5） |
+| `files` | `npm publish` するときにパッケージに入れるファイル（練習問題9） |
 | `engines` | 動く Node.js のバージョン。npm は合わないと警告を出す |
 | `bin` | `npm install -g` や `npm link` で使えるコマンドにするファイル（第16章） |
 
@@ -315,24 +436,75 @@ $ node app.mjs
 
 ### 7.1 何が起きるか
 
-```sh
-$ cd ~/dev/ch14/packages
-$ npm install iconv-lite
-added 2 packages, and audited 3 packages in 1s
-```
+**手を動かす**: 小さなアプリ `my-app` を作り、時間の書き方を変換するパッケージ **ms** を入れて使います（完成形は [samples/my-app/](samples/my-app/)）。
+
+1. フォルダを作って移り、`package.json` を作ります。
+
+   ```sh
+   $ mkdir my-app
+   $ cd my-app
+   ```
+
+   VS Code で `my-app/package.json` を作り、次のように書きます（6節の表のうち、最低限のもの）。
+
+   ```json
+   {
+     "name": "my-app",
+     "version": "1.0.0",
+     "private": true,
+     "type": "module",
+     "scripts": {
+       "start": "node app.mjs"
+     }
+   }
+   ```
+
+2. ms をインストールします。
+
+   ```sh
+   $ npm install ms
+   added 1 package, and audited 2 packages in 1s
+
+   found 0 vulnerabilities
+   ```
+
+   `package.json` を開き直すと、`"dependencies": { "ms": "^2.1.3" }` が足されています。`package-lock.json` と `node_modules/ms` もできました（`ls` で確かめる）。
+
+3. `app.mjs` を作り、ms を import して使います。
+
+   ```js
+   import ms from 'ms';
+
+   console.log('2日は', ms('2 days'), 'ミリ秒');
+   console.log('60000ミリ秒は', ms(60_000));
+   ```
+
+4. `scripts` の `start` で実行します（10節）。
+
+   ```sh
+   $ npm start
+
+   > my-app@1.0.0 start
+   > node app.mjs
+
+   2日は 172800000 ミリ秒
+   60000ミリ秒は 1m
+   ```
+
+終わったら `cd ..` で `ch14-modules-npm` に戻ります。`npm install` のとき、裏では次のことが起きています。
 
 1. **レジストリ**（`https://registry.npmjs.org/`）に、`iconv-lite` のバージョンの一覧を問い合わせる
 2. `package.json` の範囲（8節の semver）を満たす一番新しいバージョンを選ぶ。そのパッケージが依存するパッケージも、同じように選ぶ
 3. 圧縮されたファイル（tarball）をダウンロードし、ハッシュ（`integrity`）を確かめて、`node_modules` に展開する
 4. `package.json` の `dependencies` に追記し、選んだバージョンをすべて `package-lock.json` に書く
 
-「added 2 packages」と、頼んだより多く入っているのは、iconv-lite が依存しているパッケージ（`safer-buffer`）も入ったからです。
+ms は他のパッケージに依存しないので「added 1 package」でした。依存するパッケージがあるものを入れると、頼んだより多く入ります。たとえば練習問題5の iconv-lite は「added 2 packages」で、iconv-lite が依存している `safer-buffer` も入ります。
 
 ### 7.2 node_modules の形
 
-npm は、依存の依存も、できるだけ `node_modules` の**一番上**に平らに並べます（hoisting、巻き上げ）。同じパッケージの違うバージョンが必要になったときだけ、`node_modules/debug/node_modules/ms` のように入れ子にします（練習問題6）。
+npm は、依存の依存も、できるだけ `node_modules` の**一番上**に平らに並べます（hoisting、巻き上げ）。同じパッケージの違うバージョンが必要になったときだけ、`node_modules/debug/node_modules/ms` のように入れ子にします（練習問題7）。
 
-`node_modules` は、`package.json` と `package-lock.json` があればいつでも作り直せます。Git に入れず、OneDrive などの同期フォルダにも置きません（何万ものファイルができることがあり、同期が追いつかなくなるため）。この教材で npm を使う練習を `~/dev` の下でするのはそのためです。
+`node_modules` は、`package.json` と `package-lock.json` があればいつでも作り直せます。Git に入れず（`.gitignore` に書く）、OneDrive などの同期フォルダにも置きません（何万ものファイルができることがあり、同期が追いつかなくなるため）。この教材で npm を使う練習を `~/dev` の下でするのは、そのためでもあります。
 
 ## 8. semver: バージョンの番号の決まり
 
@@ -396,6 +568,8 @@ Python では、`pip freeze > requirements.txt` で同じようなことをし�
 
 `package.json` の `scripts` に書いたコマンドは、`npm run 名前` で実行できます。
 
+7.1節の `my-app` の `npm start` も、`scripts` の `start` を実行していました。次のサンプルで、`scripts` のいろいろな使い方を確かめます（中身は読まなくてよい）。
+
 ```sh
 $ cd samples/scripts-demo
 $ npm run build
@@ -404,8 +578,8 @@ $ npm run build
 [prebuild] build の前に自動で実行される
 > scripts-demo@0.3.0 build
 ...
-$ npm run args -- --name 山田 -v      # -- の後ろは、スクリプトにそのまま渡される
-process.argv.slice(2): [ '--name', '山田', '-v' ]
+$ npm run args -- --name alice -v      # -- の後ろは、スクリプトにそのまま渡される
+process.argv.slice(2): [ '--name', 'alice', '-v' ]
 $ npm run path
 …/samples/scripts-demo/node_modules/.bin
 …/samples/node_modules/.bin
@@ -452,7 +626,7 @@ npm のパッケージは、誰でも公開できます。そして、あなた�
 
 パッケージの `package.json` に `"postinstall": "node setup.js"` のような scripts があると、`npm install` の途中で実行されます。本来は、C で書かれた部品をビルドするといった正当な用途のための仕組みですが、悪意のあるパッケージにとっては「インストールさせるだけで実行できる」入り口になります。
 
-執筆時点の npm（11.20）では、install スクリプトを持つパッケージを見つけると警告を出し、`package.json` の `allowScripts` で、どのパッケージに実行を許すかを記録できます（`npm install-scripts ls`・`approve`・`deny`）。`--strict-allow-scripts` を付けると、許していないものがあればインストールを止めます。`--ignore-scripts`（または `.npmrc` に `ignore-scripts=true`）なら、すべての install スクリプトを実行しません。これらの機能や既定の動きは npm のバージョンで変わってきているので、使う前に `npm help install` で確かめてください。練習問題6で実際に試します。
+執筆時点の npm（11.20）では、install スクリプトを持つパッケージを見つけると警告を出し、`package.json` の `allowScripts` で、どのパッケージに実行を許すかを記録できます（`npm install-scripts ls`・`approve`・`deny`）。`--strict-allow-scripts` を付けると、許していないものがあればインストールを止めます。`--ignore-scripts`（または `.npmrc` に `ignore-scripts=true`）なら、すべての install スクリプトを実行しません。これらの機能や既定の動きは npm のバージョンで変わってきているので、使う前に `npm help install` で確かめてください。練習問題7で実際に試します。
 
 ### 12.3 守り方
 
@@ -461,7 +635,7 @@ npm のパッケージは、誰でも公開できます。そして、あなた�
 - **ロックファイルを Git に入れ、差分を見る**: 知らないパッケージが増えていないか
 - **`npm audit`** で、既知の脆弱性を調べる。`npm audit fix` は範囲の中で直せるものを直す。`--force` は major を上げることがあるので、テストしてから
 - **CI と本番では `npm ci`** を使う（ロックファイルにないものを入れない）
-- **秘密の情報を、パッケージやリポジトリに入れない**（練習問題5の `.env`）
+- **秘密の情報を、パッケージやリポジトリに入れない**（練習問題9の `.env`）
 
 第10部で、依存パッケージの安全をもう一度扱います。
 
@@ -492,7 +666,7 @@ npm のパッケージは、誰でも公開できます。そして、あなた�
 
 ## 練習問題
 
-[exercises/README.md](exercises/README.md) に6問あります。解答は [solutions/README.md](solutions/README.md) です。
+[exercises/README.md](exercises/README.md) に9問あります（基本4問・応用3問・発展2問）。解答は [solutions/README.md](solutions/README.md) です。
 
 ## 参考資料
 

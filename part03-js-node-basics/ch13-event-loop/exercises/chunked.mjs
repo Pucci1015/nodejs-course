@@ -1,4 +1,4 @@
-// 練習問題3: 重い処理を小分けにして、合間にイベントループへ順番を譲る processInChunks を作ってください。
+// 練習問題5: 重い処理を小分けにして、合間にイベントループへ順番を譲る processInChunks を作ってください。
 // 要件は README と chunked.test.mjs にあります。
 // 確かめ方: node --test chunked.test.mjs
 

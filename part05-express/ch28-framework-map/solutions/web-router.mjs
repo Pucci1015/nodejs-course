@@ -1,4 +1,4 @@
-// 練習問題5の模範解答: Web 標準の Request・Response で動く、小さなルーター（Hono や Next.js の Route Handlers の考え方）
+// 練習問題8の模範解答: Web 標準の Request・Response で動く、小さなルーター（Hono や Next.js の Route Handlers の考え方）
 
 /**
  * router.get('/tasks/:id', (request, ctx) => Response) のように登録し、router.fetch(request) で動かす

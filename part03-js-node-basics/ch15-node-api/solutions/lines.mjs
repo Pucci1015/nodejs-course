@@ -1,4 +1,4 @@
-// 練習問題3 の解答: バイトのチャンクを、1行ずつの文字列にする Transform
+// 練習問題6 の解答: バイトのチャンクを、1行ずつの文字列にする Transform
 // 確かめ方: cd ../exercises && MODULE=../solutions/lines.mjs node --test lines.test.mjs
 import { Transform } from 'node:stream';
 

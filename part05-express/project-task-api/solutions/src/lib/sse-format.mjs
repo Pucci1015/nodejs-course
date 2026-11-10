@@ -1,4 +1,4 @@
-// 第27章 練習問題2の模範解答（ch27-realtime/solutions/sse-format.mjs）のコピー。そのまま使う
+// 第27章 練習問題5の模範解答（ch27-realtime/solutions/sse-format.mjs）のコピー。そのまま使う
 // SSE のイベントを書く・読む（HTML Living Standard の「Server-sent events」9.2）
 
 const NEWLINE = /\r\n|\r|\n/;

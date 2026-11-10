@@ -1,4 +1,4 @@
-// 練習問題5 用: slug.mjs の isValidSlug のテスト
+// 練習問題6 用: slug.mjs の isValidSlug のテスト
 // 使い方: node --test slug.test.mjs
 //   模範解答を試す: MODULE=../solutions/slug.mjs node --test slug.test.mjs
 import { test } from 'node:test';

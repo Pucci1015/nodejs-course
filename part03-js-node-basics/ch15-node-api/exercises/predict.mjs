@@ -1,4 +1,4 @@
-// 練習問題1 用: 結果を、実行する前に予想してください
+// 練習問題4 用: 結果を、実行する前に予想してください
 // 使い方: node predict.mjs       （すべて）
 //         node predict.mjs 5     （5番だけ）
 import path from 'node:path';

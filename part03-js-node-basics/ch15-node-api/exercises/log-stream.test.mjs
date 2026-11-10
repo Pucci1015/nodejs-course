@@ -1,4 +1,4 @@
-// 練習問題4 用: log-stream.mjs の summarizeLogFile のテスト
+// 練習問題8 用: log-stream.mjs の summarizeLogFile のテスト
 // 使い方: node --test log-stream.test.mjs
 //   模範解答を試す: MODULE=../solutions/log-stream.mjs node --test log-stream.test.mjs
 // テスト用のファイルは、OS の一時フォルダの中に作って、最後に消します。
@@ -14,7 +14,7 @@ import zlib from 'node:zlib';
 const modulePath = path.resolve(import.meta.dirname, process.env.MODULE ?? './log-stream.mjs');
 const { summarizeLogFile } = await import(pathToFileURL(modulePath).href);
 
-const ACCESS_LOG = path.resolve(import.meta.dirname, '../../../part01-mac-dev-env/ch01-terminal-zsh/samples/access.log');
+const ACCESS_LOG = path.resolve(import.meta.dirname, '../../ch11-js-refresher/exercises/access.log');
 let dir;
 before(() => {
   dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ch15-log-test-'));

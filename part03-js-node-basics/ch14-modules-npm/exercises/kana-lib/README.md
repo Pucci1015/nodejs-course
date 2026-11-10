@@ -1,6 +1,6 @@
 # kana-lib
 
-第14章 練習問題5 で、`package.json` を整えるためのライブラリです（npm に公開はしません）。
+第14章 練習問題9 で、`package.json` を整えるためのライブラリです（npm に公開はしません）。
 
 ```js
 import { toKatakana, toHiragana } from 'kana-lib';

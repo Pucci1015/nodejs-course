@@ -1,6 +1,17 @@
 # 第14章 サンプル
 
-どのサンプルも、そのフォルダに `cd` してから実行します。外部のパッケージは使わないので、`npm install` は不要です（`resolve/node_modules` と `scripts-demo/node_modules` は、説明のために手で置いたものです）。
+**本文で書くプログラムの完成形**
+
+| フォルダ | 内容 | 実行のしかた | 本文の節 |
+| --- | --- | --- | --- |
+| [try/](try/) | `greet.mjs`・`use-greet.mjs`（ES Modules）、`greet.cjs`・`use-greet.cjs`（CommonJS）、`mix.mjs`（ES Modules から CommonJS を読む） | `node samples/try/use-greet.mjs` など | 2, 3, 4.2 |
+| [my-app/](my-app/) | `package.json` を書き、ms を入れて使う小さなアプリ | `cd samples/my-app && npm install && npm start` | 6, 7, 10 |
+
+`my-app` は `npm install` でインターネットから ms を入れます。そのほかのサンプルは、外部のパッケージを使いません。
+
+**動かして結果を見るだけのプログラム（中身は読まなくてよい）**
+
+どのサンプルも、そのフォルダに `cd` してから実行します。`npm install` は不要です（`resolve/node_modules` と `scripts-demo/node_modules` は、説明のために手で置いたものです）。
 
 | フォルダ | 内容 | 実行のしかた | 本文の節 |
 | --- | --- | --- | --- |

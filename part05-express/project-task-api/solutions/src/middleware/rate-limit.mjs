@@ -1,4 +1,4 @@
-// 第24章 練習問題3の模範解答（ch24-middleware/solutions/rate-limit.mjs）のコピー。429 を problem+json にした（「変更（成果物）」）
+// 第24章 練習問題5の模範解答（ch24-middleware/solutions/rate-limit.mjs）のコピー。429 を problem+json にした（「変更（成果物）」）
 // 固定の窓（fixed window）で回数を数える
 // 1台のサーバのメモリに数えるので、サーバが複数台あると、台ごとに別々に数えることになる。
 // 共有するなら Redis などに置く（第6部 第34章）。

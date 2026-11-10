@@ -1,4 +1,4 @@
-// 練習問題4のテスト
+// 練習問題6のテスト
 // 使い方: node --test query.test.mjs
 //         MODULE=../solutions/query.mjs node --test query.test.mjs   （解答例で確かめる）
 import { test } from 'node:test';

@@ -1,4 +1,4 @@
-// 練習問題3: grep のような CLI。端末で試すと動いているように見えますが、
+// 練習問題8: grep のような CLI。端末で試すと動いているように見えますが、
 // パイプやリダイレクトの中で使うと、おかしなところがたくさんあります。
 // 確かめる: bash check-grep.sh buggy-grep.mjs
 // 使い方: node buggy-grep.mjs [-i] [-c] [--color=auto|always|never] <パターン> [ファイル...]

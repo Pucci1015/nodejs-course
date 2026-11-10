@@ -1,5 +1,5 @@
-// 練習問題5: ステータスコードと応答の形のバグを直す（9か所）
-// 仕様は exercises/README.md の問題5です。確かめ方:
+// 練習問題9: ステータスコードと応答の形のバグを直す（9か所）
+// 仕様は exercises/README.md の問題9です。確かめ方:
 //   $ bash check-design.sh
 // どのルートも「動く」のですが、HTTP の決まりごととしては、あちこち間違っています。
 import express from 'express';

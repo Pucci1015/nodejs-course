@@ -1,4 +1,4 @@
-// 練習問題4のテスト
+// 練習問題7のテスト
 // 使い方: node --test request-logger.test.mjs
 //         MODULE=../solutions/request-logger.mjs node --test request-logger.test.mjs   （解答例で確かめる）
 import { test, before, after, beforeEach } from 'node:test';

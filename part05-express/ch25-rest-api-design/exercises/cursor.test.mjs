@@ -1,4 +1,4 @@
-// 練習問題3のテスト
+// 練習問題7のテスト
 // 使い方: node --test cursor.test.mjs
 //         MODULE=../solutions/cursor.mjs node --test cursor.test.mjs   （解答例で確かめる）
 import { test } from 'node:test';

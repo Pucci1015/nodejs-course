@@ -1,5 +1,5 @@
 // サンプルで使う、エラーを RFC 9457（Problem Details）の形で返す小さな部品（第25章 4節）
-// 練習問題2では、これをもっときちんとした problemHandler にします。
+// 練習問題5では、これをもっときちんとした problemHandler にします。
 
 export class HttpProblem extends Error {
   /**

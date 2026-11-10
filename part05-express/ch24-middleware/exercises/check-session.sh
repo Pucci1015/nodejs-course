@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 練習問題6の確認スクリプト。サーバを 127.0.0.1:9318 で起動して確かめ、最後に止める
+# 練習問題8の確認スクリプト。サーバを 127.0.0.1:9318 で起動して確かめ、最後に止める
 # 使い方: bash check-session.sh [確かめるファイル]   （既定は session-app.mjs）
 #         bash check-session.sh ../solutions/session-app.mjs
 set -uo pipefail
@@ -67,15 +67,15 @@ check "6. SameSite=Lax が付いている" 1 "$(echo "$c" | grep -ci 'samesite=l
 echo "--- ログインで ID を作り直す"
 curl -s -c "$JAR" -b "$JAR" "${JSONH[@]}" -d '{"item":"りんご"}' "$URL/cart" > /dev/null
 before="$(sid_of "$JAR")"
-curl -s -c "$JAR" -b "$JAR" "${JSONH[@]}" -d '{"name":"ryota","password":"dev-only-password"}' "$URL/login" > /dev/null
+curl -s -c "$JAR" -b "$JAR" "${JSONH[@]}" -d '{"name":"alice","password":"dev-only-password"}' "$URL/login" > /dev/null
 after="$(sid_of "$JAR")"
 check "7. ログインの前と後で、セッションの ID が変わる" yes "$([ -n "$before" ] && [ -n "$after" ] && [ "$before" != "$after" ] && echo yes || echo no)"
 check "8. ログインの後も、かごの中身は残っている" '["りんご"]' "$(curl -s -b "$JAR" "$URL/me" | json 'd.cart')"
-check "9. ログインの後は user が入っている" '"ryota"' "$(curl -s -b "$JAR" "$URL/me" | json 'd.user && d.user.name')"
+check "9. ログインの後は user が入っている" '"alice"' "$(curl -s -b "$JAR" "$URL/me" | json 'd.user && d.user.name')"
 # ログイン前の ID（攻撃者が先に渡しておいた ID のつもり）で、ログインした状態を使えないか
 printf '127.0.0.1\tFALSE\t/\tFALSE\t0\tsid\t%s\n' "$before" > "$OLD"
 check "10. ログイン前の ID では、ログインした状態にならない" null "$(curl -s -b "$OLD" "$URL/me" | json 'd.user')"
-check "11. パスワードが違えば 401" 401 "$(curl -s -o /dev/null -w '%{http_code}' "${JSONH[@]}" -d '{"name":"ryota","password":"x"}' "$URL/login")"
+check "11. パスワードが違えば 401" 401 "$(curl -s -o /dev/null -w '%{http_code}' "${JSONH[@]}" -d '{"name":"alice","password":"x"}' "$URL/login")"
 
 echo "--- ログアウト"
 cp "$JAR" "$OLD"

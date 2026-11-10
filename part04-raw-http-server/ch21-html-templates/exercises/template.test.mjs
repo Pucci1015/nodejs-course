@@ -1,4 +1,4 @@
-// 練習問題4のテスト
+// 練習問題7のテスト
 // 使い方: node --test template.test.mjs
 //         MODULE=../solutions/template.mjs node --test template.test.mjs   （解答例で確かめる）
 import { test } from 'node:test';
@@ -18,7 +18,7 @@ test('{{ 名前 }} の値をエスケープして出す', () => {
 });
 
 test('{{ a.b.c }} でたどる。無い名前・null・undefined・false は何も出さない。0 は出す', () => {
-  assert.equal(r('{{ user.name }}', { user: { name: '花子' } }), '花子');
+  assert.equal(r('{{ user.name }}', { user: { name: 'いぬ' } }), 'いぬ');
   assert.equal(r('[{{ nothing }}][{{ user.age.x }}][{{ n }}][{{ f }}][{{ z }}]', { user: {}, n: null, f: false, z: 0 }), '[][][][][0]');
 });
 

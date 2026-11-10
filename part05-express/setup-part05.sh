@@ -3,8 +3,8 @@
 # 使い方: bash setup-part05.sh [作成先]     既定: ~/dev/part05
 #   作成先が既にあれば、何もせずに終了する（上書き・削除はしない）。作り直したいときは、別の名前を指定するか、
 #   中身を確かめてから自分で消してから実行する。
-#   OneDrive の中に node_modules を作らないよう、教材のフォルダではなく ~/dev の下に作る（第1部 第1章）。
-#   教材のフォルダ（OneDrive）は「読む場所」、~/dev/part05 は「動かして書き換える場所」と考える。
+#   教材のフォルダは見本として残すので、node_modules は教材のフォルダではなく ~/dev の下に作る。
+#   教材のフォルダは「読む場所」、~/dev/part05 は「動かして書き換える場所」と考える。
 set -euo pipefail
 
 DEST="${1:-$HOME/dev/part05}"
@@ -28,7 +28,7 @@ mkdir -p "$(dirname "$DEST")"
 # node_modules が教材のフォルダにあっても、コピーしない
 mkdir "$DEST"
 ( cd "$SRC" && tar --exclude ./node_modules -cf - . ) | ( cd "$DEST" && tar -xf - )
-# OneDrive の同期で実行の許可が外れていることがあるので、付け直す
+# コピーやダウンロードで実行の許可が外れていることがあるので、付け直す
 find "$DEST" -name '*.sh' -exec chmod +x {} +
 
 cd "$DEST"
@@ -37,4 +37,4 @@ npm ci --ignore-scripts
 
 echo
 echo "作りました: $DEST"
-echo "  次は: cd $DEST/ch23-express-intro/samples && node hello-express.mjs"
+echo "  次は: cd $DEST/ch23-express-intro"

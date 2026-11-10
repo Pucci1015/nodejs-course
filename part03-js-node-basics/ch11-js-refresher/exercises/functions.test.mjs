@@ -1,4 +1,4 @@
-// 練習問題2 用: functions.mjs の once・memoize・debounce・pipe のテスト
+// 練習問題8 用: functions.mjs の once・memoize・debounce・pipe のテスト
 // 使い方: node --test functions.test.mjs
 //   模範解答を試す: MODULE=../solutions/functions.mjs node --test functions.test.mjs
 import { test } from 'node:test';
@@ -24,8 +24,8 @@ test('once: 何度呼んでも、元の関数は1回だけ呼ばれ、同じ結�
 });
 
 test('once: this と引数をそのまま渡す', () => {
-  const obj = { name: 'ryota', hello: once(function (greeting) { return `${greeting} ${this.name}`; }) };
-  assert.equal(obj.hello('こんにちは'), 'こんにちは ryota');
+  const obj = { name: 'alice', hello: once(function (greeting) { return `${greeting} ${this.name}`; }) };
+  assert.equal(obj.hello('こんにちは'), 'こんにちは alice');
 });
 
 test('once: 元の関数が例外を投げたら、結果を覚えず、次の呼び出しでもう一度試す', () => {
@@ -85,8 +85,8 @@ test('memoize: key の関数を渡せる', () => {
     },
     { key: (user) => user.id },
   );
-  assert.equal(byId({ id: 1, name: 'ryota' }), 'RYOTA');
-  assert.equal(byId({ id: 1, name: '別の名前でも同じ ID' }), 'RYOTA');
+  assert.equal(byId({ id: 1, name: 'alice' }), 'ALICE');
+  assert.equal(byId({ id: 1, name: '別の名前でも同じ ID' }), 'ALICE');
   assert.equal(calls, 1);
 });
 

@@ -1,5 +1,5 @@
-// 練習問題2: SSE のイベントを書く・読む
-// 要件は exercises/README.md の問題2です。確かめ方:
+// 練習問題5: SSE のイベントを書く・読む
+// 要件は exercises/README.md の問題5です。確かめ方:
 //   $ node --test sse-format.test.mjs
 // 今のひな形は、ふつうの1行のイベントなら書けて読めますが、仕様どおりではありません。
 

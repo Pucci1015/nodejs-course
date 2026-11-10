@@ -1,4 +1,4 @@
-// 練習問題2 の解答: 重い計算を worker_threads に移し、イベントループを止めないサーバ
+// 練習問題8 の解答: 重い計算を worker_threads に移し、イベントループを止めないサーバ
 // 使い方: node report-server.mjs        （http://127.0.0.1:9131）
 // 確かめ方: cd ../exercises && TARGET=../solutions/report-server.mjs bash check-report-server.sh
 import http from 'node:http';

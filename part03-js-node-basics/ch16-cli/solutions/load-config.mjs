@@ -1,4 +1,4 @@
-// 練習問題6 解答例: 設定を、既定の値 < 設定ファイル < 環境変数 < コマンドラインの引数 の順に重ねる
+// 練習問題7 解答例: 設定を、既定の値 < 設定ファイル < 環境変数 < コマンドラインの引数 の順に重ねる
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';

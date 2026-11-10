@@ -1,6 +1,6 @@
 // HTML のフォームを受け取る（第20章 5節）
 // 使い方: node form-demo.mjs   → ブラウザで http://127.0.0.1:9201/
-//   curl -i -d 'name=りょうた&message=a+b%2Bc&tags=js&tags=node' http://127.0.0.1:9201/submit
+//   curl -i -d 'name=ねこ&message=a+b%2Bc&tags=js&tags=node' http://127.0.0.1:9201/submit
 import http from 'node:http';
 import { createApp, HttpError } from '../../ch17-minimal-server/solutions/app.mjs';
 import { redirect, sendHtml } from '../../ch17-minimal-server/solutions/send.mjs';

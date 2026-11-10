@@ -1,4 +1,4 @@
-// 練習問題5の模範解答: 読書メモのサイト
+// 練習問題8の模範解答: 読書メモのサイト
 // 使い方: node views-server.mjs   → ブラウザで http://127.0.0.1:9215/
 // 確かめる: bash ../exercises/check-views.sh ../solutions/views-server.mjs
 import http from 'node:http';

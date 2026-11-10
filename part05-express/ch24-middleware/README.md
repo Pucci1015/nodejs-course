@@ -11,11 +11,28 @@
 
 | フォルダ | 中身 |
 | --- | --- |
-| [samples/](samples/) | 動く順番、エラーの流れ、応答の後の処理、自分で書くミドルウェア、cors と morgan、express-session、Router |
+| [samples/](samples/) | 本文で書くプログラムの完成形（`order.mjs`・`timing.mjs`・`require-key.mjs`・`routers.mjs`）と、動く順番、エラーの流れ、応答の後の処理、自分で書くミドルウェア、cors と morgan、express-session、Router を確かめるプログラム |
 | [exercises/](exercises/) | 練習問題 |
-| [solutions/](solutions/) | 模範解答（問題3の `rateLimit` と問題4の `accessLog` は、成果物でも使います） |
+| [solutions/](solutions/) | 模範解答（問題5の `rateLimit` と問題6の `accessLog` は、成果物でも使います） |
 
-> この章のサンプルと練習問題は、`~/dev/part05/ch24-middleware` の中で動かします（[第5部の README](../README.md) の「準備」）。
+> **読み方**
+> - この章のコマンドは、すべて `~/dev/part05/ch24-middleware/` で実行します（第23章で `setup-part05.sh` を動かして、`~/dev/part05` を作ってあります）。
+>
+>   ```sh
+>   $ cd ~/dev/part05/ch24-middleware
+>   ```
+>
+> - 「**手を動かす**」の所は、新しいファイルに書いて動かしてください。ファイルの完成形は `samples/` にあります。「中身は読まなくてよい」と書いたサンプルは、動かして結果を見るだけで十分です。
+> - 「手を動かす」のサーバは 9317 番を使います。次のサーバを動かす前に `Ctrl+C` で止めてください。`curl` は別のターミナルで打ちます。
+
+## この章で学ぶことを、後でどこで使うか
+
+| この章で学ぶこと | 後で使う場面 |
+| --- | --- |
+| ミドルウェアの順番と `next`（2・3節） | 第5部のすべての章、成果物 |
+| 応答の後のログ（4節） | 第26章（JSON のログ）、成果物 |
+| 設定を受け取ってミドルウェアを返す関数（5節） | 第25章（入力の確かめ）、第10部（認証） |
+| `express.Router`（7節） | 第26章（ルートをファイルに分ける）、成果物 |
 
 ---
 
@@ -51,35 +68,69 @@ Flask では「前」「後」「エラー」で別々の書き方でした。Ex
 
 ミドルウェアは `(req, res, next)` を受け取る関数です。仕事をしたら `next()` を呼んで次へ進むか、自分で応答して列を終わらせます。
 
-[samples/order-demo.mjs](samples/order-demo.mjs) で、動く順番を確かめます。
+**手を動かす**: 動く順番を記録する `order.mjs` を作ります（完成形は [samples/order.mjs](samples/order.mjs)）。
 
 ```js
+import express from 'express';
+
+const PORT = 9317;
+const app = express();
+app.disable('x-powered-by');
+
 app.use((req, res, next) => {
-  log('A: いちばん前');
+  console.log(`--- ${req.method} ${req.originalUrl}`);
+  console.log('A: いちばん前');
   next();
-  log('A: next() の後');
+  console.log('A: next() の後');
 });
+
 app.use('/admin', (req, res, next) => {
-  log(`B: /admin の中 req.url=${req.url} req.baseUrl=${req.baseUrl}`);
+  console.log(`B: /admin の中 req.url=${req.url} req.baseUrl=${req.baseUrl}`);
   next();
 });
-app.get('/hello', (req, res) => { log('C'); res.send('hello\n'); });
-app.get('/admin/users/:id', (req, res) => { log('D'); res.send(`user ${req.params.id}\n`); });
+
+app.get('/admin/users/:id', (req, res) => {
+  console.log('C: ハンドラ');
+  res.send(`user ${req.params.id}\n`);
+});
+
+app.get('/hello', (req, res) => {
+  console.log('C: ハンドラ');
+  res.send('hello\n');
+});
+
+app.listen(PORT, '127.0.0.1', () => console.log(`http://127.0.0.1:${PORT}/ で待っています（Ctrl+C で止める）`));
 ```
 
 ```sh
-$ curl -s http://127.0.0.1:9310/admin/users/7     # サーバのターミナルに次のように出る
---- GET /admin/users/7
-   A: いちばん前
-   B: /admin の中 req.url=/users/7 req.baseUrl=/admin req.originalUrl=/admin/users/7
-   D: GET /admin/users/:id のハンドラ id=7
-   A: next() の後（後ろの処理が「同期的に」終わった後に、ここに戻る）
+$ node order.mjs
+# 別のターミナルで
+$ curl -s http://127.0.0.1:9317/admin/users/7
+user 7
+$ curl -s http://127.0.0.1:9317/hello
+hello
 ```
+
+サーバのターミナルには、次のように出ます。
+
+```text
+--- GET /admin/users/7
+A: いちばん前
+B: /admin の中 req.url=/users/7 req.baseUrl=/admin
+C: ハンドラ
+A: next() の後
+--- GET /hello
+A: いちばん前
+C: ハンドラ
+A: next() の後
+```
+
+もっと多くの場面（`next('route')` など）を試せるのが [samples/order-demo.mjs](samples/order-demo.mjs) です（`node samples/order-demo.mjs` で動かします。中身は読まなくてよい）。
 
 - `app.use(fn)` は、すべてのリクエストで動きます。`app.get(…)` などのルートも、列の1つの層です。Express は、**ミドルウェアとルートを、登録した順に1本の列にして**、前から試します
 - `app.use('/admin', fn)` は、パスが `/admin` か `/admin/…` のときだけ動きます。中では `req.url` から `/admin` が取り除かれ、取り除いた部分が `req.baseUrl` に入ります。元の URL は `req.originalUrl` です。抜けた後は元に戻ります
 - `next()` を呼ばず、応答もしなければ、客は待たされ続けます。必ずどちらかをします
-- 応答した後に `next()` を呼ぶと、後ろのミドルウェアが動いてしまいます（練習問題1の2番）。「応答したら `return`」と決めておきます
+- 応答した後に `next()` を呼ぶと、後ろのミドルウェアが動いてしまいます（練習問題4の2番）。「応答したら `return`」と決めておきます
 
 ### 2.2 `next()` の後は「応答の後」ではない
 
@@ -89,7 +140,7 @@ $ curl -s http://127.0.0.1:9310/admin/users/7     # サーバのターミナル�
 1. GET /shop/items    → 200 "items"   記録: A B(/items) C a c D
 ```
 
-練習問題1のこの結果では、`a`（A の `next()` の後）が、`c`（C の `await` の後）や `D`（ハンドラ）より先です。Express の `next` は Promise を返さないので、「後ろが全部終わるまで待つ」ことができません。第18章で作った `compose`（Koa 風）は、`await next()` で待てたのと対照的です（第28章の Hono も Koa 風です）。
+練習問題4のこの結果では、`a`（A の `next()` の後）が、`c`（C の `await` の後）や `D`（ハンドラ）より先です。Express の `next` は Promise を返さないので、「後ろが全部終わるまで待つ」ことができません。第18章で作った `compose`（Koa 風）は、`await next()` で待てたのと対照的です（第28章の Hono も Koa 風です）。
 
 応答の後に動かしたい処理（ログ、時間を測る）は、4節の方法で書きます。
 
@@ -109,7 +160,7 @@ app.post('/api/tasks', requireLogin, express.json(), validateTask, createTask);
 
 ### 3.1 `next(err)` は、エラーハンドラまで飛ぶ
 
-`next` に引数（`'route'` 以外）を渡すと、それはエラーとして扱われます。ハンドラの中で `throw` したときや、async 関数が reject したときも同じです（第23章 8節）。エラーになると、Express は**引数が3つ以下の層を飛ばし、引数が4つの層（エラーハンドラ）だけを順に動かします**（[samples/error-flow-demo.mjs](samples/error-flow-demo.mjs)）。
+`next` に引数（`'route'` 以外）を渡すと、それはエラーとして扱われます。ハンドラの中で `throw` したときや、async 関数が reject したときも同じです（第23章 8節）。エラーになると、Express は**引数が3つ以下の層を飛ばし、引数が4つの層（エラーハンドラ）だけを順に動かします**（[samples/error-flow-demo.mjs](samples/error-flow-demo.mjs)。`node samples/error-flow-demo.mjs` で動かします。中身は読まなくてよい）。
 
 ```sh
 $ curl -s http://127.0.0.1:9311/fail
@@ -142,13 +193,13 @@ app.use((req, res) => res.status(404).json({ error: 'not_found' }));            
 app.use((err, req, res, next) => { /* エラーを JSON にする */ });               // エラー
 ```
 
-エラーハンドラをルートより**前**に置くと、ルートで起きたエラーはそのエラーハンドラに届かず、Express の既定の HTML（開発中はスタックトレース入り）になります（練習問題5）。
+エラーハンドラをルートより**前**に置くと、ルートで起きたエラーはそのエラーハンドラに届かず、Express の既定の HTML（開発中はスタックトレース入り）になります（練習問題9）。
 
 ## 4. 応答の後に動く処理
 
 ### 4.1 `res` のイベントを使う
 
-アクセスログには、ステータスと、かかった時間が要ります。どちらも、ハンドラが応答した後でないと分かりません。2.2節のとおり `next()` の後では早すぎるので、`res` のイベントを使います（第17章 練習問題3と同じ考え方）。
+アクセスログには、ステータスと、かかった時間が要ります。どちらも、ハンドラが応答した後でないと分かりません。2.2節のとおり `next()` の後では早すぎるので、`res` のイベントを使います（第17章 練習問題5と同じ考え方）。
 
 ```js
 export function accessLog({ write = (line) => console.log(line) } = {}) {
@@ -169,7 +220,57 @@ export function accessLog({ write = (line) => console.log(line) } = {}) {
 | `finish` | 本文を最後まで書き終えたとき。客が先に切ると来ない |
 | `close` | 接続（このリクエストの応答）が閉じたとき。**必ず1回来る**。`res.writableFinished` で、最後まで書けたかが分かる |
 
-[samples/finish-demo.mjs](samples/finish-demo.mjs) で、客が先に切ったときも記録されることを確かめます。
+**手を動かす**: 応答の後にログを書く `timing.mjs` を作ります（完成形は [samples/timing.mjs](samples/timing.mjs)）。
+
+```js
+import express from 'express';
+
+const PORT = 9317;
+const app = express();
+app.disable('x-powered-by');
+
+function timing(req, res, next) {
+  const start = performance.now();
+  res.once('close', () => {
+    const ms = (performance.now() - start).toFixed(1);
+    const status = res.writableFinished ? res.statusCode : 'aborted';
+    console.log(`${req.method} ${req.originalUrl} ${status} ${ms}ms`);
+  });
+  next();
+}
+
+app.use(timing);
+
+app.get('/fast', (req, res) => res.send('fast\n'));
+app.get('/slow', async (req, res) => {
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+  res.send('slow\n');
+});
+
+app.listen(PORT, '127.0.0.1', () => console.log(`http://127.0.0.1:${PORT}/ で待っています（Ctrl+C で止める）`));
+```
+
+```sh
+$ node timing.mjs
+# 別のターミナルで
+$ curl -s http://127.0.0.1:9317/fast
+fast
+$ curl -s --max-time 0.3 http://127.0.0.1:9317/slow   # 1秒かかるところを、0.3秒で切る
+```
+
+サーバのターミナルには、次のように出ます。
+
+```text
+GET /fast 200 3.7ms
+GET /slow aborted 302.4ms
+```
+
+- `performance.now()` は、ミリ秒の時刻を小数まで返します。始めと終わりの差が、かかった時間です。`toFixed(1)` で小数第1位までにしています。
+- `res.once('close', 関数)` は、`close` が来たときに1回だけ関数を呼びます。`next()` の後ではなく、ここで書くので、ステータスも時間も分かります。
+- `curl --max-time 0.3` は、0.3 秒で待つのをやめて切るオプションです。最後まで返せなかったので `aborted` になりました。
+- `app.use(timing)` を、ルートより**前**に置いています。後ろに置くと、ルートが応答した後なので、もう動きません。
+
+もう1つ、`X-Request-Id` も付けた [samples/finish-demo.mjs](samples/finish-demo.mjs) で、同じことを確かめます（`node samples/finish-demo.mjs` で動かします。中身は読まなくてよい）。
 
 ```sh
 $ curl -s --max-time 0.3 http://127.0.0.1:9312/slow    # 1秒かかるところを、0.3秒で切る
@@ -207,22 +308,66 @@ export function requireRole(role) {
 app.delete('/api/users/:id', requireRole('admin'), deleteUser);
 ```
 
-設定の確かめは、ミドルウェアを**作る時点**でします（練習問題3の `rateLimit` で、`limit: 0` を `TypeError` にしたように）。リクエストが来てから設定の間違いに気づくより、起動の時点で落ちるほうが安全です。
+設定の確かめは、ミドルウェアを**作る時点**でします（練習問題5の `rateLimit` で、`limit: 0` を `TypeError` にしたように）。リクエストが来てから設定の間違いに気づくより、起動の時点で落ちるほうが安全です。
+
+**手を動かす**: 鍵を受け取ってミドルウェアを返す `requireKey` を書いた `require-key.mjs` を作ります（完成形は [samples/require-key.mjs](samples/require-key.mjs)）。
+
+```js
+import express from 'express';
+
+const PORT = 9317;
+const app = express();
+app.disable('x-powered-by');
+
+function requireKey(expected) {
+  if (typeof expected !== 'string' || expected === '') {
+    throw new TypeError('requireKey: 鍵を文字列で渡してください'); // 作る時点で確かめる
+  }
+  return (req, res, next) => {
+    if (req.get('x-api-key') !== expected) {
+      return res.status(401).json({ error: 'unauthorized' }); // 応答したら return
+    }
+    next();
+  };
+}
+
+app.get('/api/public', (req, res) => res.json({ message: 'だれでも見られます' }));
+app.get('/api/secret', requireKey('dev-only-key'), (req, res) => res.json({ message: '鍵を知っている人だけ' }));
+
+app.listen(PORT, '127.0.0.1', () => console.log(`http://127.0.0.1:${PORT}/ で待っています（Ctrl+C で止める）`));
+```
+
+```sh
+$ node require-key.mjs
+# 別のターミナルで
+$ curl -i http://127.0.0.1:9317/api/secret
+HTTP/1.1 401 Unauthorized
+...
+{"error":"unauthorized"}
+$ curl -s -H 'X-Api-Key: dev-only-key' http://127.0.0.1:9317/api/secret
+{"message":"鍵を知っている人だけ"}
+$ curl -s http://127.0.0.1:9317/api/public
+{"message":"だれでも見られます"}
+```
+
+- `requireKey('dev-only-key')` が返したミドルウェアを、`/api/secret` のルートにだけはさんでいます（2.3節）。
+- `dev-only-key` は練習用の値です。本物の鍵は、コードに書かずに環境変数から読みます（第26章）。
+- `requireKey('')` と書くと、サーバを起動した時点で `TypeError` になります。
 
 ### 5.2 書くときの決まり
 
 | 決まり | 理由 |
 | --- | --- |
-| 応答したら `return` して、`next()` を呼ばない | 呼ぶと後ろが動き、2回応答しようとする。**ログインの確かめで 401 を返した後にハンドラが動く**と、データが変わってしまう（練習問題5） |
+| 応答したら `return` して、`next()` を呼ばない | 呼ぶと後ろが動き、2回応答しようとする。**ログインの確かめで 401 を返した後にハンドラが動く**と、データが変わってしまう（練習問題9） |
 | `req` に足すものは、名前を決めて1か所で（`req.id`、`req.user`） | どこで入ったか分からない値は、後で困る |
 | 画面のテンプレートに渡す値は `res.locals` に | `res.render` が自動で混ぜる（第23章 7節） |
 | 時間のかかる処理は `async` で書いてよい | Express 5 は reject を受け止める（第23章 8節） |
 | 応答の後の処理は `res.once('close')` で | 2.2節 |
-| 秘密の値をログに書かない | アクセスログは多くの人が読める場所に長く残る（練習問題4） |
+| 秘密の値をログに書かない | アクセスログは多くの人が読める場所に長く残る（練習問題6） |
 
 ### 5.3 回数の制限
 
-ログインの画面のように、何度も試されると困る場所には、回数の制限をかけます。客ごとに「一定の時間（窓）に何回来たか」を数え、上限を超えたら **429 Too Many Requests** と、いつ試し直せばよいかを表す `Retry-After` を返します（練習問題3）。
+ログインの画面のように、何度も試されると困る場所には、回数の制限をかけます。客ごとに「一定の時間（窓）に何回来たか」を数え、上限を超えたら **429 Too Many Requests** と、いつ試し直せばよいかを表す `Retry-After` を返します（練習問題5）。
 
 ```js
 app.post('/login', rateLimit({ windowMs: 15 * 60_000, limit: 10 }), login);
@@ -234,7 +379,7 @@ app.post('/login', rateLimit({ windowMs: 15 * 60_000, limit: 10 }), login);
 
 ### 6.1 cors
 
-第2部 第9章で、CORS のヘッダを手で書きました。`cors` パッケージは、それをまとめて書くミドルウェアです（[samples/builtin-demo.mjs](samples/builtin-demo.mjs)）。
+第2部 第9章で、CORS のヘッダを手で書きました。`cors` パッケージは、それをまとめて書くミドルウェアです（[samples/builtin-demo.mjs](samples/builtin-demo.mjs)。`node samples/builtin-demo.mjs` で動かします。中身は読まなくてよい）。
 
 ```js
 app.use('/api', cors({
@@ -262,7 +407,7 @@ Access-Control-Allow-Credentials: true
 
 - `origin` を配列にすると、リクエストの `Origin` が配列にあるときだけ、**そのオリジン**を `Access-Control-Allow-Origin` に返し、`Vary: Origin` を付けます（第2部 第9章 5.3節）
 - 知らないオリジンには `Access-Control-Allow-Origin` を付けません。`Allow-Credentials` は付いたままですが、`Allow-Origin` が無いので、ブラウザはレスポンスを JavaScript に渡しません
-- `origin: '*'` と `credentials: true` を一緒に書くと、`Access-Control-Allow-Origin: *` になり、ブラウザは Cookie つきのリクエストのレスポンスを渡しません（練習問題5）
+- `origin: '*'` と `credentials: true` を一緒に書くと、`Access-Control-Allow-Origin: *` になり、ブラウザは Cookie つきのリクエストのレスポンスを渡しません（練習問題9）
 - `origin: true` は「来たオリジンを何でもそのまま返す」設定です。Cookie つきで使うと、どのサイトからでも、ログインした利用者として API を呼べてしまいます。使わないでください
 - CORS は「ブラウザが、別のオリジンのページにレスポンスを見せてよいか」の決まりです。curl やサーバからのリクエストは止めません。CORS はログインの確かめの代わりにはなりません
 
@@ -280,11 +425,11 @@ GET /api/tasks 200 5.133 ms - 36
 OPTIONS /api/tasks/1 204 0.314 ms - 0
 ```
 
-morgan も、4節と同じように「応答の後」に書いています。自分で形を決めたいとき、URL の秘密の値を隠したいときは、練習問題4のように自分で書くか、morgan の `token` を差し替えます。第26章では、JSON の形でログを書く pino を使います。
+morgan も、4節と同じように「応答の後」に書いています。自分で形を決めたいとき、URL の秘密の値を隠したいときは、練習問題6のように自分で書くか、morgan の `token` を差し替えます。第26章では、JSON の形でログを書く pino を使います。
 
 ### 6.3 express-session
 
-第22章で作った `SessionStore` と `withSession` にあたるのが、`express-session` です（[samples/session-demo.mjs](samples/session-demo.mjs)）。
+第22章で作った `SessionStore` と `withSession` にあたるのが、`express-session` です（[samples/session-demo.mjs](samples/session-demo.mjs)。署名の鍵 `SESSION_SECRET` を渡して動かします。動かし方は [samples/README.md](samples/README.md) にあります。中身は読まなくてよい）。
 
 ```js
 app.use(session({
@@ -307,7 +452,7 @@ app.post('/login', (req, res, next) => {
 
 ```sh
 $ curl -si -c /tmp/ch24.jar http://127.0.0.1:9314/me | grep -i set-cookie       # 何も出ない
-$ curl -si -c /tmp/ch24.jar -b /tmp/ch24.jar -d 'name=ryota' http://127.0.0.1:9314/login | grep -i set-cookie
+$ curl -si -c /tmp/ch24.jar -b /tmp/ch24.jar -d 'name=alice' http://127.0.0.1:9314/login | grep -i set-cookie
 Set-Cookie: sid=s%3AyVSKDeHvtGTNCS0kmPe4kLUIHerAV1JA.invYtImHArErZAGe%2B9AFt5dB9VAY5eca6asI%2BqCzvG4; Path=/; Expires=…; HttpOnly; SameSite=Lax
 ```
 
@@ -324,7 +469,7 @@ Cookie の値 `s:ID.署名`（`%3A` は `:`）は、第22章 5節の `sign` と�
 | `req.destroySession()` | `req.session.destroy(cb)` + `res.clearCookie` | `delete req.session.user` だけでは、セッションが残る |
 | Cookie の名前 | `name` | 既定は `connect.sid`（Express だと知らせる） |
 
-既定の値のままだと、第22章で気をつけたことのいくつかが抜けます。練習問題6で、1つずつ確かめてください。CSRF トークンは express-session には入っていません。第22章 8節のように自分で作るか、第10部 第55章で扱う方法を使います。
+既定の値のままだと、第22章で気をつけたことのいくつかが抜けます。練習問題8で、1つずつ確かめてください。CSRF トークンは express-session には入っていません。第22章 8節のように自分で作るか、第10部 第55章で扱う方法を使います。
 
 ### 6.4 ほかによく見るもの
 
@@ -332,14 +477,14 @@ Cookie の値 `s:ID.署名`（`%3A` は `:`）は、第22章 5節の `sign` と�
 | --- | --- | --- |
 | `helmet` | セキュリティに関わるヘッダ（CSP、`X-Content-Type-Options` など）をまとめて付ける | 第10部 第55章 |
 | `compression` | gzip・br で圧縮する（第19章 7節） | 第12部（リバースプロキシや CDN の仕事にすることも多い） |
-| `express-rate-limit` | 回数の制限（練習問題3） | 第10部 |
+| `express-rate-limit` | 回数の制限（練習問題5） | 第10部 |
 | `multer` | `multipart/form-data`（ファイルのアップロード）を読む | 第12部 第63章 |
 
 パッケージを足すときは、第3部 第14章の確かめ（メンテナンスされているか、依存は多すぎないか、install scripts は無いか）をしてから入れます。
 
 ## 7. `express.Router` でルートを分ける
 
-アプリが大きくなると、すべてのルートを1つのファイルに書くのはつらくなります。Flask では **Blueprint** でルートをまとめ、`app.register_blueprint(bp, url_prefix='/admin')` で付けました。Express では `express.Router()` が同じ役割です（[samples/router-demo.mjs](samples/router-demo.mjs)）。
+アプリが大きくなると、すべてのルートを1つのファイルに書くのはつらくなります。Flask では **Blueprint** でルートをまとめ、`app.register_blueprint(bp, url_prefix='/admin')` で付けました。Express では `express.Router()` が同じ役割です（[samples/router-demo.mjs](samples/router-demo.mjs)。`node samples/router-demo.mjs` で動かします。中身は読まなくてよい）。
 
 ```js
 const tasks = express.Router({ mergeParams: true });
@@ -361,15 +506,62 @@ $ curl -si http://127.0.0.1:9315/admin/stats | head -1
 HTTP/1.1 401 Unauthorized
 ```
 
-- Router は、それ自体が小さなアプリです。ミドルウェアもルートも、登録した順に動きます。`admin.use(requireAdmin)` を `admin.get('/stats')` より**後**に書くと、`/stats` は守られません（練習問題5）
+- Router は、それ自体が小さなアプリです。ミドルウェアもルートも、登録した順に動きます。`admin.use(requireAdmin)` を `admin.get('/stats')` より**後**に書くと、`/stats` は守られません（練習問題9）
 - 親のパスのパラメータ（`:projectId`）を子の Router で読むには、`mergeParams: true` が要ります
 - Router ごとに守り方を付けておくと、「新しく足した管理用のルートに、確かめを付け忘れた」が起きにくくなります。逆に、`app.use(requireLogin)` を全体に付けて、例外を後から足す方法もあります。どちらが安全かは、守るものと守らないもののどちらが多いかで決めます
+
+**手を動かす**: タスクと管理用の2つの Router を付ける `routers.mjs` を作ります（完成形は [samples/routers.mjs](samples/routers.mjs)）。
+
+```js
+import express from 'express';
+
+const PORT = 9317;
+const app = express();
+app.disable('x-powered-by');
+
+// タスクの Router（/api/tasks の下に付ける）
+const tasks = express.Router();
+const list = [{ id: 1, title: '牛乳を買う' }, { id: 2, title: '第24章を読む' }];
+tasks.get('/', (req, res) => res.json(list));
+tasks.get('/:id', (req, res) => {
+  const task = list.find((t) => t.id === Number(req.params.id));
+  if (!task) return res.status(404).json({ error: 'not_found' });
+  res.json(task);
+});
+
+// 管理用の Router（/admin の下に付ける）。最初に守りのミドルウェアを入れる
+const admin = express.Router();
+admin.use((req, res, next) => {
+  if (req.get('x-role') !== 'admin') return res.status(401).json({ error: 'unauthorized' });
+  next();
+});
+admin.get('/stats', (req, res) => res.json({ tasks: list.length }));
+
+app.use('/api/tasks', tasks);
+app.use('/admin', admin);
+
+app.listen(PORT, '127.0.0.1', () => console.log(`http://127.0.0.1:${PORT}/ で待っています（Ctrl+C で止める）`));
+```
+
+```sh
+$ node routers.mjs
+# 別のターミナルで
+$ curl -s http://127.0.0.1:9317/api/tasks/2
+{"id":2,"title":"第24章を読む"}
+$ curl -si http://127.0.0.1:9317/admin/stats | head -1
+HTTP/1.1 401 Unauthorized
+$ curl -s -H 'X-Role: admin' http://127.0.0.1:9317/admin/stats
+{"tasks":2}
+```
+
+- Router の中のパスは、`app.use` で付けた場所から後ろだけです（`tasks.get('/:id')` は `/api/tasks/:id`）。
+- `X-Role` を見るのは、仕組みを見るための練習です。客が自由に付けられるヘッダなので、本物のアプリでは、ログインのセッションで確かめます（第10部）。
 
 第26章では、Router をファイルに分け、レイヤーに分けた構成にします。
 
 ## 8. Express の中身
 
-ここまでの動きは、次の数行の考え方でできています（練習問題2で、自分で作ります）。
+ここまでの動きは、次の数行の考え方でできています（練習問題7で、自分で作ります）。
 
 ```js
 function app(req, res) {
@@ -432,7 +624,7 @@ Flask の既定の `session` は、中身そのものを署名つきの Cookie �
 
 ## 練習問題
 
-[exercises/README.md](exercises/README.md) に6問あります。解答は [solutions/README.md](solutions/README.md) です。
+[exercises/README.md](exercises/README.md) に9問あります（基本4問・応用2問・発展3問）。解答は [solutions/README.md](solutions/README.md) です。
 
 ## 参考資料
 

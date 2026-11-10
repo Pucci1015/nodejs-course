@@ -1,4 +1,4 @@
-// 練習問題6の模範解答: express-session を、第22章の withSession と同じ考え方で使う
+// 練習問題8の模範解答: express-session を、第22章の withSession と同じ考え方で使う
 //   $ bash ../exercises/check-session.sh ../solutions/session-app.mjs
 import express from 'express';
 import session from 'express-session';

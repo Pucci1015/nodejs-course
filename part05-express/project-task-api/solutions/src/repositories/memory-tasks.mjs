@@ -1,4 +1,4 @@
-// 第26章 練習問題3で使った、データの層（ch26-app-structure/solutions/memory-task-repo.mjs）のコピー。version を確かめる所を足した（「追加（成果物）」）
+// 第26章 練習問題6で使った、データの層（ch26-app-structure/solutions/memory-task-repo.mjs）のコピー。version を確かめる所を足した（「追加（成果物）」）
 // 「どう覚えるか」だけを知っている。決まり（題名が重ならない、など）は、サービスの層で書く
 // 第6部で、同じ形（list・get・insert・update・remove）の PostgreSQL 版に取り替える
 export function createMemoryTaskRepo(initial = []) {

@@ -1,4 +1,4 @@
-// 練習問題3 用: stopwatch.mjs（buggy-stopwatch.mjs を直したもの）のテスト
+// 練習問題5 用: stopwatch.mjs（buggy-stopwatch.mjs を直したもの）のテスト
 // 使い方: node --test stopwatch.test.mjs
 //   直す前のものを試す: MODULE=./buggy-stopwatch.mjs node --test stopwatch.test.mjs
 //   模範解答を試す:     MODULE=../solutions/stopwatch.mjs node --test stopwatch.test.mjs

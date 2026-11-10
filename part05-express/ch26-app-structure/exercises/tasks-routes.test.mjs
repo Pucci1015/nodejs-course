@@ -1,4 +1,4 @@
-// 練習問題5のテスト。本物のサービスの代わりに、呼ばれ方を覚える偽物を渡す
+// 練習問題8のテスト。本物のサービスの代わりに、呼ばれ方を覚える偽物を渡す
 // 使い方: node --test tasks-routes.test.mjs
 //         MODULE=../solutions/tasks-routes.mjs node --test tasks-routes.test.mjs   （解答例で確かめる）
 import { test, before, after, beforeEach } from 'node:test';

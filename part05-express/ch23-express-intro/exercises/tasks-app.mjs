@@ -1,6 +1,6 @@
-// 練習問題2: タスクの REST API を Express で書く
+// 練習問題5: タスクの REST API を Express で書く
 // 第2部 第10章・第4部 第18章で、if 文や自作の Router で書いた API と同じものを、Express で書きます。
-// 要件は exercises/README.md の問題2の表です。確かめ方:
+// 要件は exercises/README.md の問題5の表です。確かめ方:
 //   $ node --test tasks-app.test.mjs
 import express from 'express';
 

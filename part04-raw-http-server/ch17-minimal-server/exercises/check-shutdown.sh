@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 練習問題5の確認スクリプト。サーバを 127.0.0.1:9178 で何度か起動し、SIGTERM を送って止まり方を確かめる
+# 練習問題8の確認スクリプト。サーバを 127.0.0.1:9178 で何度か起動し、SIGTERM を送って止まり方を確かめる
 # 使い方: bash check-shutdown.sh [確かめるファイル]   （既定は graceful-server.mjs）
 #         bash check-shutdown.sh ../solutions/graceful-server.mjs
 set -uo pipefail

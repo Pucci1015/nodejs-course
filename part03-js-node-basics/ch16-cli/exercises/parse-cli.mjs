@@ -1,5 +1,5 @@
-// 練習問題2: サブコマンドのある todo CLI の引数を解析する
-// 仕様は README の練習問題2を見てください。
+// 練習問題5: サブコマンドのある todo CLI の引数を解析する
+// 仕様は README の練習問題5を見てください。
 // 確かめる: node --test parse-cli.test.mjs
 import { parseArgs } from 'node:util';
 

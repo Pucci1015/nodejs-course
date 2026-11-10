@@ -31,7 +31,7 @@ export function createTaskService() {
       tasks.set(task.id, task);
       return task;
     },
-    // 練習問題3で使う
+    // 練習問題5で使う
     update(id, body) {
       const task = this.get(id);
       if (body === null || typeof body !== 'object' || Array.isArray(body)) throw new ValidationError('JSON のオブジェクトを送ってください');

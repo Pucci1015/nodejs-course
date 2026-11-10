@@ -1,4 +1,4 @@
-// 練習問題5の模範解答: ミドルウェアの並べ方と書き方を直したもの
+// 練習問題9の模範解答: ミドルウェアの並べ方と書き方を直したもの
 //   $ bash ../exercises/check-api.sh ../solutions/api.mjs
 import fs from 'node:fs';
 import cors from 'cors';

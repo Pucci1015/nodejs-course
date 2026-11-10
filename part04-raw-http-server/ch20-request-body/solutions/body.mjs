@@ -1,4 +1,4 @@
-// 問題2 解答例: リクエストのボディを、大きさの上限付きで読む
+// 問題5 解答例: リクエストのボディを、大きさの上限付きで読む
 import { HttpError } from '../../ch17-minimal-server/solutions/app.mjs';
 
 const tooLarge = (limit) =>

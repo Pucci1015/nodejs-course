@@ -1,17 +1,94 @@
 # 第23章 模範解答
 
-| 問題 | 解答のファイル | 確かめ方（`exercises/` で実行） |
+| 問題 | 解答のファイル | 確かめ方（`~/dev/part05/ch23-express-intro/exercises` で実行） |
 | --- | --- | --- |
-| 1 | このページ | `node predict-express.mjs` |
-| 2 | [tasks-app.mjs](tasks-app.mjs) | `MODULE=../solutions/tasks-app.mjs node --test tasks-app.test.mjs` |
-| 3 | [resource.mjs](resource.mjs) | `MODULE=../solutions/resource.mjs node --test resource.test.mjs` |
-| 4 | [notes.mjs](notes.mjs) | `bash check-notes.sh ../solutions/notes.mjs` |
-| 5 | [engine.mjs](engine.mjs) | `MODULE=../solutions/engine.mjs node --test engine.test.mjs` |
-| 6 | このページ | `node compare-routers.mjs`、`STRICT=1 node compare-routers.mjs` |
+| 1 | [params.mjs](params.mjs) | `MODULE=../solutions/params.mjs node --test params.test.mjs` |
+| 2 | [greet-app.mjs](greet-app.mjs) | `MODULE=../solutions/greet-app.mjs node --test greet-app.test.mjs` |
+| 3 | [error-handlers.mjs](error-handlers.mjs) | `MODULE=../solutions/error-handlers.mjs node --test error-handlers.test.mjs` |
+| 4 | このページ | `node predict-express.mjs` |
+| 5 | [tasks-app.mjs](tasks-app.mjs) | `MODULE=../solutions/tasks-app.mjs node --test tasks-app.test.mjs` |
+| 6 | [resource.mjs](resource.mjs) | `MODULE=../solutions/resource.mjs node --test resource.test.mjs` |
+| 7 | このページ | `node compare-routers.mjs`、`STRICT=1 node compare-routers.mjs` |
+| 8 | [engine.mjs](engine.mjs) | `MODULE=../solutions/engine.mjs node --test engine.test.mjs` |
+| 9 | [notes.mjs](notes.mjs) | `bash check-notes.sh ../solutions/notes.mjs` |
+
+`MODULE=ファイル` を前に付けると、テストが読み込むファイルを、自分のものから模範解答に切り替えられます。
 
 ---
 
-## 問題1 Express が返すものを予想する
+## 問題1 パスパラメータとクエリを使える形にする
+
+```js
+export function parseId(text) {
+  if (typeof text !== 'string' || !/^[1-9][0-9]*$/.test(text)) return null;
+  const id = Number(text);
+  return Number.isSafeInteger(id) ? id : null;
+}
+
+export function toArray(value) {
+  if (value === undefined) return [];
+  return Array.isArray(value) ? value : [value];
+}
+```
+
+- `parseInt('42abc')` は `42` になり、`Number('')` は `0` になります。どちらも「形が正しくないもの」を通してしまうので、正規表現で形を決めてから数にします。
+- 先頭の `0` を断るのは、`/tasks/7` と `/tasks/007` が同じタスクを指して、URL が何通りもできるのを避けるためです。
+- 問題5・9の「`id` が正の整数の形でなければ 400」に、そのまま使えます。
+
+## 問題2 あいさつを返す小さなアプリ
+
+```js
+import express from 'express';
+
+export function createGreetApp() {
+  const app = express();
+  app.disable('x-powered-by');
+
+  app.get('/greet', (req, res) => {
+    const name = req.query.name;
+    if (typeof name !== 'string' || name.trim() === '') {
+      return res.status(400).json({ error: 'name を1つ指定してください' });
+    }
+    res.json({ message: `こんにちは、${name.trim()}さん` });
+  });
+
+  app.post('/echo', express.json(), (req, res) => {
+    if (!req.is('application/json')) {
+      return res.status(415).json({ error: 'JSON で送ってください' });
+    }
+    res.json({ received: req.body });
+  });
+
+  return app;
+}
+```
+
+- `return res.status(400).json(…)` の `return` を忘れると、続けて 200 の `res.json` も呼ばれ、`ERR_HTTP_HEADERS_SENT` になります（本文4.2節）。
+- `app.listen` をアプリの中で呼ばないので、テストは好きなポートで起動でき、終わったら止められます。第26章で、この分け方を詳しく扱います。
+
+## 問題3 404 とエラーを JSON にする
+
+```js
+export function notFound(req, res) {
+  res.status(404).json({ error: 'not_found', message: `${req.method} ${req.path} はありません` });
+}
+
+export function errorHandler(err, req, res, next) {
+  const status = err.status ?? err.statusCode ?? 500;
+  if (status >= 500) console.error(err);
+  if (res.headersSent) return next(err);
+  res.status(status).json({
+    error: status >= 500 ? 'internal' : 'error',
+    message: status >= 500 ? 'サーバのエラーです' : err.message,
+  });
+}
+```
+
+- `req.path` はクエリを除いたパスです。`req.originalUrl` を使うと `?x=1` まで入ります。
+- `errorHandler` を `(err, req, res) => …` と3つの引数で書くと、Express はエラーハンドラだと分からず、呼ばれません。
+- 第25章では、この形を標準の problem+json にそろえます。
+
+## 問題4 Express が返すものを予想する
 
 執筆時点（Express 5.3）での結果です。
 
@@ -34,20 +111,20 @@
 
 - **1番**: 同じ名前が2回あると配列になります（本文 3.2節）。`req.query.a.toLowerCase()` のように「文字列のつもり」で書くと、ここで 500 になります
 - **2番**: Express は、登録した順に試して、最初にあてはまったものを使います。`/items/:id` が先にあるので、`new` は `id` として読まれ、後の `/items/new` には届きません。`/items/new` を先に登録すれば直ります。第18章の Router は「具体的なものを先に」並べ直したので、順番に関係なく `/items/new` を選びました
-- **3番と4番**: Express は、既定では大文字と小文字を区別せず、最後の `/` も無視します。また、パスがあってメソッドが違うときも 404 です。第18章の Router は、`/Items/` を 404、`/items/` を 308、`PUT /items` を 405 にしました。どちらが良いかは目的で決まります（問題6）。API では、間違った URL を「たまたま動く」ようにするより、はっきり断るほうが、使う側が間違いに早く気づけます
+- **3番と4番**: Express は、既定では大文字と小文字を区別せず、最後の `/` も無視します。また、パスがあってメソッドが違うときも 404 です。第18章の Router は、`/Items/` を 404、`/items/` を 308、`PUT /items` を 405 にしました。どちらが良いかは目的で決まります（問題7）。API では、間違った URL を「たまたま動く」ようにするより、はっきり断るほうが、使う側が間違いに早く気づけます
 - **5番・6番**: OPTIONS と HEAD は、Express が自動で答えます。OPTIONS は `200` と本文 `GET, HEAD` です（第18章の Router は 204 でした。どちらも HTTP として間違いではありません）
-- **8番**: `express.json()` は、Content-Type が `application/json` でないボディは**読まずに次へ進みます**。`req.body` は `undefined` のままで、エラーにもなりません。使う側は「送ったのに無視された」と分からないので、API では 415 を自分で返すのが親切です（問題2）
+- **8番**: `express.json()` は、Content-Type が `application/json` でないボディは**読まずに次へ進みます**。`req.body` は `undefined` のままで、エラーにもなりません。使う側は「送ったのに無視された」と分からないので、API では 415 を自分で返すのが親切です（問題5）
 - **9番**: 壊れた JSON は `express.json()` が 400 のエラーにします。エラーハンドラを書いていないので、Express の既定の HTML が返ります
 - **10番**: Express 5 の `res.send(数)` は、数を JSON として返します（ステータスは 200 のまま）。書きたかったのは `res.sendStatus(201)` か `res.status(201).json(…)` です。Express 4 では `res.send(201)` が「ステータス 201」の意味だったので、古い記事のコードを写すとこうなります
 - **11番**: 1つ目のハンドラが `next()` を呼んだので、同じパスの次のハンドラが動きました（第24章で詳しく扱います）
 - **12番**: Express 5 は、ハンドラが返した Promise が reject されると、それを受け止めてエラーハンドラに送ります。`err.status` が 409 なので 409 です。Express 4 は Promise を見なかったので、unhandled rejection になり、応答が返らずに客が待たされ続けるか、Node.js 15 以降の既定ではプロセスが落ちました（第3部 第12章）
 - **14番**: `%2F` は、パラメータの中では `/` に戻されます。ルートを選ぶときは `/` ではなかったので `/items/:id` にあてはまり、その後で `id` が `a/b` になりました。第18章 3.3節と同じで、この値をファイルのパスなどにそのまま使ってはいけません
 
-## 問題2 タスクの REST API を Express で書く
+## 問題5 タスクの REST API を Express で書く
 
 [tasks-app.mjs](tasks-app.mjs) を見てください。考え方の要点です。
 
-- **エラーは throw して、1か所で JSON にする**: `ApiError(status, error, message)` を throw し、最後のエラーハンドラで `{ error, message }` にします。ルートの中で `return res.status(400).json(…)` を何か所にも書くと、`return` の書き忘れ（問題4）や、形のばらつきが起きやすくなります
+- **エラーは throw して、1か所で JSON にする**: `ApiError(status, error, message)` を throw し、最後のエラーハンドラで `{ error, message }` にします。ルートの中で `return res.status(400).json(…)` を何か所にも書くと、`return` の書き忘れ（問題9）や、形のばらつきが起きやすくなります
 - **415 は自分で返す**: `express.json()` は Content-Type が違うと何もしないので、`req.is('application/json')` で確かめるミドルウェア `requireJson` を、POST と PATCH の前にはさみました。`req.is` は `application/json; charset=utf-8` も正しく扱います
 - **`id` の形は正規表現で**: `Number('1e3')` は `1000`、`Number('01')` は `1`、`Number(' 1 ')` も `1` です。`Number.isInteger(Number(x))` だけでは、同じタスクを指す URL が何通りもできてしまいます
 - **`?done` は3通り**: 無い（全部）、`'true'`、`'false'`。それ以外（`''`、配列、`yes`）は 400 にします。`req.query.done === 'true'` だけで判断すると、`?done=yes` が「未完了だけ」として通ってしまいます
@@ -57,10 +134,10 @@
 
 つまずきやすいところ:
 
-- エラーハンドラを `app.use((err, req, res) => …)` と3つの引数で書くと、エラーハンドラになりません（問題4）。使わなくても `next` を書きます
+- エラーハンドラを `app.use((err, req, res) => …)` と3つの引数で書くと、エラーハンドラになりません（問題9）。使わなくても `next` を書きます
 - 404 のミドルウェアをルートより前に置くと、すべてが 404 になります。`app.use` は登録した順に動きます
 
-## 問題3 Express に「405 と Allow」を足す
+## 問題6 Express に「405 と Allow」を足す
 
 [resource.mjs](resource.mjs) を見てください。
 
@@ -71,38 +148,7 @@
 
 別解: すべてのルートを登録した後に、`app.router.stack` をたどって「パスにあてはまるルートのメソッド」を集める方法もあります。ただし `router.stack` の形は Express の内部のもので、版が変わると動かなくなるかもしれません。公開されている `route.all` を使うほうが長持ちします。
 
-## 問題4 メモのアプリのバグを直す
-
-[notes.mjs](notes.mjs) を見てください。直したところには `// 修正:` を付けました。
-
-| バグ | 直し方 | 通る確認 |
-| --- | --- | --- |
-| `express.static(import.meta.dirname)` で、サーバのフォルダを丸ごと公開していた | `public` だけを公開する | 21〜23 |
-| `?tag=a&tag=b` は配列になり、`toLowerCase` で TypeError | 文字列でなければ 400 | 3, 4 |
-| `/notes/:id` が `/notes/search` より先 | `/notes/search` を先に登録する | 5, 6 |
-| 404 を返した後に `return` が無く、`note.views` で TypeError | `return res.status(404)…` | 9 |
-| `Number('abc')` は NaN で、無いメモとして扱っていた | 形を確かめて 400 | 10 |
-| `express.json()` が無く、`req.body` が `undefined` | `express.json()` を付け、Content-Type が違えば 415 | 11〜16, 20 |
-| `res.send(201)` は「201 という JSON」を 200 で返す | `res.status(201).location(…).json(note)` | 11〜13 |
-| フォームの後の `res.redirect('/notes')` は 302 | `res.redirect(303, '/notes')` | 17 |
-| エラーハンドラの引数が3つで、エラーハンドラになっていなかった | `(err, req, res, next)` の4つにする。400 番台はそのステータスで返す | 4, 16, 19 |
-| `X-Powered-By: Express` | `app.disable('x-powered-by')` | 24 |
-
-- 確認 18（Location が `/notes`）は、直す前から通ります。302 でも 303 でも Location は同じだからです。ステータスだけが違うので、確認 17 が必要です
-- 確認 9 は、ログを見る確認です。404 を返した後に TypeError が起きても、客に届くのは正しい 404 です。**客から見て正しくても、ログにエラーが出ているなら、どこかが壊れています**。第26章で、ログを読める形にする方法を学びます
-- `express.static` に渡すフォルダは、「誰に見られてもよいファイルだけを入れたフォルダ」にします。`import.meta.dirname` や `process.cwd()` を渡すと、`.env` やソースコードまで読まれます
-
-## 問題5 第21章のテンプレートエンジンをビューエンジンにする
-
-[engine.mjs](engine.mjs) を見てください。
-
-- **キャッシュは Promise を覚える**: `Map` に「compile の結果」ではなく「compile の結果になる Promise」を入れると、同時に3つ来ても、2つ目と3つ目は1つ目の Promise を待つだけになります（第3部 第12章の `memoize` と同じ考え方）。失敗した Promise は `catch` で消し、直したファイルを次に読めるようにしました
-- **`options.cache`**: Express は `app.set('view cache', …)` の値を `options.cache` として渡します。`NODE_ENV=production` のとき、`view cache` は既定で有効になります
-- **見せない値**: `settings` には `app.set` の値すべてが入っています。`views` のフォルダの絶対パスや、自分で `app.set('db password', …)` のように入れた値があれば、それもです。テンプレートを書く人が `{{ settings.○○ }}` と書けば HTML に出てしまうので、渡す前に取り除きました。同じ理由で、テンプレートに渡す値は「画面に出してよいものだけ」にします
-- **レイアウトの場所の確かめ**: `layout` の値をそのまま `path.resolve` すると、`../` で好きなファイルを読ませられます。第19章 2節の `path.relative` の確かめをそのまま使いました
-- **`{{ body | raw }}`**: ページはもうエスケープ済みの HTML なので、レイアウトでは `raw` で入れます。`raw` を使うのは「自分で作った、エスケープ済みの HTML」だけにします（第21章 4節）
-
-## 問題6 第18章の Router と Express を比べる
+## 問題7 第18章の Router と Express を比べる
 
 ```text
 Express の設定: 既定
@@ -125,7 +171,7 @@ Express の設定: 既定
    - `/tasks/`・`/tasks/7/`: Express は既定で最後の `/` を無視します（`strict routing` が無効）。第18章の Router は、別の URL として扱い、正しい方へ 308 で案内しました（第18章 7節）
    - `/Tasks`: Express は既定で大文字・小文字を区別しません（`case sensitive routing` が無効）。URL のパスは、本来は大文字と小文字を区別するものです（RFC 3986）
    - `/tasks/me`: Express は登録した順、第18章の Router は具体的な順（第18章 6節）
-   - `DELETE /tasks`: Express は 405 を返しません（本文 3.3節、問題3）
+   - `DELETE /tasks`: Express は 405 を返しません（本文 3.3節、問題6）
    - `OPTIONS`: Express は 200 と本文、第18章の Router は 204。Express の `Allow` には `OPTIONS` 自身が入っていません
    - `%zz`: どちらも 400 ですが、Express は既定のエラーハンドラの HTML（開発中はスタックトレース入り）です
 2. `GET /tasks/me` は、「自分のタスク」のつもりで `me` のルートを書いたのなら、`me` が選ばれるのが正しい動きです。Express では、`app.get('/tasks/me', …)` を `app.get('/tasks/:id', …)` より**先に**登録します。第18章の Router は登録の後に並べ直すので、順番を変えても結果は変わりません。Express の「登録した順」は、分かりやすい代わりに、ファイルを分けたとき（第24章の Router、第26章）に順番が見えにくくなります。重なるルートには、両方のテストを書いておきます
@@ -133,4 +179,35 @@ Express の設定: 既定
 4. 既定の HTML の 404・400 で困ること
    - API を使う側（`fetch` で JSON を読むコード）が、`res.json()` で失敗する。エラーの種類を機械的に見分けられない
    - 開発中（`NODE_ENV` が `production` でない）は、スタックトレース（ファイルのパスなど）が外に出る
-   - だから API では、最後に 404 のミドルウェアとエラーハンドラを必ず置きます（問題2）
+   - だから API では、最後に 404 のミドルウェアとエラーハンドラを必ず置きます（問題5）
+
+## 問題8 第21章のテンプレートエンジンをビューエンジンにする
+
+[engine.mjs](engine.mjs) を見てください。
+
+- **キャッシュは Promise を覚える**: `Map` に「compile の結果」ではなく「compile の結果になる Promise」を入れると、同時に3つ来ても、2つ目と3つ目は1つ目の Promise を待つだけになります（第3部 第12章の `memoize` と同じ考え方）。失敗した Promise は `catch` で消し、直したファイルを次に読めるようにしました
+- **`options.cache`**: Express は `app.set('view cache', …)` の値を `options.cache` として渡します。`NODE_ENV=production` のとき、`view cache` は既定で有効になります
+- **見せない値**: `settings` には `app.set` の値すべてが入っています。`views` のフォルダの絶対パスや、自分で `app.set('db password', …)` のように入れた値があれば、それもです。テンプレートを書く人が `{{ settings.○○ }}` と書けば HTML に出てしまうので、渡す前に取り除きました。同じ理由で、テンプレートに渡す値は「画面に出してよいものだけ」にします
+- **レイアウトの場所の確かめ**: `layout` の値をそのまま `path.resolve` すると、`../` で好きなファイルを読ませられます。第19章 2節の `path.relative` の確かめをそのまま使いました
+- **`{{ body | raw }}`**: ページはもうエスケープ済みの HTML なので、レイアウトでは `raw` で入れます。`raw` を使うのは「自分で作った、エスケープ済みの HTML」だけにします（第21章 4節）
+
+## 問題9 メモのアプリのバグを直す
+
+[notes.mjs](notes.mjs) を見てください。直したところには `// 修正:` を付けました。
+
+| バグ | 直し方 | 通る確認 |
+| --- | --- | --- |
+| `express.static(import.meta.dirname)` で、サーバのフォルダを丸ごと公開していた | `public` だけを公開する | 21〜23 |
+| `?tag=a&tag=b` は配列になり、`toLowerCase` で TypeError | 文字列でなければ 400 | 3, 4 |
+| `/notes/:id` が `/notes/search` より先 | `/notes/search` を先に登録する | 5, 6 |
+| 404 を返した後に `return` が無く、`note.views` で TypeError | `return res.status(404)…` | 9 |
+| `Number('abc')` は NaN で、無いメモとして扱っていた | 形を確かめて 400 | 10 |
+| `express.json()` が無く、`req.body` が `undefined` | `express.json()` を付け、Content-Type が違えば 415 | 11〜16, 20 |
+| `res.send(201)` は「201 という JSON」を 200 で返す | `res.status(201).location(…).json(note)` | 11〜13 |
+| フォームの後の `res.redirect('/notes')` は 302 | `res.redirect(303, '/notes')` | 17 |
+| エラーハンドラの引数が3つで、エラーハンドラになっていなかった | `(err, req, res, next)` の4つにする。400 番台はそのステータスで返す | 4, 16, 19 |
+| `X-Powered-By: Express` | `app.disable('x-powered-by')` | 24 |
+
+- 確認 18（Location が `/notes`）は、直す前から通ります。302 でも 303 でも Location は同じだからです。ステータスだけが違うので、確認 17 が必要です
+- 確認 9 は、ログを見る確認です。404 を返した後に TypeError が起きても、客に届くのは正しい 404 です。**客から見て正しくても、ログにエラーが出ているなら、どこかが壊れています**。第26章で、ログを読める形にする方法を学びます
+- `express.static` に渡すフォルダは、「誰に見られてもよいファイルだけを入れたフォルダ」にします。`import.meta.dirname` や `process.cwd()` を渡すと、`.env` やソースコードまで読まれます

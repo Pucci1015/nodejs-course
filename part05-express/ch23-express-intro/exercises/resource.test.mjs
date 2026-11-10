@@ -1,4 +1,4 @@
-// 練習問題3のテスト
+// 練習問題6のテスト
 // 使い方: node --test resource.test.mjs
 //         MODULE=../solutions/resource.mjs node --test resource.test.mjs   （解答例で確かめる）
 import { test, before, after } from 'node:test';

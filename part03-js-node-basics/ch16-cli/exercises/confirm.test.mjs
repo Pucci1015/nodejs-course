@@ -1,4 +1,4 @@
-// 練習問題4のテスト。本物の端末の代わりに PassThrough を使う
+// 練習問題6のテスト。本物の端末の代わりに PassThrough を使う
 // 使い方: node --test confirm.test.mjs
 //         MODULE=../solutions/confirm.mjs node --test confirm.test.mjs   （解答例で確かめる）
 import { test } from 'node:test';

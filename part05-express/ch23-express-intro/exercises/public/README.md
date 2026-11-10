@@ -1,6 +1,6 @@
 # exercises/public
 
-練習問題4（[../buggy-notes.mjs](../buggy-notes.mjs)）のアプリが公開するはずのフォルダです。
+練習問題9（[../buggy-notes.mjs](../buggy-notes.mjs)）のアプリが公開するはずのフォルダです。
 
 | ファイル | 内容 |
 | --- | --- |

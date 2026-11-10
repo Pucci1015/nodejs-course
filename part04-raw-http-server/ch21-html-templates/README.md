@@ -7,16 +7,34 @@
 | 項目 | 内容 |
 | --- | --- |
 | 所要時間の目安 | 5〜6時間 |
-| 前提 | 第17章（`createApp`、`sendHtml`）、第18章（Router、`req.query`）、第2部 第5章（HTML の要素と属性）、第10章2.3節・3.1節（`escapeHtml`、`textContent`）、第3部 第12章（テンプレートリテラル） |
+| 前提 | 第17章（`createApp`、`sendHtml`）、第18章（Router、`req.query`）、第2部 第5章（HTML の要素と属性）、第10章2.3節・3.1節（`escapeHtml`、`textContent`）、第3部 第11章（`...args`） |
 | この章のゴール | エスケープの5文字と、属性の値を引用符で囲む理由を説明できる / 値を自動でエスケープする `html` タグを使い、二重のエスケープを避けられる / レイアウトと部品の関数でページを組み立てられる / テンプレートエンジンが「分ける → 木にする → たどる」で動くことを説明できる / URL・`<script>` の中など、場所によって入れ方が違うことを知る / CSP の役目を説明できる |
 
 | フォルダ | 中身 |
 | --- | --- |
-| [samples/](samples/) | 文字列をつなぐと崩れる例、`html` タグ、レイアウト、`<script>` に JSON を渡す、CSP |
+| [samples/](samples/) | 本文で書くプログラムの完成形（`escape.mjs`・`tag-demo.mjs`・`book-page.mjs`）と、文字列をつなぐと崩れる例、`html` タグ（`mini-html.mjs`）、レイアウト、`<script>` に JSON を渡す、CSP を確かめるプログラム |
 | [exercises/](exercises/) | 練習問題 |
-| [solutions/](solutions/) | 模範解答（`html-helpers.mjs`・`views.mjs` は、成果物の掲示板でも使います） |
+| [solutions/](solutions/) | 模範解答（練習問題5・6の `html-helpers.mjs`・`views.mjs` は、成果物の掲示板でも使います） |
 
-> この章のサンプルと練習問題は、第17・18章の模範解答を `import` して使います。外部のパッケージは使わないので、`npm install` は不要です。
+> **読み方**
+> - この章のコマンドは、`~/dev/part04/ch21-html-templates/` で実行します（第17章で第4部のフォルダを `~/dev/part04` にコピーしてあります）。
+>
+>   ```sh
+>   $ cd ~/dev/part04/ch21-html-templates
+>   ```
+>
+> - 「**手を動かす**」の所は、新しいファイルに書いて動かしてください。ファイルの完成形は `samples/` にあります。「中身は読まなくてよい」と書いたサンプルは、動かして結果を見るだけで十分です。
+> - 「手を動かす」のサーバは 9216 番を使います。止めるときは `Ctrl+C` です。
+> - サンプルと練習問題の一部は、第17・18章の模範解答を `import` して使います。外部のパッケージは使わないので、`npm install` は不要です。
+
+## この章で学ぶことを、後でどこで使うか
+
+| この章で学ぶこと | 後で使う場面 |
+| --- | --- |
+| 5つの文字のエスケープ（3節） | 第4部の成果物（掲示板の投稿を表示する）、第10部 第55章（XSS） |
+| `html` タグと `SafeHtml`、部品の関数（4・5節） | 第4部の成果物。第8部の React の JSX も、値を自動でエスケープする |
+| 場所によって入れ方が違う（3.3節・7節） | 第5部以降で、URL や `<script>` にデータを入れるとき |
+| CSP（8節） | 第10部（安全） |
 
 ---
 
@@ -68,7 +86,7 @@ const books = [
 ```
 
 ```sh
-$ node concat-demo.mjs   # ブラウザで http://127.0.0.1:9210/ と /safe を見比べる
+$ node samples/concat-demo.mjs   # ブラウザで http://127.0.0.1:9210/ と /safe を見比べる（中身は読まなくてよい）
 ```
 
 `/` を開くと、1冊目の題名の `<p>` と `<div>` は、文字としては表示されません。ブラウザは、それを**タグ**として読みます。DevTools の Elements を見ると、`<li>` の中に `<p>` と `<div>` の要素ができていて、題名が分かれてしまっているのが分かります。さらに、マウスを乗せたときに出る `title` 属性の説明は、最初の `"` のところで属性の値が終わってしまうので、説明は空になります（残りの `段落"` などは、別の属性の名前として読まれます）。
@@ -99,14 +117,37 @@ HTML の文字（要素の中身）と、引用符で囲んだ属性の値に入
 | `"` | `&quot;` | `"` で囲んだ属性の終わり |
 | `'` | `&#39;` | `'` で囲んだ属性の終わり |
 
-[samples/mini-html.mjs](samples/mini-html.mjs) の `escapeHtml` は、これを1回の `replace` でしています（1回なので、順番の心配がありません）。
+**手を動かす**: `escape.mjs` を作り、5つの文字を置き換える関数を確かめます。サーバは起動しません（完成形は [samples/escape.mjs](samples/escape.mjs)）。
 
 ```js
 const ESC = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
-export function escapeHtml(value) {
+
+function escapeHtml(value) {
   return String(value).replace(/[&<>"']/g, (c) => ESC[c]);
 }
+
+const titles = ['HTML の <p> と <div> の違い', 'Tom & Jerry の作り方', '"段落" と \'まとまり\''];
+for (const t of titles) {
+  console.log(escapeHtml(t));
+}
+
+console.log('1回 :', escapeHtml('a & b'));
+console.log('2回 :', escapeHtml(escapeHtml('a & b')));
 ```
+
+```sh
+$ node escape.mjs
+HTML の &lt;p&gt; と &lt;div&gt; の違い
+Tom &amp; Jerry の作り方
+&quot;段落&quot; と &#39;まとまり&#39;
+1回 : a &amp; b
+2回 : a &amp;amp; b
+```
+
+- `/[&<>"']/g` は「`&`・`<`・`>`・`"`・`'` のどれか1文字」を、文字列の全部から（`g`）探す正規表現です。`replace` の2つ目に関数を渡すと、見つかった文字 `c` ごとに呼ばれ、返した値で置き換えます。ここでは `ESC[c]` で、表から置き換える文字を引いています。
+- 1回の `replace` で5つを置き換えるので、順番の心配がありません。
+- 2回エスケープすると、`&amp;` の `&` がもう一度置き換えられて `&amp;amp;` になります。画面には `&amp;` と表示されてしまいます（**二重のエスケープ**。4.1節）。
+- [samples/mini-html.mjs](samples/mini-html.mjs) の `escapeHtml` も、同じ書き方です。
 
 ### 3.2 属性の値は、必ず引用符で囲む
 
@@ -119,9 +160,9 @@ export function escapeHtml(value) {
 | 入れる場所 | すること | この章の道具 |
 | --- | --- | --- |
 | 要素の中身 `<p>…</p>`、属性の値 `title="…"` | 5つの文字をエスケープ | `escapeHtml`、`html` タグ |
-| URL のクエリ `href="/s?q=…"` | まず URL 用にエンコード（`URLSearchParams`、`encodeURIComponent`）、その後に HTML のエスケープ | `queryString`（練習問題2） |
-| リンク先そのもの `href="…"` に、他の人が書いた URL | 上に加えて、**scheme**（`https:` などの部分）を確かめる。`http:`・`https:`・`mailto:` と相対 URL だけを通す | `safeUrl`（練習問題2） |
-| `<script>` の中 | HTML のエスケープは**効かない**。JSON にして、`<` などを `<` にする | `jsonForScript`（7節、練習問題2） |
+| URL のクエリ `href="/s?q=…"` | まず URL 用にエンコード（`URLSearchParams`、`encodeURIComponent`）、その後に HTML のエスケープ | `queryString`（練習問題5） |
+| リンク先そのもの `href="…"` に、他の人が書いた URL | 上に加えて、**scheme**（`https:` などの部分）を確かめる。`http:`・`https:`・`mailto:` と相対 URL だけを通す | `safeUrl`（練習問題5） |
+| `<script>` の中 | HTML のエスケープは**効かない**。JSON にして、`<` などを `\u003c` にする | `jsonForScript`（7節、練習問題5） |
 | `<style>` の中、`style="…"`、`on○○="…"` | 他の人が書いた値は**入れない**。決まった値から選ぶ（`class` を切り替えるなど） | — |
 
 `<script>` の中で HTML のエスケープが効かないのは、ブラウザが `<script>` の中身を、HTML として読まないからです。`&lt;` は `&lt;` という4文字のまま JavaScript に渡されます（7節）。
@@ -132,15 +173,47 @@ export function escapeHtml(value) {
 
 JavaScript の**タグ付きテンプレート**を使うと、それができます。テンプレートリテラルの前に関数の名前を書くと、その関数が「書いた文字の部分」と「`${}` の値」を別々に受け取ります。
 
+**手を動かす**: `tag-demo.mjs` を作り、タグ付きテンプレートの関数が何を受け取るかを確かめます。サーバは起動しません（完成形は [samples/tag-demo.mjs](samples/tag-demo.mjs)）。
+
 ```js
+const ESC = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (c) => ESC[c]);
+
+// 1. タグ付きテンプレートの関数は、何を受け取るか
 function show(strings, ...values) {
   console.log(strings, values);
 }
 show`<p>${'Tom & Jerry'}</p><p>${42}</p>`;
-// [ '<p>', '</p><p>', '</p>' ] [ 'Tom & Jerry', 42 ]
+
+// 2. 値だけをエスケープする
+function esc(strings, ...values) {
+  let out = strings[0];
+  for (let i = 0; i < values.length; i++) {
+    out += escapeHtml(values[i]) + strings[i + 1];
+  }
+  return out;
+}
+const title = 'Tom & <Jerry>';
+console.log(esc`<p>${title}</p>`);
+
+// 3. esc の結果を、もう一度 esc の中に入れると
+const items = ['a & b', 'c'].map((t) => esc`<li>${t}</li>`).join('');
+console.log(esc`<ul>${items}</ul>`);
 ```
 
-文字の部分は自分で書いたものなのでそのまま、値だけをエスケープすれば、「書いた HTML はそのまま、入れた値はエスケープ」になります。[samples/mini-html.mjs](samples/mini-html.mjs) の `html` は、これをしています。
+```sh
+$ node tag-demo.mjs
+[ '<p>', '</p><p>', '</p>' ] [ 'Tom & Jerry', 42 ]
+<p>Tom &amp; &lt;Jerry&gt;</p>
+<ul>&lt;li&gt;a &amp;amp; b&lt;/li&gt;&lt;li&gt;c&lt;/li&gt;</ul>
+```
+
+- `` show`…` `` のように、テンプレートリテラルの前に関数の名前を書くと、関数が呼ばれます。`strings` には書いた文字の部分が、`values` には `${}` の値が、配列で入ります。`...values` は「残りの引数を全部、配列で受け取る」書き方です（第3部 第11章の `...args`）。
+- `strings` は、いつも `values` より1つ多くなります。`esc` は「文字、値、文字、値、…、文字」の順につないでいます。
+- 文字の部分は自分で書いたものなのでそのまま、値だけをエスケープすれば、「書いた HTML はそのまま、入れた値はエスケープ」になります。2行目がそれです。
+- 3行目は崩れました。`esc` の結果（`<li>…</li>`）を、外側の `esc` がもう一度エスケープしたからです。これを防ぐのが、4.1節の `SafeHtml` です。
+
+この `esc` に、二重のエスケープを防ぐ仕組みを足したものが、[samples/mini-html.mjs](samples/mini-html.mjs) の `html` です。
 
 ```js
 export function html(strings, ...values) {
@@ -167,7 +240,7 @@ html`<div>${raw(markdownToHtml(text))}</div>`             // 自分で確かめ�
 
 `html` は、結果を `SafeHtml` というクラスに包んで返します。`render` は、`SafeHtml` が来たらエスケープしません。「もうエスケープ済み」という印です。Jinja2 の `Markup`（`| safe` を付けたときの中身）が、同じ役目をしています。
 
-印は、ふつうの文字列にすると消えます。`` html`<li>${t}</li>` `` の代わりに `` `<li>${t}</li>` ``（`html` を付け忘れ）と書くと、ただの文字列なので、外側の `html` が丸ごとエスケープします。`String(html`…`)` で一度文字列にしたものも同じです（練習問題1）。
+印は、ふつうの文字列にすると消えます。`` html`<li>${t}</li>` `` の代わりに `` `<li>${t}</li>` ``（`html` を付け忘れ）と書くと、ただの文字列なので、外側の `html` が丸ごとエスケープします。`String(html`…`)` で一度文字列にしたものも同じです（練習問題4）。
 
 ### 4.2 `raw` は、確かめたものだけ
 
@@ -175,33 +248,79 @@ html`<div>${raw(markdownToHtml(text))}</div>`             // 自分で確かめ�
 
 ## 5. 部品にして、ページを組み立てる
 
-Jinja2 の `{% extends %}`（外側を共有する）や `{% include %}`・マクロ（小さな部品）は、JavaScript ではただの**関数**で書けます。[samples/layout-demo.mjs](samples/layout-demo.mjs) を見てください。
+Jinja2 の `{% extends %}`（外側を共有する）や `{% include %}`・マクロ（小さな部品）は、JavaScript ではただの**関数**で書けます。
+
+**手を動かす**: 本の一覧のページを返すサーバ `book-page.mjs` を作ります。`html` は `samples/mini-html.mjs` から読み込みます（完成形は [samples/book-page.mjs](samples/book-page.mjs)）。
 
 ```js
+import http from 'node:http';
+import { html } from './samples/mini-html.mjs';
+
+const PORT = 9216;
+
+const books = [
+  { title: 'HTML の <p> と <div> の違い', note: '"段落" と "まとまり"', done: true },
+  { title: 'Tom & Jerry の作り方', note: 'R&D の話', done: false },
+  { title: '1 < 2 は正しい', note: 'a > b のとき', done: false },
+];
+
+// 全部のページで共通の外側
 function layout({ title, body }) {
   return html`<!doctype html>
 <html lang="ja">
 <head>
   <meta charset="utf-8">
-  <title>${title} | タスク</title>
+  <title>${title} | 本棚</title>
 </head>
 <body>
-  <header><a href="/">タスク</a></header>
-  <main>${body}</main>
+  <h1>${title}</h1>
+  ${body}
 </body>
 </html>`;
 }
 
-const tagList = (tags) => (tags.length === 0
-  ? html`<small>タグなし</small>`
-  : html`<ul class="tags">${tags.map((t) => html`<li>${t}</li>`)}</ul>`);
+// 1冊分の部品
+function bookItem(book) {
+  return html`<li title="${book.note}">${book.title}${book.done ? html` <strong>読了</strong>` : null}</li>`;
+}
+
+const server = http.createServer((req, res) => {
+  if (req.url !== '/') {
+    res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+    return res.end('見つかりません\n');
+  }
+  const page = layout({ title: '本棚', body: html`<ul>${books.map(bookItem)}</ul>` });
+  const text = String(page);
+  res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Content-Length': Buffer.byteLength(text) });
+  res.end(text);
+});
+
+server.listen(PORT, '127.0.0.1', () => console.log(`http://127.0.0.1:${PORT}/ で待っています（Ctrl+C で止める）`));
 ```
 
 ```sh
-$ node layout-demo.mjs   # ブラウザで http://127.0.0.1:9211/ と /tasks/3
+$ node book-page.mjs
+# 別のターミナルで
+$ curl http://127.0.0.1:9216/
+<!doctype html>
+...
+  <ul><li title="&quot;段落&quot; と &quot;まとまり&quot;">HTML の &lt;p&gt; と &lt;div&gt; の違い <strong>読了</strong></li><li title="R&amp;D の話">Tom &amp; Jerry の作り方</li><li title="a &gt; b のとき">1 &lt; 2 は正しい</li></ul>
+...
 ```
 
-関数なので、引数で受け取るものがはっきりし、テストも書けます（練習問題3）。`<meta charset="utf-8">` と `Content-Type: text/html; charset=utf-8` の両方を付けるのは、どちらか片方しか見ない場面（ファイルに保存して開いたときなど）があるからです。
+- ブラウザで http://127.0.0.1:9216/ を開くと、2節で崩れた題名と説明が、正しく表示されます。
+- `import` のパスは、そのファイルから見た場所です。自分の `book-page.mjs` は `~/dev/part04/ch21-html-templates` にあるので `./samples/mini-html.mjs`、完成形の `samples/book-page.mjs` は `mini-html.mjs` と同じフォルダにあるので `./mini-html.mjs` と書いています。
+- `layout` と `bookItem` が部品の関数です。`books.map(bookItem)` は `SafeHtml` の配列で、`html` がつないでくれます。
+- `book.done ? … : null` で、読了のときだけ `<strong>` を出しています。`null` は何も出しません。
+- `html` の結果は `SafeHtml` なので、返す前に `String(page)` で文字列にします。
+
+同じ形で、タスクの一覧と1件のページを作ったのが [samples/layout-demo.mjs](samples/layout-demo.mjs) です（中身は読まなくてよい。第17・18章の `createApp`・`Router` を使っています）。
+
+```sh
+$ node samples/layout-demo.mjs   # ブラウザで http://127.0.0.1:9211/ と /tasks/3
+```
+
+関数なので、引数で受け取るものがはっきりし、テストも書けます（練習問題6）。`<meta charset="utf-8">` と `Content-Type: text/html; charset=utf-8` の両方を付けるのは、どちらか片方しか見ない場面（ファイルに保存して開いたときなど）があるからです。
 
 | Jinja2 | この章 |
 | --- | --- |
@@ -216,7 +335,7 @@ $ node layout-demo.mjs   # ブラウザで http://127.0.0.1:9211/ と /tasks/3
 
 `html` タグは、HTML を JavaScript のファイルの中に書きます。テンプレートエンジンは、HTML を**別のファイル**に書き、そこに `{{ }}` や `{% %}` の命令を混ぜます。デザインを担当する人が JavaScript を読まずに HTML を直せる、という良さがあります。
 
-テンプレートエンジンの多くは、次の3段で動きます（練習問題4で作ります）。
+テンプレートエンジンの多くは、次の3段で動きます（練習問題7で作ります）。
 
 1. **分ける**（tokenize）: テンプレートの文字を、「ふつうの文字」「`{{ … }}`」「`{% … %}`」のかたまり（トークン）に分ける
 2. **木にする**（parse）: `{% for %}` から `{% endfor %}` までを1つの枝にまとめるように、入れ子の構造（木）にする。`endfor` が足りない、のような書き方の誤りは、ここで見つかる
@@ -234,7 +353,7 @@ root ─ text '<ul>'
      └ text '</ul>'
 ```
 
-Jinja2 は、2 の木を、さらに Python のコードに直して（コンパイルして）から動かします。そのほうが速いからです。ただし、自分で作るときに、テンプレートの文字を `eval` や `new Function` で JavaScript として動かすのは、間違いのもとです。テンプレートの中の名前（`t.title`）は、決まった形（英字と `.`）だけを受け付け、データの中を自分でたどります。練習問題4の模範解答は、そうしています。たどるときは、`Object.hasOwn` で「そのオブジェクト自身のキー」だけを見ます。第20章7.2節で見たように、`constructor` や `__proto__` のような名前で、プロトタイプの先にあるものまで見えてしまわないようにするためです。
+Jinja2 は、2 の木を、さらに Python のコードに直して（コンパイルして）から動かします。そのほうが速いからです。ただし、自分で作るときに、テンプレートの文字を `eval` や `new Function` で JavaScript として動かすのは、間違いのもとです。テンプレートの中の名前（`t.title`）は、決まった形（英字と `.`）だけを受け付け、データの中を自分でたどります。練習問題7の模範解答は、そうしています。たどるときは、`Object.hasOwn` で「そのオブジェクト自身のキー」だけを見ます。第20章7.2節で見たように、`constructor` や `__proto__` のような名前で、プロトタイプの先にあるものまで見えてしまわないようにするためです。
 
 ## 7. サーバのデータを `<script>` に渡す
 
@@ -244,21 +363,21 @@ Jinja2 は、2 の木を、さらに Python のコードに直して（コンパ
 html`<script>const data = ${raw(JSON.stringify(data))};</script>`   // これでは足りない
 ```
 
-[samples/json-script-demo.mjs](samples/json-script-demo.mjs) を動かしてください。
+[samples/json-script-demo.mjs](samples/json-script-demo.mjs) を動かしてください（中身は読まなくてよい。サーバは使わず、結果を表示するだけです）。
 
 ```sh
-$ node json-script-demo.mjs
+$ node samples/json-script-demo.mjs
 ```
 
 題名が `</script> というタグの説明` だと、ブラウザは `<script>` の中身を、JavaScript として読む**前に**「`</script>` が来たら終わり」として切ってしまいます。JavaScript の文字列の途中でも関係ありません。残りの部分は、ふつうの HTML として読まれます。
 
-`<script>` の中では、3.3節のとおり HTML のエスケープは効きません（`&lt;` は4文字のまま）。代わりに、JSON の中の `<` を `<` と書きます。JavaScript の文字列の中の `<` は `<` と同じ意味なので、値は変わりません。でも、ブラウザが探す `</script>` という並びは、もう出てきません。
+`<script>` の中では、3.3節のとおり HTML のエスケープは効きません（`&lt;` は4文字のまま）。代わりに、JSON の中の `<` を `\u003c` と書きます。JavaScript の文字列の中の `\u003c` は `<` と同じ意味なので、値は変わりません。でも、ブラウザが探す `</script>` という並びは、もう出てきません。
 
 | 置き換える文字 | 理由 |
 | --- | --- |
-| `<` → `<` | `</script>` と `<!--` で、`<script>` の読み方が変わらないように |
-| `>` → `>`、`&` → `&` | 念のため（XHTML として読まれたときなど） |
-| U+2028・U+2029 → ` `・` ` | 「行の区切り」の文字。2019年より前の JavaScript では、文字列の中にそのまま書けなかった |
+| `<` → `\u003c` | `</script>` と `<!--` で、`<script>` の読み方が変わらないように |
+| `>` → `\u003e`、`&` → `\u0026` | 念のため（XHTML として読まれたときなど） |
+| U+2028・U+2029 → `\u2028`・`\u2029` | 「行の区切り」の文字。2019年より前の JavaScript では、文字列の中にそのまま書けなかった |
 
 もう1つの方法は、JSON を **`data-` 属性**に入れて、ページの JavaScript で読むことです。属性の値なので、ふつうの HTML のエスケープで済みます。
 
@@ -282,7 +401,7 @@ res.setHeader('Content-Security-Policy',
 ```
 
 ```sh
-$ node csp-demo.mjs   # ブラウザで http://127.0.0.1:9212/ を開き、DevTools の Console も見る
+$ node samples/csp-demo.mjs   # ブラウザで http://127.0.0.1:9212/ を開き、DevTools の Console も見る（全体は読まなくてよい）
 ```
 
 nonce の付いた `<script>` だけが動き、nonce の無い `<script>` は止められて、Console にそのことが表示されます（Chromium で確かめた）。
@@ -306,10 +425,10 @@ CSP は**二枚目**の守りです。エスケープの代わりにはなりま
 | 外側を共有する | `{% extends %}`、`{% block %}` | `layout({ title, body })` |
 | 部品 | `{% include %}`、マクロ | 関数 |
 | 繰り返し・条件 | `{% for %}`、`{% if %}` | `map`、`? :` |
-| `<script>` に JSON を渡す | `{{ data \| tojson }}` | `jsonForScript(data)`（練習問題2） |
-| URL を作る | `url_for('tasks', page=2)` | `` `/tasks${queryString({ page: 2 })}` ``（練習問題2） |
+| `<script>` に JSON を渡す | `{{ data \| tojson }}` | `jsonForScript(data)`（練習問題5） |
+| URL を作る | `url_for('tasks', page=2)` | `` `/tasks${queryString({ page: 2 })}` ``（練習問題5） |
 
-Jinja2 の `tojson` フィルタも、`<` などを `<` にしています。7節と同じことを、Flask はしてくれていたわけです。
+Jinja2 の `tojson` フィルタも、`<` などを `\u003c` にしています。7節と同じことを、Flask はしてくれていたわけです。
 
 ## まとめ
 
@@ -323,7 +442,7 @@ Jinja2 の `tojson` フィルタも、`<` などを `<` にしています。7�
 
 ## 練習問題
 
-[exercises/README.md](exercises/README.md) に5問あります。解答は [solutions/README.md](solutions/README.md) です。
+[exercises/README.md](exercises/README.md) に8問あります（基本4問・応用2問・発展2問）。解答は [solutions/README.md](solutions/README.md) です。
 
 ## 参考資料
 

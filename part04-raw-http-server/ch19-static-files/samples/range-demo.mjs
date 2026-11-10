@@ -2,7 +2,7 @@
 // 使い方: node range-demo.mjs
 //   curl -i -r 0-8 http://127.0.0.1:9193/hello.txt       → 206 と最初の 9 バイト
 //   curl -i -r 1000-2000 http://127.0.0.1:9193/hello.txt → 416
-// 形の確かめ方は簡単にしてある（bytes=始め-終わり の1つだけ）。きちんとした読み方は練習問題4
+// 形の確かめ方は簡単にしてある（bytes=始め-終わり の1つだけ）。きちんとした読み方は練習問題7
 import fs from 'node:fs/promises';
 import http from 'node:http';
 import path from 'node:path';

@@ -1,23 +1,104 @@
 # 第19章 練習問題
 
-本文（[../README.md](../README.md)）を読んでから取り組んでください。模範解答は [../solutions/README.md](../solutions/README.md) にあります。
+本文（[../README.md](../README.md)）の「手を動かす」を終えてから取り組んでください。模範解答は [../solutions/README.md](../solutions/README.md) にあります。
+この練習問題は `~/dev/part04/ch19-static-files/exercises/` で行います。最初に `cd exercises` で移動してください（`cd ~/dev/part04/ch19-static-files/exercises` と打っても構いません）。
 
-| 問題 | テーマ | 使うファイル | 本文の節 | ポート |
-| --- | --- | --- | --- | --- |
-| 1 | パスの組み立ての結果を予想する | [predict-paths.mjs](predict-paths.mjs) | 4 | — |
-| 2 | 外に出ないパスを作る `safePath`・`resolveFile` | [safe-path.mjs](safe-path.mjs)、[safe-path.test.mjs](safe-path.test.mjs) | 4 | — |
-| 3 | 静的ファイルのハンドラ `serveStatic`（304・キャッシュ・HEAD・mount） | [static.mjs](static.mjs)、[static.test.mjs](static.test.mjs) | 3〜6 | 空いている番号 |
-| 4 | Range ヘッダを読む `parseRange` | [range.mjs](range.mjs)、[range.test.mjs](range.test.mjs) | 7 | — |
-| 5 | それらしく見える静的ファイルのサーバのバグを直す | [buggy-static.mjs](buggy-static.mjs)、[check-static.sh](check-static.sh) | 2〜6 | 9195 |
-| 6 | Accept-Encoding を読む `negotiateEncoding` | [encoding.mjs](encoding.mjs)、[encoding.test.mjs](encoding.test.mjs) | 8 | — |
+| 問題 | 種類 | テーマ | 使うファイル | 本文の節 | ポート |
+| --- | --- | --- | --- | --- | --- |
+| 1 | 基本 | ファイルの名前から Content-Type を決める | [content-type.mjs](content-type.mjs)、[content-type.test.mjs](content-type.test.mjs) | 3 | — |
+| 2 | 基本 | フォルダの中を指すか、`.` で始まる名前か | [inside-check.mjs](inside-check.mjs)、[inside-check.test.mjs](inside-check.test.mjs) | 4 | — |
+| 3 | 基本 | 弱い ETag を作り、304 を返してよいか決める | [etag.mjs](etag.mjs)、[etag.test.mjs](etag.test.mjs) | 6 | — |
+| 4 | 基本 | パスの組み立ての結果を予想する（調べる問題） | [predict-paths.mjs](predict-paths.mjs) | 4 | — |
+| 5 | 応用 | 外に出ないパスを作る `safePath`・`resolveFile` | [safe-path.mjs](safe-path.mjs)、[safe-path.test.mjs](safe-path.test.mjs) | 4 | — |
+| 6 | 応用 | 静的ファイルのハンドラ `serveStatic`（304・キャッシュ・HEAD・mount） | [static.mjs](static.mjs)、[static.test.mjs](static.test.mjs) | 3〜6 | 空いている番号 |
+| 7 | 応用 | Range ヘッダを読む `parseRange` | [range.mjs](range.mjs)、[range.test.mjs](range.test.mjs) | 7 | — |
+| 8 | 発展 | Accept-Encoding を読む `negotiateEncoding` | [encoding.mjs](encoding.mjs)、[encoding.test.mjs](encoding.test.mjs) | 8 | — |
+| 9 | 発展 | それらしく見える静的ファイルのサーバのバグを直す | [buggy-static.mjs](buggy-static.mjs)、[check-static.sh](check-static.sh) | 2〜6 | 9195 |
 
-- 問題2・3・4・6は `node --test ○○.test.mjs` ですべてのテストが通れば完成です。テスト用のファイルは OS の一時フォルダに作り、最後に消します
-- 問題3は、問題2の `safe-path.mjs` を使います。問題2を先に解いてください
-- 問題5は `bash check-static.sh` で確かめます
+**発展**（8・9）は、少し長めの問題です。できなくても次の章に進んでかまいません。
+
+## テストの使い方
+
+- 問題1〜3・5〜8: `○○.mjs` の「ここを書く」を埋め、`node --test ○○.test.mjs` ですべてのテストが通れば完成です。テスト用のファイルは OS の一時フォルダに作り、最後に消します。
+- 問題6は、問題5の `safe-path.mjs` を使います。問題5を先に解いてください。
+- 問題9は `bash check-static.sh` で確かめます。
 
 ---
 
-## 問題1 パスの組み立ての結果を予想する
+## 基本
+
+### 問題1 ファイルの名前から Content-Type を決める
+
+[content-type.mjs](content-type.mjs) に、ファイルの名前（パスでもよい）から Content-Type を返す関数 `contentTypeOf(file)` を作ってください。
+
+| 拡張子 | Content-Type |
+| --- | --- |
+| `.html` | `text/html; charset=utf-8` |
+| `.css` | `text/css; charset=utf-8` |
+| `.js` | `text/javascript; charset=utf-8` |
+| `.json` | `application/json; charset=utf-8` |
+| `.txt` | `text/plain; charset=utf-8` |
+| `.svg` | `image/svg+xml` |
+| `.png` | `image/png` |
+| `.jpg`・`.jpeg` | `image/jpeg` |
+| それ以外・拡張子が無い | `application/octet-stream` |
+
+- 拡張子の大文字・小文字は区別しない（`LOGO.PNG` は `image/png`）
+- `x.constructor` や `x.toString` のような名前でも、`application/octet-stream` を返す
+
+```sh
+$ node --test content-type.test.mjs
+ℹ pass 6
+ℹ fail 0
+```
+
+ヒント:
+
+- 本文3.1節の `my-mime.mjs` を広げたものです。`path.extname(file)` は最後の `.` から後ろ（`'.PNG'`）を、`.toLowerCase()` は小文字にした文字列を返します。
+- `TYPES['.constructor']` は、何も書いていなくても `Object` の関数を返してしまいます（第18章3.3節）。表にあるかは `Object.hasOwn(TYPES, ext)` で確かめます。
+
+### 問題2 フォルダの中を指すか、`.` で始まる名前か
+
+[inside-check.mjs](inside-check.mjs) に、2つの関数を作ってください。
+
+- **`isInside(root, target)`**: `target`（ファイルのパス）が、`root`（公開するフォルダ）の中か、`root` そのものなら `true`、外なら `false`。`..` を含むパスは、計算した後の場所で決める。`/srv/site/public-backup/a` は `/srv/site/public` の中ではない
+- **`isHidden(pathname)`**: URL のパスを `/` で分けたとき、`.` で始まる部分（`/.env`、`/.git/config`、`/img/.DS_Store`）があれば `true`
+
+```sh
+$ node --test inside-check.test.mjs
+ℹ pass 8
+ℹ fail 0
+```
+
+ヒント:
+
+- 本文4.2節の `inside.mjs` の `path.relative` の判定と同じです。`path.resolve(パス)` で、`..` を計算した、`/` から始まるパスにしてから比べます。
+- `rel.startsWith('..')` だけで判定すると、`..memo.txt` のような名前のファイルまで外と見なしてしまいます。`rel === '..' || rel.startsWith('..' + path.sep)` と書きます（`path.sep` は区切りの文字。Mac では `/`）。
+- `isHidden` は `pathname.split('/').some((seg) => ...)` で書けます。`some` は、1つでも条件にあえば `true` を返す配列のメソッドです。
+
+### 問題3 弱い ETag を作り、304 を返してよいか決める
+
+[etag.mjs](etag.mjs) に、2つの関数を作ってください（本文6.2節）。
+
+- **`weakEtag(stat)`**: `stat` は `fs.stat` の結果（`size` と `mtimeMs` を持つ）。`W/"大きさ-時刻"` の形の文字列を返す。大きさと時刻（ミリ秒。小数点より下は切り捨て）は、どちらも **16 進数**で書く。例: `{ size: 255, mtimeMs: 4096 }` → `W/"ff-1000"`
+- **`isNotModified(ifNoneMatch, etag)`**: `ifNoneMatch` はリクエストの `If-None-Match` ヘッダの値（無ければ `undefined` か `null`）。304 を返してよければ `true`
+  - ヘッダが無ければ `false`
+  - `*` なら `true`
+  - `,` で区切られた ETag のどれかが `etag` と同じなら `true`。比べるときは、どちらも前の `W/` を取ってから比べる（弱い比較）。前後の空白は無視する
+
+```sh
+$ node --test etag.test.mjs
+ℹ pass 8
+ℹ fail 0
+```
+
+ヒント:
+
+- `(255).toString(16)` は `'ff'` です。数を何進数の文字列にするかを、`toString` の引数で決められます。小数点より下を切り捨てるのは `Math.floor` です。
+- `'"x", W/"abc"'.split(',')` で分け、`.map((t) => t.trim())` で前後の空白を取ります。
+- `W/` を取る小さな関数 `const strip = (tag) => (tag.startsWith('W/') ? tag.slice(2) : tag);` を作っておくと楽です。
+
+### 問題4 パスの組み立ての結果を予想する（調べる問題）
 
 [predict-paths.mjs](predict-paths.mjs) に 12 個の式があります。公開するフォルダを `/srv/site/public` として、**実行する前に**結果を予想して書き出してから、`node predict-paths.mjs` で確かめてください。
 
@@ -27,7 +108,11 @@
 - 7番と8番: `startsWith` で「中にあるか」を確かめると、どんな名前のフォルダで間違えるか
 - 11番と12番: `%252e%252e%252f` を1回戻したもの、2回戻したものは何か。2回戻すと、なぜ危ないのか
 
-## 問題2 外に出ないパスを作る
+---
+
+## 応用
+
+### 問題5 外に出ないパスを作る
 
 [safe-path.mjs](safe-path.mjs) に、2つの関数を作ってください。
 
@@ -57,7 +142,7 @@ $ node --test safe-path.test.mjs
 
 ヒント: Mac の一時フォルダ（`/var/folders/...`）は、それ自体が `/private/var/folders/...` へのシンボリックリンクです。`root` も `realpath` してから比べないと、中のファイルまで「外」に見えます。
 
-## 問題3 静的ファイルのハンドラ
+### 問題6 静的ファイルのハンドラ
 
 [static.mjs](static.mjs) の `serveStatic(root, options)` を完成させてください。返り値は `(req, res) => Promise` のハンドラで、`createApp(serveStatic(root))` のように使います。
 
@@ -81,9 +166,9 @@ $ node --test safe-path.test.mjs
 $ node --test static.test.mjs
 ```
 
-最初は 13 個のうち 8 個が失敗します（問題2が解けている場合）。すべて通れば完成です。
+最初は 13 個のうち 8 個が失敗します（問題5が解けている場合）。すべて通れば完成です。
 
-## 問題4 Range ヘッダを読む
+### 問題7 Range ヘッダを読む
 
 [range.mjs](range.mjs) の `parseRange(header, size)` を作ってください。`size` はファイルのバイト数です。
 
@@ -105,21 +190,11 @@ $ node --test range.test.mjs
 
 [range.mjs](range.mjs) には `range-demo.mjs` と同じ簡単な読み方が入っています。最初は 8 個のうち 6 個が失敗します。すべて通れば完成です。模範解答の `serveStatic` は、この `parseRange` を使って 206 と 416 を返します。
 
-## 問題5 それらしく見える静的ファイルのサーバのバグを直す
+---
 
-[buggy-static.mjs](buggy-static.mjs) は `../samples/public` を公開するサーバです。ブラウザで http://127.0.0.1:9195/ を開くと、ページも CSS も表示されます。でも、確認スクリプトを動かすと、21 個のうち 16 個が失敗します。
+## 発展
 
-```sh
-$ bash check-static.sh
-```
-
-すべて通るように直してください。直し方は自由です。問題3の `serveStatic` を使って書き直してもかまいません（模範解答はそうしています）。
-
-ブラウザでも確かめてください。直す前は、ページの「JavaScript がまだ動いていません」が変わらず、ロゴの画像も表示されません。DevTools の Console に、理由が出ています（本文3.2節）。
-
-**外のファイルの確かめ方について**: 確認スクリプトの 9 は、`curl --path-as-is` で `/..%2Foutside.txt` を送ります。このような確かめ方は、自分の Mac の中で動かしている、自分のサーバだけに使ってください。
-
-## 問題6 Accept-Encoding を読む
+### 問題8 Accept-Encoding を読む
 
 [encoding.mjs](encoding.mjs) の `negotiateEncoding(header, available = ['br', 'gzip'])` を作ってください。`available` は、サーバが使える圧縮を、好きな順に並べたものです。
 
@@ -138,3 +213,17 @@ $ node --test encoding.test.mjs
 最初は 9 個のうち 6 個が失敗します。すべて通れば完成です。
 
 考えてみてください: `gzip-demo.mjs` のように `/\bgzip\b/.test(accept)` で調べると、`gzip;q=0` のときに何が起きるでしょう。
+
+### 問題9 それらしく見える静的ファイルのサーバのバグを直す
+
+[buggy-static.mjs](buggy-static.mjs) は `../samples/public` を公開するサーバです。ブラウザで http://127.0.0.1:9195/ を開くと、ページも CSS も表示されます。でも、確認スクリプトを動かすと、21 個のうち 16 個が失敗します。
+
+```sh
+$ bash check-static.sh
+```
+
+すべて通るように直してください。直し方は自由です。問題6の `serveStatic` を使って書き直してもかまいません（模範解答はそうしています）。
+
+ブラウザでも確かめてください。直す前は、ページの「JavaScript がまだ動いていません」が変わらず、ロゴの画像も表示されません。DevTools の Console に、理由が出ています（本文3.2節）。
+
+**外のファイルの確かめ方について**: 確認スクリプトの 9 は、`curl --path-as-is` で `/..%2Foutside.txt` を送ります。このような確かめ方は、自分の Mac の中で動かしている、自分のサーバだけに使ってください。

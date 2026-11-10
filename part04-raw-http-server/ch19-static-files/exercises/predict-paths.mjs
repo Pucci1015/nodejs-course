@@ -1,4 +1,4 @@
-// 練習問題1: パスの組み立ての結果を予想する
+// 練習問題4: パスの組み立ての結果を予想する
 // 公開するフォルダを /srv/site/public として、実行する前に 12 個の結果を予想して書き出してから: node predict-paths.mjs
 import path from 'node:path';
 

@@ -1,5 +1,5 @@
-// 練習問題6: If-Match・If-None-Match を、RFC 9110 13.2.2 の順番どおりに確かめる
-// 要件は exercises/README.md の問題6です。確かめ方:
+// 練習問題8: If-Match・If-None-Match を、RFC 9110 13.2.2 の順番どおりに確かめる
+// 要件は exercises/README.md の問題8です。確かめ方:
 //   $ node --test preconditions.test.mjs
 // 今のひな形は、サンプルの etag-demo.mjs と同じ「文字列が同じか」だけで比べています。
 

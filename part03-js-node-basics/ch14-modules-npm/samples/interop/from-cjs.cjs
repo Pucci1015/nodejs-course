@@ -4,7 +4,7 @@
 // Node.js 22.12 以降・20.19 以降では、トップレベル await を使っていない ES Modules を require できる
 const modern = require('./modern.mjs');
 console.log('1. require した ES Modules:', modern);
-console.log('   名前付きの export:', modern.greet('山田'));
+console.log('   名前付きの export:', modern.greet('alice'));
 console.log('   default export   :', modern.default);
 
 // トップレベル await を使っているものは require できない

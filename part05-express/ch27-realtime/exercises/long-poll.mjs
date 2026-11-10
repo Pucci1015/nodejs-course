@@ -1,5 +1,5 @@
-// 練習問題6: ロングポーリングの「待つ」部分と、そのルート
-// 要件は exercises/README.md の問題6です。確かめ方:
+// 練習問題9: ロングポーリングの「待つ」部分と、そのルート
+// 要件は exercises/README.md の問題9です。確かめ方:
 //   $ node --test long-poll.test.mjs
 // サンプルの polling-demo.mjs と同じように動きますが、片付けを忘れています。
 import { EventEmitter } from 'node:events';

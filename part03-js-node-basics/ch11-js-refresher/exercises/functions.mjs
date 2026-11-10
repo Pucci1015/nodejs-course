@@ -1,4 +1,4 @@
-// 練習問題2: このファイルの関数を完成させてください。要件は README と functions.test.mjs にあります。
+// 練習問題8: このファイルの関数を完成させてください。要件は README と functions.test.mjs にあります。
 // 確かめ方: node --test functions.test.mjs
 
 export function once(fn) {

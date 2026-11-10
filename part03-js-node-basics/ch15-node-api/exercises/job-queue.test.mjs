@@ -1,4 +1,4 @@
-// 練習問題5 用: job-queue.mjs の JobQueue のテスト
+// 練習問題7 用: job-queue.mjs の JobQueue のテスト
 // 使い方: node --test job-queue.test.mjs
 //   模範解答を試す: MODULE=../solutions/job-queue.mjs node --test job-queue.test.mjs
 import { test } from 'node:test';

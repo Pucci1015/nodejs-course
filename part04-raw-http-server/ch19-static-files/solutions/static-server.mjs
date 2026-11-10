@@ -1,4 +1,4 @@
-// 問題5 解答例: 静的ファイルのサーバを、serveStatic（問題3）で書き直したもの
+// 問題9 解答例: 静的ファイルのサーバを、serveStatic（問題6）で書き直したもの
 // 使い方: node static-server.mjs   → http://127.0.0.1:9195/   （公開するフォルダは ../samples/public）
 //         node static-server.mjs フォルダ   → そのフォルダを公開する（自分の Mac の中だけで使う道具として）
 import http from 'node:http';

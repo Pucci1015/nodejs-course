@@ -1,4 +1,4 @@
-// 練習問題4の模範解答: アクセスログのミドルウェア
+// 練習問題6の模範解答: アクセスログのミドルウェア
 const SECRET_NAMES = new Set(['token', 'password', 'secret', 'code', 'key']); // 追加: ログに残さないクエリの名前
 const MAX_PATH = 200;
 

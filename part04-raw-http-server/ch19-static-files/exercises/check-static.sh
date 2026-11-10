@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 練習問題5の確認スクリプト。サーバを 127.0.0.1:9195 で起動して確かめ、最後に止める
+# 練習問題9の確認スクリプト。サーバを 127.0.0.1:9195 で起動して確かめ、最後に止める
 # 使い方: bash check-static.sh [確かめるファイル]   （既定は buggy-static.mjs）
 #         bash check-static.sh ../solutions/static-server.mjs
 set -uo pipefail

@@ -1,4 +1,4 @@
-// 練習問題3・5の模範解答で使う、サービスの層のエラー（exercises/errors.mjs と同じもの）
+// 練習問題6・8の模範解答で使う、サービスの層のエラー（exercises/errors.mjs と同じもの）
 // HTTP のステータスは知らない。「無い」「今の状態ではできない」「決まりに合わない」を表す
 export class NotFoundError extends Error {
   name = 'NotFoundError';

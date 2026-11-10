@@ -1,4 +1,4 @@
-// 第26章 練習問題4の模範解答（ch26-app-structure/solutions/request-logger.mjs）のコピー。そのまま使う
+// 第26章 練習問題7の模範解答（ch26-app-structure/solutions/request-logger.mjs）のコピー。そのまま使う
 // リクエストごとのログを、応答の後に1行だけ書くミドルウェア（第24章の accessLog の代わり）
 import crypto from 'node:crypto';
 

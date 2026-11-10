@@ -47,7 +47,7 @@ export function createApp({ service, sse, logger, config, isReady = () => true }
   app.get('/healthz', (req, res) => res.json({ status: 'ok' }));
   app.get('/readyz', (req, res) => (isReady() ? res.json({ status: 'ready' }) : res.status(503).json({ status: 'shutting_down' })));
 
-  // 5. 書き換えだけを数える（第24章 練習問題3）。読むだけのもの（一覧・SSE）は数えない
+  // 5. 書き換えだけを数える（第24章 練習問題5）。読むだけのもの（一覧・SSE）は数えない
   if (config.rateLimitPerMinute > 0) {
     const limiter = rateLimit({ windowMs: 60_000, limit: config.rateLimitPerMinute });
     app.use('/api', (req, res, next) => (SAFE_METHODS.has(req.method) ? next() : limiter(req, res, next)));

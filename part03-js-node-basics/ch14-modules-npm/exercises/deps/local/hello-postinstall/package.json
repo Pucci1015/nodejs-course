@@ -1,0 +1,8 @@
+{
+  "name": "hello-postinstall",
+  "version": "1.0.0",
+  "description": "npm install のときにスクリプトを実行するパッケージの例（第14章 練習問題7）",
+  "scripts": {
+    "postinstall": "node postinstall.cjs"
+  }
+}

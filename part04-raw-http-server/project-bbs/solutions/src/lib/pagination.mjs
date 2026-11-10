@@ -1,4 +1,4 @@
-// ページ分け（第21章 練習問題3の模範解答 views.mjs から、paginate と pagination だけを取り出したもの）
+// ページ分け（第21章 練習問題6の模範解答 views.mjs から、paginate と pagination だけを取り出したもの）
 import { html } from './mini-html.mjs';
 import { queryString } from './html-helpers.mjs';
 

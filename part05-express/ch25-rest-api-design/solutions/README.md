@@ -1,17 +1,85 @@
 # 第25章 模範解答
 
-| 問題 | 解答のファイル | 確かめ方（`exercises/` で実行） |
+| 問題 | 解答のファイル | 確かめ方（`~/dev/part05/ch25-rest-api-design/exercises` で実行） |
 | --- | --- | --- |
-| 1 | このページ | — |
-| 2 | [problem.mjs](problem.mjs) | `MODULE=../solutions/problem.mjs node --test problem.test.mjs` |
-| 3 | [cursor.mjs](cursor.mjs) | `MODULE=../solutions/cursor.mjs node --test cursor.test.mjs` |
-| 4 | [query.mjs](query.mjs) | `MODULE=../solutions/query.mjs node --test query.test.mjs` |
-| 5 | [design-api.mjs](design-api.mjs) | `bash check-design.sh ../solutions/design-api.mjs` |
-| 6 | [preconditions.mjs](preconditions.mjs) | `MODULE=../solutions/preconditions.mjs node --test preconditions.test.mjs` |
+| 1 | [problem-json.mjs](problem-json.mjs) | `MODULE=../solutions/problem-json.mjs node --test problem-json.test.mjs` |
+| 2 | [task-schema.mjs](task-schema.mjs) | `MODULE=../solutions/task-schema.mjs node --test task-schema.test.mjs` |
+| 3 | [limit.mjs](limit.mjs) | `MODULE=../solutions/limit.mjs node --test limit.test.mjs` |
+| 4 | このページ | — |
+| 5 | [problem.mjs](problem.mjs) | `MODULE=../solutions/problem.mjs node --test problem.test.mjs` |
+| 6 | [query.mjs](query.mjs) | `MODULE=../solutions/query.mjs node --test query.test.mjs` |
+| 7 | [cursor.mjs](cursor.mjs) | `MODULE=../solutions/cursor.mjs node --test cursor.test.mjs` |
+| 8 | [preconditions.mjs](preconditions.mjs) | `MODULE=../solutions/preconditions.mjs node --test preconditions.test.mjs` |
+| 9 | [design-api.mjs](design-api.mjs) | `bash check-design.sh ../solutions/design-api.mjs` |
+
+`MODULE=ファイル` を前に付けると、テストが読み込むファイルを、自分のものから模範解答に切り替えられます。
 
 ---
 
-## 問題1 API の設計をレビューして、直す
+## 問題1 Problem Details の本文を作る
+
+```js
+import http from 'node:http';
+
+export function problem(status, { detail, instance } = {}) {
+  const body = { type: 'about:blank', title: http.STATUS_CODES[status] ?? 'Error', status };
+  if (detail !== undefined) body.detail = detail;
+  if (instance !== undefined) body.instance = instance;
+  return body;
+}
+
+export function toErrors(issues) {
+  return issues.map((issue) => ({
+    pointer: '#/' + issue.path.join('/'),
+    detail: issue.message,
+  }));
+}
+```
+
+- `{ detail, instance } = {}` は、2つ目の引数が無いときに `{}` を使い、その中から `detail` と `instance` を取り出す書き方です。
+- `detail: undefined` のままキーを入れても、`JSON.stringify` は出しません。それでもキーを入れないのは、テストや画面のコードで「キーがあるか」を見たときに迷わないためです。
+- 名前に `/` や `~` を含むときの正しい書き方（`~1`・`~0`）は、問題5で扱います。
+
+## 問題2 タスクを作るときの入力を zod で書く
+
+```js
+import { z } from 'zod';
+
+export const CreateTask = z.strictObject({
+  title: z.string().trim().min(1, 'title を入力してください').max(100, 'title は 100 文字までです'),
+  status: z.enum(['todo', 'doing', 'done']).default('todo'),
+  dueDate: z.iso.date().optional(),
+  tags: z.array(z.string().trim().min(1)).max(5).default([]),
+});
+```
+
+- `.trim()` は確かめる**前**に空白を取ります。だから `'   '` は空になり、`min(1)` で断られます。
+- `z.iso.date()` は形（`YYYY-MM-DD`）だけでなく、`2026-13-01` のような無い日付も断ります。
+- 確かめた後は、`safeParse` の `data`（空白を取り、既定の値を入れたもの）だけを使います（本文5.4節）。
+
+## 問題3 `limit` を確かめ、次のページの URL を作る
+
+```js
+export function parseLimit(value) {
+  if (value === undefined) return { ok: true, value: 20 };
+  if (typeof value !== 'string' || !/^[1-9][0-9]{0,2}$/.test(value)) return { ok: false };
+  const n = Number(value);
+  return n <= 100 ? { ok: true, value: n } : { ok: false };
+}
+
+export function nextLink(pathname, query, nextCursor) {
+  if (nextCursor === null) return null;
+  const params = new URLSearchParams(query);
+  params.set('cursor', nextCursor);
+  return `${pathname}?${params}`;
+}
+```
+
+- `typeof value !== 'string'` で、`?limit=1&limit=2` の配列も断れます。
+- `params.set` は、同じ名前があれば置き換え、無ければ後ろに足します。`append` だと、古い `cursor` も残って2つになります。
+- 問題6の `parseListQuery` は、同じことを zod のスキーマで、ほかのクエリといっしょに確かめます。
+
+## 問題4 API の設計をレビューして、直す
 
 ### 問題点
 
@@ -65,7 +133,7 @@ Content-Type: application/problem+json
 }
 ```
 
-## 問題2 エラーを Problem Details の形にそろえる
+## 問題5 エラーを Problem Details の形にそろえる
 
 [problem.mjs](problem.mjs) を見てください。
 
@@ -74,18 +142,9 @@ Content-Type: application/problem+json
 - **zod は 422、body-parser は `err.type`**: Express は `express.json()` の失敗に `status`（400・413・415）を付けますが、`type`（`entity.parse.failed` など）で見分けると、日本語の `detail` を自分で決められます
 - **知らない 400 番台の `detail` を出さない**: パッケージの例外の文には、中の作りや、客が送った値がそのまま入っていることがあります。`title`（`Bad Request`）だけで十分です
 - **500 だけをログに**: 400 番台は客の間違いなので、ログに全部書くと、本当の失敗が埋もれます。数を知りたいなら、第26章のアクセスログ（ステータスつき）で数えます
-- **`headersSent`**: 途中まで送った後に、別の本文を返すことはできません。`next(err)` で Express に渡すと、接続を切ります（第24章 練習問題2の `done` と同じ）
+- **`headersSent`**: 途中まで送った後に、別の本文を返すことはできません。`next(err)` で Express に渡すと、接続を切ります（第24章 練習問題7の `done` と同じ）
 
-## 問題3 カーソルでページを分ける
-
-[cursor.mjs](cursor.mjs) を見てください。
-
-- **並べ方を1通りに決める**: `createdAt` が同じものがあると、`sort` の結果の順番が決まらず、ページの境目で重なりや抜けが出ます。最後に `id` で並べると、どの2つも順番が決まります。SQL でも `ORDER BY created_at DESC, id DESC` と書きます
-- **位置ではなく値で探す**: 「`id` 5 の次から」を `findIndex` で探すと、`id` 5 が消されたときに見つかりません。`(値, id)` より後ろのものを `filter` で探すので、消されていても続きから読めます。SQL では `WHERE (created_at, id) < ($1, $2)` で、索引を使って速く探せます（第6部 第30章）
-- **1件多く見る**: `rest.length > limit` で、次のページがあるかが分かります。SQL なら `LIMIT limit + 1` で取って、1件多ければ次があります
-- **署名**: カーソルの中身（値と id）は見られても困りませんが、作り変えられると、たとえば別の並べ方の値を混ぜて、思わない条件を作られます。署名をしておけば、自分が作ったカーソルだけを受け付けられます。`s`（sort）を入れておくのは、`sort=title` のカーソルを `sort=-createdAt` で使われると、値の意味が変わるからです
-
-## 問題4 一覧のクエリを zod で確かめる
+## 問題6 一覧のクエリを zod で確かめる
 
 [query.mjs](query.mjs) を見てください。
 
@@ -95,7 +154,27 @@ Content-Type: application/problem+json
 - **名前を分ける**: URL では `due_before`、コードでは `dueBefore` にしました。URL の名前は公開した約束で変えにくいので、コードの中の都合と分けておきます
 - **同じ文を1つに**: `status=x,y` では、`x` と `y` のそれぞれで同じ文が出ます。1つにまとめて返します
 
-## 問題5 ステータスコードと応答の形のバグを直す
+## 問題7 カーソルでページを分ける
+
+[cursor.mjs](cursor.mjs) を見てください。
+
+- **並べ方を1通りに決める**: `createdAt` が同じものがあると、`sort` の結果の順番が決まらず、ページの境目で重なりや抜けが出ます。最後に `id` で並べると、どの2つも順番が決まります。SQL でも `ORDER BY created_at DESC, id DESC` と書きます
+- **位置ではなく値で探す**: 「`id` 5 の次から」を `findIndex` で探すと、`id` 5 が消されたときに見つかりません。`(値, id)` より後ろのものを `filter` で探すので、消されていても続きから読めます。SQL では `WHERE (created_at, id) < ($1, $2)` で、索引を使って速く探せます（第6部 第30章）
+- **1件多く見る**: `rest.length > limit` で、次のページがあるかが分かります。SQL なら `LIMIT limit + 1` で取って、1件多ければ次があります
+- **署名**: カーソルの中身（値と id）は見られても困りませんが、作り変えられると、たとえば別の並べ方の値を混ぜて、思わない条件を作られます。署名をしておけば、自分が作ったカーソルだけを受け付けられます。`s`（sort）を入れておくのは、`sort=title` のカーソルを `sort=-createdAt` で使われると、値の意味が変わるからです
+
+## 問題8 `If-Match`・`If-None-Match` を正しく確かめる
+
+[preconditions.mjs](preconditions.mjs) を見てください。
+
+- **ETag の並びの読み方**: ETag の `"…"` の中には、`"` と空白と制御文字以外の、見える文字を書けます。`,` も書けるので、`split(',')` では `"a,b"` が2つに割れます。正規表現の `y`（sticky）フラグで、前から1つずつ取り出しました
+- **強い比べ方と弱い比べ方**: 弱い ETag（`W/"…"`）は「意味としては同じ」という印で、バイトまで同じとは限りません。書き換えの前の確かめ（`If-Match`）には、バイトまで同じことを保証する強い ETag だけを使います。キャッシュの確かめ（`If-None-Match`）は、意味が同じなら十分なので、弱い比べ方です
+- **Express の自動の ETag**: 本文のハッシュから作った弱い ETag（`W/"…"`）です。強い比べ方ではあてはまらないので、`If-Match` には使えません。サンプルのように `app.set('etag', false)` にして、`version` から強い ETag を自分で作ります
+- **`If-None-Match: *` で「無いときだけ作る」**: `PUT /api/tasks/7` に `If-None-Match: *` を付けると、もう 7 があれば 412 になり、他の人が作ったものを上書きしません
+- **順番**: RFC 9110 13.2.2 の順番は「`If-Match` → `If-Unmodified-Since` → `If-None-Match` → `If-Modified-Since`」です。この解答は ETag の2つだけを扱いました。日時の2つは、ETag のヘッダがあるときは見ない、と決まっています
+- **412 と 409 の違い**: 412 は「送ってきた条件（見ていた版）があてはまらない」、409 は「今の状態では、その変更ができない」（たとえば「完了したタスクは、締め切りを変えられない」）です
+
+## 問題9 ステータスコードと応答の形のバグを直す
 
 [design-api.mjs](design-api.mjs) を見てください。直したところには `// 修正:`・`// 追加:` を付けました。
 
@@ -114,14 +193,3 @@ Content-Type: application/problem+json
 - 確認14・15が大事です。zod で確かめていても、**確かめた後の値を使わなければ**意味がありません。`safeParse` の `r.data` だけを使い、`req.body` には戻らない、を決まりにします。`strictObject` にしておけば、知らない項目が来た時点で 422 になり、送った人も間違いに気づけます
 - 確認11: `express.json()` は、`Content-Type` が JSON でないボディを読まずに次へ進みます（第23章）。ボディが要るルートでは、自分で 415 を返します。`requireJson` を `app.use` ではなくルートに付けたのは、GET や DELETE（ボディの無いリクエスト）を断らないためです
 - 確認3・13・17は、直す前から通ります。正しく動いている部分を壊していないかを確かめるためのものです
-
-## 問題6 `If-Match`・`If-None-Match` を正しく確かめる
-
-[preconditions.mjs](preconditions.mjs) を見てください。
-
-- **ETag の並びの読み方**: ETag の `"…"` の中には、`"` と空白と制御文字以外の、見える文字を書けます。`,` も書けるので、`split(',')` では `"a,b"` が2つに割れます。正規表現の `y`（sticky）フラグで、前から1つずつ取り出しました
-- **強い比べ方と弱い比べ方**: 弱い ETag（`W/"…"`）は「意味としては同じ」という印で、バイトまで同じとは限りません。書き換えの前の確かめ（`If-Match`）には、バイトまで同じことを保証する強い ETag だけを使います。キャッシュの確かめ（`If-None-Match`）は、意味が同じなら十分なので、弱い比べ方です
-- **Express の自動の ETag**: 本文のハッシュから作った弱い ETag（`W/"…"`）です。強い比べ方ではあてはまらないので、`If-Match` には使えません。サンプルのように `app.set('etag', false)` にして、`version` から強い ETag を自分で作ります
-- **`If-None-Match: *` で「無いときだけ作る」**: `PUT /api/tasks/7` に `If-None-Match: *` を付けると、もう 7 があれば 412 になり、他の人が作ったものを上書きしません
-- **順番**: RFC 9110 13.2.2 の順番は「`If-Match` → `If-Unmodified-Since` → `If-None-Match` → `If-Modified-Since`」です。この解答は ETag の2つだけを扱いました。日時の2つは、ETag のヘッダがあるときは見ない、と決まっています
-- **412 と 409 の違い**: 412 は「送ってきた条件（見ていた版）があてはまらない」、409 は「今の状態では、その変更ができない」（たとえば「完了したタスクは、締め切りを変えられない」）です

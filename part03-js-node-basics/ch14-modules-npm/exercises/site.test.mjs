@@ -1,13 +1,14 @@
-// 練習問題4 用: site.mjs（tldts を使う版）のテスト
-// 使い方: MODULE=~/dev/ch14/packages/site.mjs node --test site.test.mjs
-//   site.mjs は、tldts を npm install したフォルダ（~/dev/ch14/packages）に置いて実行する。
+// 練習問題6 用: packages/site.mjs（tldts を使う版）のテスト
+// 使い方（exercises フォルダで）: node --test site.test.mjs
+//   site.mjs は、tldts を npm install したフォルダ（packages）に置く。
+//   模範解答を試す: cp ../solutions/site.mjs packages/site-answer.mjs && MODULE=./packages/site-answer.mjs node --test site.test.mjs
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { pathToFileURL } from 'node:url';
 import os from 'node:os';
 import path from 'node:path';
 
-const given = process.env.MODULE ?? '~/dev/ch14/packages/site.mjs';
+const given = process.env.MODULE ?? './packages/site.mjs';
 const modulePath = path.resolve(import.meta.dirname, given.replace(/^~(?=\/)/, os.homedir()));
 const { registrableDomain, sameSite } = await import(pathToFileURL(modulePath).href);
 

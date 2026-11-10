@@ -14,4 +14,4 @@
 | [pagination.mjs](pagination.mjs) | 第21章 `solutions/views.mjs` の後半 | `paginate`・`pagination` |
 | [cookie.mjs](cookie.mjs) | 第22章 `solutions/cookie.mjs` | `parseCookies`・`serializeCookie`・`clearCookie`（session.mjs が使う） |
 | [session.mjs](session.mjs) | 第22章 `solutions/session.mjs` | `SessionStore`・`withSession`・`newSessionId` |
-| [atomic.mjs](atomic.mjs) | 第3部の成果物 `src/atomic.mjs`（第15章 練習問題2） | `writeFileAtomic` |
+| [atomic.mjs](atomic.mjs) | 第3部の成果物 `src/atomic.mjs`（第15章 練習問題5） | `writeFileAtomic` |

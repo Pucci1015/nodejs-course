@@ -36,7 +36,7 @@ console.log('アロー関数で包む:     ', callLater(() => timer.tick()));
 console.log('\n== 4. アロー関数は自分の this を持たない（外側の this を使う）==');
 const team = {
   name: 'A チーム',
-  members: ['ryota', 'hanako'],
+  members: ['alice', 'bob'],
   withFunction() {
     // function の中の this は、map が呼ぶときに undefined になる
     return this.members.map(function (m) {

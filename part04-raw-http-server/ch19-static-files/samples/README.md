@@ -2,6 +2,10 @@
 
 | ファイル | 内容 | 本文の節 | ポート |
 | --- | --- | --- | --- |
+| [my-mime.mjs](my-mime.mjs) | 「手を動かす」の完成形。拡張子から Content-Type を決める（サーバは起動しない） | 3.1 | — |
+| [inside.mjs](inside.mjs) | 「手を動かす」の完成形。URL のパスが `public` の中を指すかを表示する（サーバは起動しない） | 4.2 | — |
+| [file-server.mjs](file-server.mjs) | 「手を動かす」の完成形。`public` のファイルを Content-Type 付きで、少しずつ流して返す。外は 403 | 3〜5 | 9196 |
+| [etag-server.mjs](etag-server.mjs) | 「手を動かす」の完成形。中身のハッシュの ETag を付け、`If-None-Match` が同じなら 304 | 6 | 9196 |
 | [naive-static.mjs](naive-static.mjs) | よく見る、危ない静的ファイルのサーバ。`public` の外が読めてしまう | 2 | 9190 |
 | [mime.mjs](mime.mjs) | 拡張子から Content-Type を決める `contentType`、圧縮してよい種類か調べる `isCompressible`（練習問題と模範解答でも使う） | 3 | — |
 | [traversal-demo.mjs](traversal-demo.mjs) | URL のパスを `path.join` でつなぐと、どこを指すかの表 | 4 | — |
@@ -12,7 +16,7 @@
 | [public/](public/) | 公開するフォルダの例（`index.html`、`style.css`、`app.js`、`img/logo.svg`、`hello.txt`、`data.json`、`docs/`、`.private-note.txt`） | — | — |
 | [outside.txt](outside.txt) | `public` の**外**に置いた練習用のファイル。これが見えたら、外を読めてしまっている | 2, 4 | — |
 
-外部のパッケージは使わないので、`npm install` は不要です。
+外部のパッケージは使わないので、`npm install` は不要です。「手を動かす」の完成形は `~/dev/part04/ch19-static-files` で `node samples/file-server.mjs` のように動かします（`samples/public` を、今いるフォルダから探すため）。そのほかのサンプルは、`cd samples` で移ってから、次のように動かします。
 
 ```sh
 $ node naive-static.mjs          # curl --path-as-is 'http://127.0.0.1:9190/..%2Foutside.txt'

@@ -1,8 +1,8 @@
-// 練習問題3 の解答: iconv-lite で Shift_JIS（CP932）と UTF-8 を変換する CLI
-// 使い方（~/dev/ch14/packages にコピーし、npm install iconv-lite をしてから）:
-//   node convert.mjs to-utf8 data/members-sjis.csv out/members-utf8.csv
-//   node convert.mjs to-sjis data/order-utf8-ok.csv out/order-sjis.csv
-// 確かめ方: bash <教材>/ch14-modules-npm/exercises/check-convert.sh ~/dev/ch14/packages
+// 練習問題5 の解答: iconv-lite で Shift_JIS（CP932）と UTF-8 を変換する CLI
+// 使い方（exercises/packages に convert-answer.mjs という名前でコピーし、そこで npm install iconv-lite をしてから）:
+//   node convert-answer.mjs to-utf8 data/items-sjis.csv out/items-utf8.csv
+//   node convert-answer.mjs to-sjis data/order-utf8-ok.csv out/order-sjis.csv
+// 確かめ方（exercises フォルダで）: bash check-convert.sh convert-answer.mjs
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import iconv from 'iconv-lite'; // CommonJS のパッケージ。default import で module.exports を受け取る

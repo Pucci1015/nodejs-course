@@ -1,6 +1,6 @@
-// 練習問題5: 第21章のテンプレートエンジンを、Express のビューエンジンにする
+// 練習問題8: 第21章のテンプレートエンジンを、Express のビューエンジンにする
 // 本文 7節の view-engine-demo.mjs は、毎回ファイルを読んで compile していました。
-// これを、キャッシュ・レイアウト・エラーの扱いのある部品にしてください。要件は exercises/README.md の問題5です。
+// これを、キャッシュ・レイアウト・エラーの扱いのある部品にしてください。要件は exercises/README.md の問題8です。
 //   $ node --test engine.test.mjs
 import fs from 'node:fs/promises';
 import { compile } from '../../lib/template.mjs';

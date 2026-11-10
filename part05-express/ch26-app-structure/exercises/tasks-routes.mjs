@@ -1,5 +1,5 @@
-// 練習問題5: ルートの層。HTTP を読んで確かめ、サービスを呼び、応答の形にする
-// 要件は exercises/README.md の問題5です。確かめ方:
+// 練習問題8: ルートの層。HTTP を読んで確かめ、サービスを呼び、応答の形にする
+// 要件は exercises/README.md の問題8です。確かめ方:
 //   $ node --test tasks-routes.test.mjs
 // 今は一覧だけを、確かめずに書いてあります。
 import express from 'express';

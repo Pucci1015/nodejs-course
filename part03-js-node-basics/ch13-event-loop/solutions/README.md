@@ -4,25 +4,90 @@
 
 | ファイル | 内容 |
 | --- | --- |
-| [report-server.mjs](report-server.mjs)、[report-worker.mjs](report-worker.mjs)、[primes.mjs](primes.mjs) | 問題2: 計算を Worker に移し、同時に2つまでにしたサーバ |
-| [chunked.mjs](chunked.mjs) | 問題3: `processInChunks` |
-| [slug.mjs](slug.mjs) | 問題5: バックトラックが爆発しない `isValidSlug` |
-| [lag-monitor.mjs](lag-monitor.mjs) | 問題6: `createLagMonitor` |
+| [sum-squares.mjs](sum-squares.mjs) | 問題1: `nextTask` と `sumSquaresAsync` |
+| [worker-count.mjs](worker-count.mjs)、[count-worker.mjs](count-worker.mjs) | 問題2: `countPrimesInWorker`（`count-worker.mjs` は問題と同じもの） |
+| [heartbeat.mjs](heartbeat.mjs) | 問題3: `startHeartbeat` |
+| [chunked.mjs](chunked.mjs) | 問題5: `processInChunks` |
+| [slug.mjs](slug.mjs) | 問題6: バックトラックが爆発しない `isValidSlug` |
+| [report-server.mjs](report-server.mjs)、[report-worker.mjs](report-worker.mjs)、[primes.mjs](primes.mjs) | 問題8: 計算を Worker に移し、同時に2つまでにしたサーバ |
+| [lag-monitor.mjs](lag-monitor.mjs) | 問題9: `createLagMonitor` |
 
-模範解答は、`exercises` フォルダで次のように確かめられます。
+模範解答のテストは、`~/dev/part03/ch13-event-loop/exercises` で次のように実行できます。`MODULE=ファイル` を前に付けると、テストが読み込むファイルを、自分のものから模範解答に切り替えられます。
 
 ```sh
-$ cd ../exercises
-$ TARGET=../solutions/report-server.mjs bash check-report-server.sh
+$ MODULE=../solutions/sum-squares.mjs node --test sum-squares.test.mjs
+$ MODULE=../solutions/worker-count.mjs node --test worker-count.test.mjs
+$ MODULE=../solutions/heartbeat.mjs node --test heartbeat.test.mjs
 $ MODULE=../solutions/chunked.mjs node --test chunked.test.mjs
 $ MODULE=../solutions/slug.mjs node --test slug.test.mjs
 $ node redos-measure.mjs ../solutions/slug.mjs
+$ TARGET=../solutions/report-server.mjs bash check-report-server.sh
 $ MODULE=../solutions/lag-monitor.mjs node --test lag-monitor.test.mjs
 ```
 
 ---
 
-## 問題1 表示される順番を予想する
+## 問題1 重い計算を小分けにして、合間に譲る
+
+```js
+export function nextTask() {
+  return new Promise((resolve) => setImmediate(resolve));
+}
+
+export async function sumSquaresAsync(n, chunk = 100_000) {
+  let sum = 0;
+  for (let i = 1; i <= n; i++) {
+    sum += i * i;
+    if (i % chunk === 0) {
+      await nextTask();
+    }
+  }
+  return sum;
+}
+```
+
+- `setImmediate(resolve)` は、「タスクの待ち行列（check のフェーズ）に順番が来たら `resolve` を呼ぶ」という意味です。`await` している関数の続きは、その後に実行されます。その間に、溜まっていたタイマーや I/O のコールバックが実行されます。
+- `nextTask` を `Promise.resolve()` にすると、テスト「先に予約した setImmediate が先に動く」と「計算の途中で、タイマーが動ける」が失敗します。`await Promise.resolve()` の続きはマイクロタスクなので、タスク（タイマー・`setImmediate`）に順番が回らないからです（本文2.2節）。
+- この方法では、計算の合計時間は変わりません（少し長くなります）。変わるのは、**その間に他の処理が割り込める**ことです。
+
+## 問題2 計算を Worker に任せる関数を作る
+
+```js
+import { Worker } from 'node:worker_threads';
+
+export function countPrimesInWorker(from, to) {
+  return new Promise((resolve, reject) => {
+    const worker = new Worker(new URL('./count-worker.mjs', import.meta.url), { workerData: { from, to } });
+    worker.once('message', resolve);
+    worker.once('error', reject);
+  });
+}
+```
+
+- `new URL('./count-worker.mjs', import.meta.url)` は、「**このファイルと同じフォルダの** `count-worker.mjs`」という意味です。`'./count-worker.mjs'` とだけ書くと、`node` を実行したフォルダからの位置になり、別のフォルダから実行すると見つかりません。
+- `worker.once('message', resolve)` は、`worker.once('message', (count) => resolve(count))` と同じです。
+- Worker の中で投げた `RangeError` は、コピーされて `'error'` イベントに届きます。名前（`RangeError`）とメッセージは保たれます。
+- 第12章の「コールバックを Promise にする」のと同じ形です。イベントで結果を知らせるものも、こうして Promise にすれば `await` で使えます。問題8の模範解答の `report-server.mjs` にも、同じ関数があります。
+
+## 問題3 プロセスを引き止めない「心拍」を作る
+
+```js
+export function startHeartbeat(intervalMs, onBeat) {
+  let count = 0;
+  const timer = setInterval(() => {
+    count++;
+    onBeat(count);
+  }, intervalMs);
+  timer.unref();
+  return () => clearInterval(timer);
+}
+```
+
+- `count` は、`setInterval` に渡した関数が覚えている変数です（第11章のクロージャ）。
+- `timer.unref()` を忘れると、テスト「プロセスを引き止めない」が失敗します。このテストは、心拍を始めるだけのプログラムを別のプロセスで動かし、2秒たっても終わらなければ失敗にします。
+- 戻り値の `() => clearInterval(timer)` も、`timer` を覚えている関数です。
+
+## 問題4 表示される順番を予想する
 
 ```
 $ node predict-loop.mjs
@@ -83,22 +148,7 @@ APIOKLJNMEHBCDF   （または APIOKLJNMBCDEHF）
 - ES モジュールの一番外側では、**マイクロタスクが nextTick より先**になる（本文3.3節）。`I`、`O`、`K` の後に `L`、`J`、`N`、`M`
 - poll のフェーズの中ではないので、`B`（タイマー）と `E`（immediate）の順番が決まらない
 
-## 問題2 重い計算で止まるサーバを、Worker で直す
-
-[report-server.mjs](report-server.mjs) と [report-worker.mjs](report-worker.mjs) を見てください。`// 修正:` と `// 追加:` のコメントが付いた所が変えた場所です。
-
-ポイントです。
-
-- **Worker を Promise で包む**: `message` で resolve、`error` と「`message` の前の `exit`」で reject します。`resolve` と `reject` は最初の1回だけが有効なので、`message` の後に来る `exit(0)` は無視されます
-- **ハンドラを `async` にして `await`**: 計算を待っている間、メインのスレッドは空いているので、`/health` にすぐ応えられます
-- **`finally` で枠を返す**: 成功しても失敗しても `runningJobs--` します。`try` の中だけで減らすと、失敗したときに枠が減らず、やがて全部のリクエストが 503 になります
-- **`503` と `Retry-After`**: 「今は無理だが、少し後なら大丈夫」という意味です。第12章 練習問題6の `retry` のようなクライアントは、503 を受け取ったらやり直します
-
-リクエストのたびに Worker を起動しているので、1回あたり数十 ms の余計な時間がかかります。本番では、起動しておいた Worker を使い回す **Worker プール**（`piscina` などのパッケージ）を使うのが一般的です。
-
-「考えてみよう」の答え: 順番待ちにすると、少しの混雑なら全員に答えを返せます。ただし、待ち行列に上限が無いと、混雑が続いたときに待ち行列がどこまでも伸び、メモリを使い果たしたり、クライアントがとっくにあきらめたリクエストを計算し続けたりします。順番待ちにするなら、「待ち行列の長さの上限」と「待ち時間の上限（超えたら 503）」を必ず決めます。これは、第12章の `mapLimit` を、サーバ全体で共有する形にしたものと考えられます。
-
-## 問題3 重い処理を小分けにして、合間に譲る
+## 問題5 重い処理を小分けにして、合間に譲る
 
 [chunked.mjs](chunked.mjs) を見てください。
 
@@ -114,27 +164,7 @@ APIOKLJNMEHBCDF   （または APIOKLJNMBCDEHF）
 
 `node:timers/promises` には、譲るための `scheduler.yield()` もあります（執筆時点では実験的な機能です。使う前に Node.js のドキュメントで状態を確かめてください）。
 
-## 問題4 スレッドプールが埋まると何が待たされるか
-
-作成時に、4コアの Linux で実行した結果です。Mac では数字が変わりますが、傾向は同じになるはずです。
-
-| ハッシュの数 | スレッドプール | ファイル | 名前解決 | タイマー |
-| --- | --- | --- | --- | --- |
-| 3 | 4 | 3ms | 3ms | 10ms |
-| 4 | 4 | 508ms | 508ms | 10ms |
-| 8 | 4 | 947ms | 948ms | 12ms |
-| 4 | 8 | 19ms | 1ms | 10ms |
-
-1. **タイマー**は、スレッドプールを使いません。タイマーはイベントループ自身が管理していて、メインのスレッドは空いている（ハッシュは裏のスレッドで計算している）ので、予定どおり動きます
-2. スレッドプールは4本です。ハッシュが **4件**だと4本とも埋まり、ファイルの読み込みと名前解決は、どれかのハッシュが終わってスレッドが空くまで待たされます。**3件**なら1本空いているので、すぐに処理されます。8件のときは、前の4件が終わった後、ファイルと名前解決が、残りのハッシュ（5〜8件目）と同じ待ち行列に並ぶので、さらに待たされます
-3. `fetch` は、接続の前に `dns.lookup` でホスト名を IP アドレスにします。スレッドプールが埋まっていると、**通信そのものは OS が待つのに、名前解決で待たされる**ことになります。「外の API へのリクエストが、なぜか数百 ms 遅い」という症状の原因になります
-4. 防ぐ方法:
-   - **`UV_THREADPOOL_SIZE` を増やす**: 簡単。ただし、CPU のコアの数より多く計算しても速くはならず、メモリも使う。根本的な解決ではない
-   - **ハッシュの計算を Worker や別のプロセスに移す**: ファイルや DNS の処理と、スレッドを取り合わなくなる。ただし、仕組みが複雑になる
-   - **同時に計算するハッシュの数を制限する**（第12章の `mapLimit` の考え方）: スレッドプールに必ず空きを残せる。ただし、ログインが多いと待ち時間が伸びる
-   - **ログインの回数を制限する**（レート制限。第10部）: 総当たりの攻撃への対策にもなる
-
-## 問題5 正規表現でサーバが止まる（ReDoS）
+## 問題6 正規表現でサーバが止まる（ReDoS）
 
 1. 長さが2増えるごとに、約4倍になります（2倍ずつ増えていく「指数関数的」な増え方です）。長さ 29 で約 3秒なので、長さ 41 なら 3秒 × 4⁶ ≒ 12,000秒、**約3時間半**です。
 2. `([a-z0-9]+-?)*` は、`aaaa` を「`aaaa`」「`aaa` + `a`」「`aa` + `aa`」「`a` + `a` + `aa`」… のように、何通りにも分けて表せます（ハイフンが省略できるため）。n 文字なら約 2ⁿ 通りあります。最後の `!` で失敗すると、正規表現のエンジン（JavaScript のエンジンの多くは**バックトラック**方式）は、「分け方を変えれば成功するかもしれない」と考えて、**すべての分け方を試してから**失敗を返します。
@@ -156,7 +186,42 @@ $ node redos-measure.mjs ../solutions/slug.mjs
 - **正規表現を使わない**: 単純な形なら、1文字ずつ調べる関数の方が読みやすいこともあります
 - V8 には、バックトラックしない正規表現のエンジンを使う実験的なオプション（`--enable-experimental-regexp-engine` と `l` フラグ）もあります。執筆時点では実験的な機能なので、使う前にドキュメントで状態を確かめてください
 
-## 問題6 イベントループの見張りを作る
+## 問題7 スレッドプールが埋まると何が待たされるか
+
+作成時に、4コアの Linux で実行した結果です。Mac では数字が変わりますが、傾向は同じになるはずです。
+
+| ハッシュの数 | スレッドプール | ファイル | 名前解決 | タイマー |
+| --- | --- | --- | --- | --- |
+| 3 | 4 | 3ms | 3ms | 10ms |
+| 4 | 4 | 508ms | 508ms | 10ms |
+| 8 | 4 | 947ms | 948ms | 12ms |
+| 4 | 8 | 19ms | 1ms | 10ms |
+
+1. **タイマー**は、スレッドプールを使いません。タイマーはイベントループ自身が管理していて、メインのスレッドは空いている（ハッシュは裏のスレッドで計算している）ので、予定どおり動きます
+2. スレッドプールは4本です。ハッシュが **4件**だと4本とも埋まり、ファイルの読み込みと名前解決は、どれかのハッシュが終わってスレッドが空くまで待たされます。**3件**なら1本空いているので、すぐに処理されます。8件のときは、前の4件が終わった後、ファイルと名前解決が、残りのハッシュ（5〜8件目）と同じ待ち行列に並ぶので、さらに待たされます
+3. `fetch` は、接続の前に `dns.lookup` でホスト名を IP アドレスにします。スレッドプールが埋まっていると、**通信そのものは OS が待つのに、名前解決で待たされる**ことになります。「外の API へのリクエストが、なぜか数百 ms 遅い」という症状の原因になります
+4. 防ぐ方法:
+   - **`UV_THREADPOOL_SIZE` を増やす**: 簡単。ただし、CPU のコアの数より多く計算しても速くはならず、メモリも使う。根本的な解決ではない
+   - **ハッシュの計算を Worker や別のプロセスに移す**: ファイルや DNS の処理と、スレッドを取り合わなくなる。ただし、仕組みが複雑になる
+   - **同時に計算するハッシュの数を制限する**（第12章の `mapLimit` の考え方）: スレッドプールに必ず空きを残せる。ただし、ログインが多いと待ち時間が伸びる
+   - **ログインの回数を制限する**（レート制限。第10部）: 総当たりの攻撃への対策にもなる
+
+## 問題8 重い計算で止まるサーバを、Worker で直す
+
+[report-server.mjs](report-server.mjs) と [report-worker.mjs](report-worker.mjs) を見てください。`// 修正:` と `// 追加:` のコメントが付いた所が変えた場所です。
+
+ポイントです。
+
+- **Worker を Promise で包む**: `message` で resolve、`error` と「`message` の前の `exit`」で reject します。`resolve` と `reject` は最初の1回だけが有効なので、`message` の後に来る `exit(0)` は無視されます
+- **ハンドラを `async` にして `await`**: 計算を待っている間、メインのスレッドは空いているので、`/health` にすぐ応えられます
+- **`finally` で枠を返す**: 成功しても失敗しても `runningJobs--` します。`try` の中だけで減らすと、失敗したときに枠が減らず、やがて全部のリクエストが 503 になります
+- **`503` と `Retry-After`**: 「今は無理だが、少し後なら大丈夫」という意味です。第12章 練習問題9の `retry` のようなクライアントは、503 を受け取ったらやり直します
+
+リクエストのたびに Worker を起動しているので、1回あたり数十 ms の余計な時間がかかります。本番では、起動しておいた Worker を使い回す **Worker プール**（`piscina` などのパッケージ）を使うのが一般的です。
+
+「考えてみよう」の答え: 順番待ちにすると、少しの混雑なら全員に答えを返せます。ただし、待ち行列に上限が無いと、混雑が続いたときに待ち行列がどこまでも伸び、メモリを使い果たしたり、クライアントがとっくにあきらめたリクエストを計算し続けたりします。順番待ちにするなら、「待ち行列の長さの上限」と「待ち時間の上限（超えたら 503）」を必ず決めます。これは、第12章の `mapLimit` を、サーバ全体で共有する形にしたものと考えられます。
+
+## 問題9 イベントループの見張りを作る
 
 [lag-monitor.mjs](lag-monitor.mjs) を見てください。
 

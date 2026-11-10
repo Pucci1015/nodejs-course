@@ -1,4 +1,4 @@
-// 問題5 解答例: アップロードされた画像を、安全に保存する
+// 問題7 解答例: アップロードされた画像を、安全に保存する
 import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';

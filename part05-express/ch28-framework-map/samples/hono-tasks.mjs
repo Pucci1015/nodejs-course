@@ -1,5 +1,5 @@
 // 同じタスク API を Hono で（第28章 4節）
-//   $ node hono-tasks.mjs             ← 127.0.0.1:9352
+//   $ node samples/hono-tasks.mjs             ← 127.0.0.1:9352
 // Hono のハンドラは Web 標準の Request を受け取り、Response を返す。Node.js では @hono/node-server がつなぐ
 import { serve } from '@hono/node-server';
 import { Hono } from 'hono';

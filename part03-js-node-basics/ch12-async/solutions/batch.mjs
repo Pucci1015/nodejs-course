@@ -1,4 +1,4 @@
-// 練習問題5 の解答: buggy-batch.mjs の非同期のバグを直したもの
+// 練習問題6 の解答: buggy-batch.mjs の非同期のバグを直したもの
 // 確かめ方: cd ../exercises && MODULE=../solutions/batch.mjs node --test batch.test.mjs
 
 export async function importUsers(rows, db) {

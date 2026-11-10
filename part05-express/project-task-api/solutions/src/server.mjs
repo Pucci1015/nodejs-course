@@ -1,5 +1,5 @@
 // 起動（コンポジションルート。第26章 4節）: loadConfig → logger → repo → hub → service → app → listen → shutdown
-// 第26章 練習問題6の模範解答（ch26-app-structure/solutions/server.mjs）から始めて、組み立てと SSE の片付けを足した
+// 第26章 練習問題9の模範解答（ch26-app-structure/solutions/server.mjs）から始めて、組み立てと SSE の片付けを足した
 import pino from 'pino';
 import { createApp } from './app.mjs';
 import { loadConfig } from './config.mjs';

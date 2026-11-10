@@ -1,5 +1,5 @@
 // zod のスキーマで、ボディ・クエリ・パスパラメータを確かめるミドルウェア（第25章 5節）
-//   $ node validate-demo.mjs
+//   $ node samples/validate-demo.mjs
 //   別のターミナルで:
 //     curl -s -X POST -H 'Content-Type: application/json' -d '{"title":"牛乳","dueDate":"2026-11-30"}' http://127.0.0.1:9321/api/tasks
 //     curl -s -X POST -H 'Content-Type: application/json' -d '{"title":"","dueDate":"明日","owner":1}' http://127.0.0.1:9321/api/tasks

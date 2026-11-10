@@ -1,5 +1,5 @@
-// 練習問題6: 設定を、既定の値 < 設定ファイル < 環境変数 < コマンドラインの引数 の順に重ねる
-// 仕様は README の練習問題6を見てください。
+// 練習問題7: 設定を、既定の値 < 設定ファイル < 環境変数 < コマンドラインの引数 の順に重ねる
+// 仕様は README の練習問題7を見てください。
 // 確かめる: node --test load-config.test.mjs
 import fs from 'node:fs';
 import os from 'node:os';

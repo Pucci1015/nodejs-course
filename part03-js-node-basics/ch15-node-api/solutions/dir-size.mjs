@@ -1,4 +1,4 @@
-// 練習問題6 の解答: フォルダの中のファイルの大きさを合計する（du の小さな版）
+// 練習問題9 の解答: フォルダの中のファイルの大きさを合計する（du の小さな版）
 // 使い方: node dir-size.mjs <フォルダ>     中のフォルダ・ファイルごとの大きさを、大きい順に表示する
 // 確かめ方: cd ../exercises && MODULE=../solutions/dir-size.mjs node --test dir-size.test.mjs
 import fs from 'node:fs/promises';

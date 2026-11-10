@@ -1,4 +1,4 @@
-// 練習問題6のテスト。本物のホームフォルダや環境変数は使わない
+// 練習問題7のテスト。本物のホームフォルダや環境変数は使わない
 // 使い方: node --test load-config.test.mjs
 //         MODULE=../solutions/load-config.mjs node --test load-config.test.mjs   （解答例で確かめる）
 import { test, beforeEach, afterEach } from 'node:test';

@@ -1,4 +1,4 @@
-// 練習問題4: parseLine と summarize を完成させてください。要件は README と log-summary.test.mjs にあります。
+// 練習問題6: parseLine と summarize を完成させてください。要件は README と log-summary.test.mjs にあります。
 // 確かめ方: node --test log-summary.test.mjs
 
 /** 1行を解析する。形が違う行は null */

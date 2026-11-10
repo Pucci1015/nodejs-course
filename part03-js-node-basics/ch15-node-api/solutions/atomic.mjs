@@ -1,4 +1,4 @@
-// 練習問題2 の解答: 途中で落ちても壊れない書き込み（writeFileAtomic）と、取りこぼさない更新（updateJson）
+// 練習問題5 の解答: 途中で落ちても壊れない書き込み（writeFileAtomic）と、取りこぼさない更新（updateJson）
 // 確かめ方: cd ../exercises && MODULE=../solutions/atomic.mjs node --test atomic.test.mjs
 import crypto from 'node:crypto';
 import fs from 'node:fs/promises';

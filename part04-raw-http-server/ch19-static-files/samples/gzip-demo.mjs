@@ -18,7 +18,7 @@ const server = http.createServer(async (req, res) => {
     return;
   }
   const accept = req.headers['accept-encoding'] ?? '';
-  // 簡単な確かめ方。q=0（いらない）などは見ていない。きちんとした読み方は練習問題6
+  // 簡単な確かめ方。q=0（いらない）などは見ていない。きちんとした読み方は練習問題8
   const encoding = /\bbr\b/.test(accept) ? 'br' : /\bgzip\b/.test(accept) ? 'gzip' : null;
   const headers = {
     'Content-Type': 'text/plain; charset=utf-8',

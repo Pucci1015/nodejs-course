@@ -1,6 +1,6 @@
-// 練習問題4 の解答: アクセスログ（Common Log Format）を配列のメソッドで集計する
+// 練習問題6 の解答: アクセスログ（Common Log Format）を配列のメソッドで集計する
 // 使い方: node log-summary.mjs ログのファイル
-//   例: node log-summary.mjs ../../../part01-mac-dev-env/ch01-terminal-zsh/samples/access.log
+//   例: node log-summary.mjs ../exercises/access.log
 // 確かめ方: cd ../exercises && MODULE=../solutions/log-summary.mjs node --test log-summary.test.mjs
 import { readFileSync } from 'node:fs';
 

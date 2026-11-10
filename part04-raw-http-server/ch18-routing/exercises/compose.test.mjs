@@ -1,4 +1,4 @@
-// 練習問題6のテスト。サーバは使わず、偽の req・res で確かめる
+// 練習問題8のテスト。サーバは使わず、偽の req・res で確かめる
 // 使い方: node --test compose.test.mjs
 //         MODULE=../solutions/compose.mjs node --test compose.test.mjs   （解答例で確かめる）
 import { test } from 'node:test';
@@ -37,11 +37,11 @@ test('next は、後ろが async で終わるまで待つ', async () => {
 test('req と res は、全員で同じものを使う', async () => {
   const r = {};
   const app = compose(
-    (req, res, next) => { req.user = 'ryota'; return next(); },
+    (req, res, next) => { req.user = 'alice'; return next(); },
     (req) => { req.seen = req.user; },
   );
   await app(r, res);
-  assert.equal(r.seen, 'ryota');
+  assert.equal(r.seen, 'alice');
 });
 
 test('next を呼ばなければ、そこで止まる（後ろは動かない）', async () => {

@@ -13,10 +13,10 @@
 
 ## 動かし方
 
-教材のフォルダ（OneDrive の中）に `node_modules` を作らないように、`~/dev` にコピーしてから動かします。
+教材のフォルダは見本として残しておくため、`~/dev/part05` の中の完成例を、さらに `~/dev/task-api-example` にコピーしてから動かします。`cp -R` は、フォルダを中身ごとコピーするコマンドです。
 
 ```sh
-$ cp -R ~/Library/CloudStorage/OneDrive-個人用/program/nodejs/part05-express/project-task-api/solutions ~/dev/task-api-example
+$ cp -R ~/dev/part05/project-task-api/solutions ~/dev/task-api-example
 $ cd ~/dev/task-api-example
 $ npm ci             # package-lock.json のとおりに入れる
 $ cp .env.example .env
@@ -38,4 +38,4 @@ $ npm test           # 25 個のテスト（127.0.0.1:9361 と 9362 を使う）
 
 - ログの中身（秘密の値が書かれていないか）。`LOG_LEVEL=info npm start` で動かして、目で確かめてください
 - 2つの PATCH がほとんど同時に来たとき。メモリのデータの層では、`await` の間にほかのリクエストが割り込むことはほとんどないので、テストで起こすのが難しいためです（第6部で、データベースを使って確かめます）
-- `SHUTDOWN_TIMEOUT_MS` の時間切れ（終わらないリクエストを作るルートが無いため。第26章 練習問題6で確かめました）
+- `SHUTDOWN_TIMEOUT_MS` の時間切れ（終わらないリクエストを作るルートが無いため。第26章 練習問題9で確かめました）

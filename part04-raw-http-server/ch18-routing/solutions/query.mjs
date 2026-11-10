@@ -1,4 +1,4 @@
-// 練習問題5 解答例: クエリ文字列を、決めた形（スキーマ）に合わせて読む
+// 練習問題7 解答例: クエリ文字列を、決めた形（スキーマ）に合わせて読む
 import { HttpError } from '../../ch17-minimal-server/solutions/app.mjs';
 
 /** クエリの間違い。400 番台の HttpError なので、createApp がメッセージを客に返す */

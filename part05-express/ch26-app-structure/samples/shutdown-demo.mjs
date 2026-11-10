@@ -1,5 +1,5 @@
 // ヘルスチェックと、きれいな止め方（graceful shutdown。第26章 7・8節）
-//   $ node shutdown-demo.mjs
+//   $ node samples/shutdown-demo.mjs
 //   別のターミナルで:
 //     curl -s http://127.0.0.1:9333/healthz ; curl -s http://127.0.0.1:9333/readyz
 //     curl -s http://127.0.0.1:9333/slow &  sleep 0.5 ; kill -TERM <起動したときに出た pid>

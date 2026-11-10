@@ -1,4 +1,4 @@
-// 練習問題4: お問い合わせフォームと、同じことをする JSON の API。バグがたくさんあります
+// 練習問題8: お問い合わせフォームと、同じことをする JSON の API。バグがたくさんあります
 // 確かめる: bash check-contact.sh
 // 使い方: node buggy-contact.mjs   → ブラウザで http://127.0.0.1:9205/
 import http from 'node:http';

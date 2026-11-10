@@ -1,4 +1,4 @@
-// 練習問題3のテスト
+// 練習問題6のテスト
 // 使い方: node --test merge.test.mjs
 //         MODULE=../solutions/merge.mjs node --test merge.test.mjs   （解答例で確かめる）
 import { test } from 'node:test';
@@ -76,8 +76,8 @@ test('target のプロトタイプの先のものは、拾わない', () => {
 });
 
 test('pick: 決めたキーだけ。自分のキーだけ', () => {
-  const body = JSON.parse('{"name":"りょうた","email":"a@example.com","role":"admin","__proto__":{"x":1}}');
-  assert.deepEqual(pick(body, ['name', 'email']), { name: 'りょうた', email: 'a@example.com' });
+  const body = JSON.parse('{"name":"alice","email":"a@example.com","role":"admin","__proto__":{"x":1}}');
+  assert.deepEqual(pick(body, ['name', 'email']), { name: 'alice', email: 'a@example.com' });
   assert.deepEqual(pick(Object.create({ name: '継承' }), ['name']), {});
   assert.deepEqual(pick(null, ['name']), {});
   assert.deepEqual(pick(['a'], ['0']), {});

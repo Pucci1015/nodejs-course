@@ -1,9 +1,9 @@
-// 練習問題6の模範解答: 設定・ログ・止め方を直したサーバ
+// 練習問題9の模範解答: 設定・ログ・止め方を直したサーバ
 // 確かめ方（exercises の中で）: bash check-server.sh ../solutions/server.mjs
 import express from 'express';
 import pino from 'pino';
-import { loadConfig } from './config.mjs'; // 練習問題2
-import { requestLogger } from './request-logger.mjs'; // 練習問題4
+import { loadConfig } from './config.mjs'; // 練習問題5
+import { requestLogger } from './request-logger.mjs'; // 練習問題7
 
 // 修正: 設定は起動するときに1回だけ確かめる。間違っていたら、理由（名前だけ）を書いて終了コード 1
 let config;

@@ -7,3 +7,5 @@ node_modules/
 # 教材の受け渡し用の一時ファイル
 _transfer/
 *.txz
+# 第14章のサンプルは、node_modules の探し方を見せるために node_modules を同梱する
+!part03-js-node-basics/ch14-modules-npm/samples/*/node_modules/

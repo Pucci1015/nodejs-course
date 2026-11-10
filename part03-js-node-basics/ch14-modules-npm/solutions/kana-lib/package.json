@@ -1,7 +1,7 @@
 {
   "name": "kana-lib",
   "version": "0.1.0",
-  "description": "ひらがな・カタカナ・ローマ字を変換する小さなライブラリ（第14章 練習問題5）",
+  "description": "ひらがな・カタカナ・ローマ字を変換する小さなライブラリ（第14章 練習問題9）",
   "type": "module",
   "exports": {
     ".": "./src/index.mjs",
@@ -19,6 +19,6 @@
   },
   "license": "MIT",
   "scripts": {
-    "test": "node --test test/"
+    "test": "node --test \"test/*.test.mjs\""
   }
 }

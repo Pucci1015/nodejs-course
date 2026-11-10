@@ -1,7 +1,7 @@
-// 練習問題3: イベントを配る「ハブ」と、SSE のルート
-// 要件は exercises/README.md の問題3です。確かめ方:
+// 練習問題6: イベントを配る「ハブ」と、SSE のルート
+// 要件は exercises/README.md の問題6です。確かめ方:
 //   $ node --test event-hub.test.mjs
-import { formatEvent } from './sse-format.mjs'; // 問題2で作ったもの（1行の data なら、ひな形のままでも動く）
+import { formatEvent } from './sse-format.mjs'; // 問題5で作ったもの（1行の data なら、ひな形のままでも動く）
 
 export function createEventHub({ bufferSize = 100 } = {}) {
   const listeners = [];

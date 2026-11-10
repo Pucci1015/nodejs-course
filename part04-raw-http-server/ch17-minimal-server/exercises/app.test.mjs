@@ -1,4 +1,4 @@
-// 練習問題3のテスト。サーバを空いているポート（0）で起動して、fetch で確かめる
+// 練習問題5のテスト。サーバを空いているポート（0）で起動して、fetch で確かめる
 // 使い方: node --test app.test.mjs
 //         MODULE=../solutions/app.mjs node --test app.test.mjs   （解答例で確かめる）
 import { test } from 'node:test';

@@ -1,4 +1,4 @@
-// 練習問題6 用: lag-monitor.mjs の createLagMonitor のテスト
+// 練習問題9 用: lag-monitor.mjs の createLagMonitor のテスト
 // 使い方: node --test lag-monitor.test.mjs
 //   模範解答を試す: MODULE=../solutions/lag-monitor.mjs node --test lag-monitor.test.mjs
 import { test } from 'node:test';

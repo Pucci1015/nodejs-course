@@ -1,10 +1,10 @@
-// 練習問題4: 小さなテンプレートエンジンを作る（Jinja2 の、ごく一部）
+// 練習問題7: 小さなテンプレートエンジンを作る（Jinja2 の、ごく一部）
 // テスト: node --test template.test.mjs
 //
 //   const render = compile('<h1>{{ title }}</h1>{% for t in tasks %}<li>{{ t.title }}</li>{% endfor %}');
 //   render({ title: '一覧', tasks: [{ title: 'A & B' }] })   → '<h1>一覧</h1><li>A &amp; B</li>'
 //
-// 決まり（README の問題4に詳しく書いてある）
+// 決まり（README の問題7に詳しく書いてある）
 //   {{ 名前 }}  {{ 名前.名前 }}   値をエスケープして出す。無い名前・null・undefined・false は何も出さない
 //   {{ 名前 | raw }}  {{ 名前 | upper }}  {{ 名前 | length }}   フィルタ。いくつでもつなげる
 //   {% if 名前 %} … {% else %} … {% endif %}       空の配列も「偽」

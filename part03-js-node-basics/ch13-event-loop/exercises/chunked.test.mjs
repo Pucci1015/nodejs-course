@@ -1,4 +1,4 @@
-// 練習問題3 用: chunked.mjs の processInChunks のテスト
+// 練習問題5 用: chunked.mjs の processInChunks のテスト
 // 使い方: node --test chunked.test.mjs
 //   模範解答を試す: MODULE=../solutions/chunked.mjs node --test chunked.test.mjs
 import { test } from 'node:test';

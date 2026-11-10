@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 練習問題6 用: fetch-all.mjs が要件どおりに動くか確かめる
+# 練習問題9 用: fetch-all.mjs が要件どおりに動くか確かめる
 # 使い方: ./check-fetch-all.sh
 #   模範解答を試す: TARGET=../solutions/fetch-all.mjs ./check-fetch-all.sh
 # flaky-server.mjs は、このスクリプトが確かめるたびに起動し直す（id ごとの回数を最初からにするため）。

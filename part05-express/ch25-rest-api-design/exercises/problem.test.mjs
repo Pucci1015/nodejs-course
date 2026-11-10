@@ -1,4 +1,4 @@
-// 練習問題2のテスト
+// 練習問題5のテスト
 // 使い方: node --test problem.test.mjs
 //         MODULE=../solutions/problem.mjs node --test problem.test.mjs   （解答例で確かめる）
 import { test, before, after, beforeEach } from 'node:test';

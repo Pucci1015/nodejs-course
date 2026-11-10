@@ -1,4 +1,4 @@
-// 練習問題6のテスト
+// 練習問題8のテスト
 // 使い方: node --test preconditions.test.mjs
 //         MODULE=../solutions/preconditions.mjs node --test preconditions.test.mjs   （解答例で確かめる）
 import { test } from 'node:test';

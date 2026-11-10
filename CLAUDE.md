@@ -45,7 +45,7 @@ nodejs/                        ← 教材のルート（このファイルがあ
 
 ### 実習の場所（学習者の指定、2026-11-09。徹底する）
 
-- **実習はすべて `~/dev/` の下で行う。** 教材のフォルダ（`nodejs/`、OneDrive 上）は「見本」として残すので、学習者に、そこでファイルを作らせたり、そこでコマンドを実行させたりしない（`cd` で教材のフォルダに入って `node samples/...` を動かす、も避ける）。
+- **実習はすべて `~/dev/` の下で行う。** 教材のフォルダ（`~/Documents/nodejs-course`。以前は OneDrive 上の `nodejs/`）は「見本」として残すので、学習者に、そこでファイルを作らせたり、そこでコマンドを実行させたりしない（`cd` で教材のフォルダに入って `node samples/...` を動かす、も避ける）。
 - 各章の最初（「読み方」の囲みの中）に、その章の作業フォルダ `~/dev/chNN/` を作り、教材の `samples/`・`exercises/` をそこへコピーする手順を書く。以降のコマンドは、すべて `~/dev/chNN/` で実行する前提で書く。
 
   ```sh
@@ -56,6 +56,9 @@ nodejs/                        ← 教材のルート（このファイルがあ
   教材のフォルダのパスは長く空白や日本語を含むので、「`cp -R ` まで打ってから、Finder から `samples` と `exercises` のフォルダをターミナルにドラッグし、最後に ` .` を打つ」と説明する。
 - 学習者が書くファイルも `~/dev/chNN/` に置く。模範解答（`solutions/`）は見比べるためのもので、動かすときは同じように `~/dev/chNN/` にコピーしてから動かす。
 - 練習用のファイルを作るスクリプトは、作成先の既定を `~/dev/...` にする（4節）。
+- **第3部以降は、部のフォルダを丸ごと `~/dev/partNN/` にコピーする**（2026-11-09 決定）。章の練習問題やサンプルが、前の章の模範解答（例: 第4部の `../../ch17-minimal-server/solutions/app.mjs`）を `import` するので、章ごとのコピーでは相対パスが壊れるため。部の最初の章の「読み方」に `cp -R （Finder から partNN-xxx をドラッグ） ~/dev/partNN` を書き、2回目は打たないよう注意する。各章の「読み方」では `cd ~/dev/partNN/chNN-xxx` から始める。第5部は従来どおり `setup-part05.sh` が `~/dev/part05` にコピーする。
+- 部をまたぐ参照（別の部のファイルを読む・`import` する）は作らない。必要なファイルはその部の中にコピーする（例: 第1部のアクセスログ → 第3部 第11章 `exercises/access.log`）。
+- 教材のフォルダは、2026-11-09 から Mac の `~/Documents/nodejs-course`（Git のリポジトリ、`main` ブランチ）。
 
 ## 3. 本文（章の README.md）の書き方
 
@@ -196,7 +199,7 @@ nodejs/                        ← 教材のルート（このファイルがあ
 | アクセスログの各列（メソッド、パス、ステータス） | 第1章6節 | 第2部 第6章（練習問題5の `logged-server.mjs`）✅ |
 | `process.exitCode`、終了ステータス | 第1章7節、第2章練習問題10 | 第3部 第16章 ✅ |
 | `forEach` と async、`Promise.all`、unhandled rejection | （第1部では扱わない） | 第3部 第12〜13章 ✅ |
-| 第1部から外した問題（2026-11-09、学習者の決定）: 非同期の合計のバグ（旧 第4章 `bug-async.mjs`。forEach + async、Promise.all）、オプションのオブジェクトの共有のバグ（旧 第4章 `bug-shared-options.mjs`。参照とコピー）、環境を診断する `env-report.mjs`（旧 第2章。child_process・JSON） | 第1部では扱わない（削除済み） | 第3部を作り直すときに、デバッガの練習として第11〜12章・第15章に入れる |
+| 第1部から外した問題（2026-11-09、学習者の決定）: 非同期の合計のバグ（旧 第4章 `bug-async.mjs`。forEach + async、Promise.all）、オプションのオブジェクトの共有のバグ（旧 第4章 `bug-shared-options.mjs`。参照とコピー）、環境を診断する `env-report.mjs`（旧 第2章。child_process・JSON） | 第1部では扱わない（削除済み） | 第3部を作り直すときに入れる。オプションの共有は第11章 練習問題3（`buggy-receipt.mjs`）、非同期の合計は第12章 練習問題2（`buggy-total.mjs`）に入れた ✅。`env-report` は第15章 練習問題3（`env-report.mjs`）に入れた ✅ |
 | `.mjs`、`node:` プレフィックス、ES Modules | 第2章サンプル | 第3部 第14章 ✅ |
 | npm、semver、`sudo npm install -g` をしない理由 | 第1章8.3節、第2章6.6節 | 第3部 第14章 ✅ |
 | パストラバーサル対策、MIME タイプ | 第4章 `serve.mjs` | 第4部 第19章 ✅ |
@@ -230,20 +233,20 @@ nodejs/                        ← 教材のルート（このファイルがあ
 
 ### 第3部（作成済み）で学習者が持っているもの
 
-- 第11章: 型と比較、クロージャ、`this`、プロトタイプとクラス、参照とコピー。解答の部品: `once`・`memoize`・`debounce`・`pipe`（`functions.mjs`）、`parseLine`・`summarize`（アクセスログの集計。`log-summary.mjs`）、`LRUCache`、`deepEqual`・`setIn`
-- 第12章: Promise と async/await、`Promise.all`・`allSettled`・`race`・`any`、ループと `await`、`AbortController`・`AbortSignal.timeout`・`AbortSignal.any`。解答の部品: `promisify`・`callbackify`、`mapLimit`（上限付きの並行、`signal` 対応）、`retry`（指数バックオフ・タイムアウト・中止）
-- 第13章: タスクとマイクロタスク（ESM のトップレベルではマイクロタスクが `nextTick` より先、CJS では逆）、フェーズ、libuv のスレッドプール、イベントループを止める処理、Worker（`report-worker.mjs`）、`setImmediate` で分割（`chunked.mjs`）、ReDoS（`slug.mjs`）、`monitorEventLoopDelay` と自作の遅れの監視（`lag-monitor.mjs`）、プロセスが終わる条件（`unref`）
-- 第14章: ESM と CJS とその混ぜ方（`require(esm)`、トップレベル await があると `ERR_REQUIRE_ASYNC_MODULE`）、`exports`・`imports`（`#config`）、semver（`semver.mjs` を自作）、ロックファイルと `npm ci`、npm scripts と `node_modules/.bin`、install scripts の危険（npm 11 の `allowScripts`）、`npm pack` と `files`。iconv-lite（cp932）と tldts（`allowPrivateDomains`）を使った
-- 第15章: `path`、`fs/promises` とエラーの code、**壊れない書き込み** `writeFileAtomic`・`updateJson`（`atomic.mjs`）、EventEmitter（`JobQueue`）、Buffer と文字コードの境目（`TextDecoder` の `stream`）、Stream・`pipeline`・背圧・Transform（`createLineSplitter`）、`readline`、gzip のログを流して集計、`execFile` と `exec`、上限付きでフォルダを歩く `dirSize`
-- 第16章: シバン・`bin`・`npm link`、`util.parseArgs` とサブコマンド、`isTTY`、`styleText` と `NO_COLOR`・`FORCE_COLOR`、`process.exit()` はパイプへの出力を切る（`exitCode` を使う）、EPIPE、SIGINT・SIGTERM（130・143、2回目はすぐ終わる）、XDG と設定の優先順位（`loadConfig`）、`confirm`（端末でなければ `--yes` が必要）、CLI を `spawn` でテストする
+- 第11章: 型と比較、クロージャ、`this`、プロトタイプとクラス、参照とコピー。解答の部品: `makeCounter`（`counter.mjs`）、`undoneTitles`・`totalMinutes`・`countByTag`・`sortByMinutes`（`tasks.mjs`）、`makeReceipt`（`receipt.mjs`）、`once`・`memoize`・`debounce`・`pipe`（`functions.mjs`）、`parseLine`・`summarize`（アクセスログの集計。`log-summary.mjs`）、`LRUCache`、`deepEqual`・`setIn`
+- 第12章: Promise と async/await、`Promise.all`・`allSettled`・`race`・`any`、ループと `await`、`AbortController`・`AbortSignal.timeout`・`AbortSignal.any`。解答の部品: `delay`・`delayFail`・`valueOr`（`timers.mjs`）、`totalPrice`、`getPricesSerial`・`getPricesParallel`・`getPricesSettled`（`prices.mjs`）、`promisify`・`callbackify`、`mapLimit`（上限付きの並行、`signal` 対応）、`retry`（指数バックオフ・タイムアウト・中止）
+- 第13章: 解答の部品: `nextTask`・`sumSquaresAsync`、`countPrimesInWorker`（`worker-count.mjs`）、`startHeartbeat`（`unref`）。タスクとマイクロタスク（ESM のトップレベルではマイクロタスクが `nextTick` より先、CJS では逆）、フェーズ、libuv のスレッドプール、イベントループを止める処理、Worker（`report-worker.mjs`）、`setImmediate` で分割（`chunked.mjs`）、ReDoS（`slug.mjs`）、`monitorEventLoopDelay` と自作の遅れの監視（`lag-monitor.mjs`）、プロセスが終わる条件（`unref`）
+- 第14章: 解答の部品: `cart.mjs`（`subtotal`・`withTax`・default の `formatYen`）、`cart.cjs`、`scripts-practice`（`pre` スクリプト、`&&`）。ESM と CJS とその混ぜ方（`require(esm)`、トップレベル await があると `ERR_REQUIRE_ASYNC_MODULE`）、`exports`・`imports`（`#config`）、semver（`semver.mjs` を自作）、ロックファイルと `npm ci`、npm scripts と `node_modules/.bin`、install scripts の危険（npm 11 の `allowScripts`）、`npm pack` と `files`。iconv-lite（cp932）と tldts（`allowPrivateDomains`）を使った
+- 第15章: 解答の部品: `readJson`・`writeJson`・`listMarkdown`（`json-files.mjs`）、`StepCounter`、`commandVersion`・`envReport`（`env-report.mjs`）。`path`、`fs/promises` とエラーの code、**壊れない書き込み** `writeFileAtomic`・`updateJson`（`atomic.mjs`）、EventEmitter（`JobQueue`）、Buffer と文字コードの境目（`TextDecoder` の `stream`）、Stream・`pipeline`・背圧・Transform（`createLineSplitter`）、`readline`、gzip のログを流して集計、`execFile` と `exec`、上限付きでフォルダを歩く `dirSize`
+- 第16章: 解答の部品: `greet-cli.mjs`（`parseArgs`、終了コード 2）、`upper.mjs`（標準入力を Buffer のまま集める）、`countdown.mjs`（SIGINT で 130、`TICK_MS`）。シバン・`bin`・`npm link`、`util.parseArgs` とサブコマンド、`isTTY`、`styleText` と `NO_COLOR`・`FORCE_COLOR`、`process.exit()` はパイプへの出力を切る（`exitCode` を使う）、EPIPE、SIGINT・SIGTERM（130・143、2回目はすぐ終わる）、XDG と設定の優先順位（`loadConfig`）、`confirm`（端末でなければ `--yes` が必要）、CLI を `spawn` でテストする
 - 成果物 `project-memo-cli/solutions/`: `memo` コマンド（外部パッケージなし）。front matter は JSON の形で書き YAML の一部だけを読む、id は `YYYYMMDD-HHmmss` で前方一致、利用者の id はパスに使わず一覧と照らし合わせる、新規作成は一時ファイル + `link`（上書きしない）、書き直しは一時ファイル + `rename`、`rm` は `.trash` へ移す、エディタはシェルを通さず `spawn`。テストは `node --test "test/*.test.mjs"`、`cli.test.mjs` は `MEMO_BIN` で学習者の実装も確かめられる
 
 ### 第3部で決めた書き方・作り方（第4部以降もそろえる）
 
-- ポート: 第12章 9120・9121 / 第13章 9130〜9132（第14〜16章と成果物はポートを使わない）。第4部は 9170 以降など、別の番号の帯を使う
+- ポート: 第12章 9120・9121 / 第13章 9130〜9133（第14〜16章と成果物はポートを使わない）。第4部は 9170 以降など、別の番号の帯を使う
 - 練習問題のひな形は、書く場所に `// ここを書く`。解答の直したところは `// 修正:`、足したところは `// 追加:`。テストか確認スクリプトで「直す前に何個失敗するか」を問題文に書く
 - 確認スクリプトは `bash check-xxx.sh [確かめるファイル]` のように **`bash` を付けて**動かす前提で書く（OneDrive の同期で実行の許可が外れることがあるため）。`check 名前 期待 実際` の関数で `[OK]`・`[NG]` を出し、最後に「すべて成功しました」か「N 件失敗しました」（終了ステータス 1）
-- 一時ファイルは `os.tmpdir()`（`fs.mkdtemp`）に作り、最後に消す。`npm install` するものは `~/dev` の下（第14章は `setup-ch14.sh` で `~/dev/ch14` を作る。既にあれば何もしない）
+- 一時ファイルは `os.tmpdir()`（`fs.mkdtemp`）に作り、最後に消す。`npm install` するものは `~/dev` の下（第14章は、部のコピー `~/dev/part03` の中の `exercises/packages`・`exercises/deps`・自分で作る `my-app` で npm install する。2026-11-09 に `setup-ch14.sh` と `~/dev/ch14` をやめた）。教材の中の `node_modules` は `ch14-modules-npm/samples/resolve` と `samples/scripts-demo` だけで、Mac のリポジトリの `.gitignore` で例外にする
 - 章をまたいで解答を使うときは、相対パスで `import` してよい（例: 第15章の `log-stream.test.mjs` は `../../ch11-js-refresher/solutions/log-summary.mjs` の `parseLine` を使う）。成果物には、使う解答を `src/` にコピーした
 - 子プロセスで node を起動するときは `process.execPath` を使う。CLI のテストでは `env` を必要なものだけにし、`HOME` を一時フォルダにする
 - 端末でしか確かめられない動き（`Ctrl+C`、`Ctrl+D`、色）は、擬似端末（Python の `pty`）で実際に確かめてから書いた
@@ -254,32 +257,32 @@ nodejs/                        ← 教材のルート（このファイルがあ
 
 | 予告した内容 | 予告した場所 | 回収する部・章 |
 | --- | --- | --- |
-| パストラバーサル（`path.join` は `..` を止めない、`path.relative` で外を指すか調べる） | 第15章 練習問題1、成果物 2.2節 | 第4部 第19章 ✅ |
+| パストラバーサル（`path.join` は `..` を止めない、`path.relative` で外を指すか調べる） | 第15章 練習問題4、成果物 2.2節 | 第4部 第19章 ✅ |
 | ボディの大きさの上限、Stream で読むリクエストのボディ | 第15章7節 | 第4部 第20章 ✅ |
 | サーバを止めるとき（受け付けをやめ、処理中を終えてから終わる） | 第16章8.2節 | 第4部 第17章 ✅、第12部 第60章 |
 | `crypto.timingSafeEqual`、パスワードのハッシュ化 | 第15章8.1節 | 第10部 第51・52章 |
 | コマンドインジェクション（`exec` と `execFile`）、エディタをシェルで起動しない | 第15章8.2節、成果物 3.4節 | 第10部 第55章 |
 | 依存パッケージの危険（install scripts、typosquatting、`npm audit`） | 第14章12節 | 第10部 第55章 |
 | Worker のプール、複数プロセス、イベントループの遅れの監視 | 第13章6〜7節 | 第12部 第66章 |
-| ReDoS を静的解析で見つける（eslint-plugin-regexp など） | 第13章 練習問題5 | 第11部 第59章 |
-| 同時に書き直すと片方が消える（ロック、楽観的ロック、一意制約） | 第15章 練習問題2、成果物 5節 | 第6部 第30章 |
+| ReDoS を静的解析で見つける（eslint-plugin-regexp など） | 第13章 練習問題6 | 第11部 第59章 |
+| 同時に書き直すと片方が消える（ロック、楽観的ロック、一意制約） | 第15章 練習問題5、成果物 5節 | 第6部 第30章 |
 | テストの考え方（関数のテストと外からのテストの分け方） | 第16章10節 | 第11部 第56章 |
 
 ### 第4部（作成済み）で学習者が持っているもの
 
 章をまたいで、前の章の模範解答を相対パスで `import` して使う作りにした。後の部でも、これらの部品と比べながら説明できる。
 
-- 第17章: `createApp(handler, { logger, now })`（例外を 400 番台は `HttpError` のメッセージで・それ以外は 500 で JSON にする、`X-Request-Id`、`close` でアクセスログ）と `HttpError(status, message, { headers })`（`solutions/app.mjs`）、`sendText`・`sendHtml`・`sendJson`・`redirect`・`noContent`（`solutions/send.mjs`）、グレースフルシャットダウン（`server.close()` は Node 19 以降 idle の接続も閉じる。止めている間の応答には `Connection: close`）、`headersTimeout`・`requestTimeout`
-- 第18章: `Router`（`get`/`post`/…、`handle` はアロー関数のフィールド。`req.pathname`・`req.query`（URLSearchParams）・`req.params`、405 + Allow、HEAD → GET、OPTIONS は 204、最後の `/` は 308（`//` へは送らない）、URIError は 400）、`parsePattern`・`matchPath`・`comparePatterns`（`:name` と最後の `*`）、`parseQuery`・`QueryError`、Koa 風の `compose`。URLPattern は Node 26 でグローバル
-- 第19章: `safePath`・`resolveFile`（`path.relative` で外を指すか、ドットファイル、シンボリックリンク）、`serveStatic(root, { mount, index, cacheControl, range })`（弱い ETag・304・Range・HEAD）、`parseRange`、`negotiateEncoding`、`samples/mime.mjs` の `contentType`・`isCompressible`。nosniff で text/plain の JS が動かないことは Chromium で確かめた
-- 第20章: `readBody`（`Content-Length` で先に断る、`data` + `pause` で数える。`for await` の途中の `throw` では 413 を返せない）・`mediaType`・`readText`・`readJson`・`readForm`（`solutions/body.mjs`）、`safeMerge`（JSON Merge Patch、`__proto__` などは 400）・`pick`、`detectImageType`・`saveImage`（中身で種類を調べ、名前は randomUUID）、`samples/form-data.mjs` の `readFormData`（上限付きで読んでから `Request.formData()`）
-- 第21章: `samples/mini-html.mjs` の `html` タグ・`raw`・`escapeHtml`・`SafeHtml`（null・undefined・false は出さない、配列はつなぐ）、`attrs`・`safeUrl`（http・https・mailto・相対だけ）・`jsonForScript`（`<>&`・U+2028/2029 を `\uXXXX`）・`queryString`（`solutions/html-helpers.mjs`）、`layout`・`taskList`・`paginate`・`pagination`（`solutions/views.mjs`）、小さなテンプレートエンジン `compile`（tokenize → parse → render、`Object.hasOwn` だけをたどる、eval しない）、CSP の nonce
-- 第22章: `parseCookies`・`serializeCookie`（名前は token、SameSite=None には Secure、`__Host-`・`__Secure-` の決まり）・`clearCookie`（`solutions/cookie.mjs`）、`sign`・`unsign`（HMAC、最後の `.`、鍵の配列で取り替え、32 文字以上）・`signJson`・`unsignJson`（`iat` で期限）、`SessionStore`（`ttlMs`・`now`、`create`/`get`/`set`/`destroy`/`regenerate`/`prune`）・`withSession`（`res.writeHead` を包んで保存、知らない ID は使わない、空のセッションは作らない、`req.regenerateSession()`・`req.destroySession()`、`Cache-Control: no-store`）・`newSessionId`（32 バイトの base64url）、パスワードは salt 付きの scrypt + `timingSafeEqual`（無いユーザーでもダミーで計算）、flash、CSRF トークン
-- 成果物 `project-bbs/solutions/`: 簡易掲示板（`~/dev/bbs` で作る。外部パッケージなし、ポート 9230）。`src/lib/` に第17〜22章と第3部の `atomic.mjs` をコピー（`import` のパスだけ変更）。`Store`（JSON のファイル、書き込みは Promise の鎖で1つずつ、`writeFileAtomic`）、`createBbsApp({ store, sessions, publicDir })` = `withSession(createApp(handler))`、`HttpError` は HTML の画面（401 は /login へ、/api と 413 は JSON のまま）、見るだけの客にはセッションを作らない、CSP は `script-src 'none'`。テスト `test/bbs.test.mjs` は `BBS_SERVER` のサーバを子プロセスで起動し（9231、`DATA_DIR` は一時フォルダ）、HTTP だけで 17 個確かめる
+- 第17章: 解答の部品: `handler`（`greeting.mjs`。`new URL` でパスとクエリ）、`createCounterHandler`（クロージャで数を持つ JSON）、`safe(handler)`（例外を 500、`headersSent` なら `destroy`）。手を動かす: `hello.mjs`・`events.mjs`・`respond.mjs`・`safe-server.mjs`・`stop-server.mjs`（9179）。`createApp(handler, { logger, now })`（例外を 400 番台は `HttpError` のメッセージで・それ以外は 500 で JSON にする、`X-Request-Id`、`close` でアクセスログ）と `HttpError(status, message, { headers })`（`solutions/app.mjs`）、`sendText`・`sendHtml`・`sendJson`・`redirect`・`noContent`（`solutions/send.mjs`）、グレースフルシャットダウン（`server.close()` は Node 19 以降 idle の接続も閉じる。止めている間の応答には `Connection: close`）、`headersTimeout`・`requestTimeout`
+- 第18章: 解答の部品: `splitPath`、`findRoute`（表を引く、404・405・HEAD、Allow はアルファベット順）、`readPage`・`readSort`・`readListQuery`。手を動かす: `tasks-if.mjs`・`parse-url.mjs`・`routes-table.mjs`・`mw.mjs`（9183）。`Router`（`get`/`post`/…、`handle` はアロー関数のフィールド。`req.pathname`・`req.query`（URLSearchParams）・`req.params`、405 + Allow、HEAD → GET、OPTIONS は 204、最後の `/` は 308（`//` へは送らない）、URIError は 400）、`parsePattern`・`matchPath`・`comparePatterns`（`:name` と最後の `*`）、`parseQuery`・`QueryError`、Koa 風の `compose`。URLPattern は Node 26 でグローバル
+- 第19章: 解答の部品: `contentTypeOf`（`Object.hasOwn`）、`isInside`・`isHidden`、`weakEtag`・`isNotModified`（弱い比較）。手を動かす: `my-mime.mjs`・`inside.mjs`・`file-server.mjs`・`etag-server.mjs`（9196、`path.resolve('samples/public')` なので章のフォルダで動かす）。`safePath`・`resolveFile`（`path.relative` で外を指すか、ドットファイル、シンボリックリンク）、`serveStatic(root, { mount, index, cacheControl, range })`（弱い ETag・304・Range・HEAD）、`parseRange`、`negotiateEncoding`、`samples/mime.mjs` の `contentType`・`isCompressible`。nosniff で text/plain の JS が動かないことは Chromium で確かめた
+- 第20章: 解答の部品: `mediaTypeOf`・`isJson`・`isForm`、`readContactForm`（`URLSearchParams` の get・getAll・has）、`validateMessage`（オブジェクトか、name 1〜20・text 1〜200、決めたキーだけ）。手を動かす: `read-body.mjs`・`form-server.mjs`・`json-server.mjs`・`pick-keys.mjs`（9206）。`readBody`（`Content-Length` で先に断る、`data` + `pause` で数える。`for await` の途中の `throw` では 413 を返せない）・`mediaType`・`readText`・`readJson`・`readForm`（`solutions/body.mjs`）、`safeMerge`（JSON Merge Patch、`__proto__` などは 400）・`pick`、`detectImageType`・`saveImage`（中身で種類を調べ、名前は randomUUID）、`samples/form-data.mjs` の `readFormData`（上限付きで読んでから `Request.formData()`）
+- 第21章: 解答の部品: `escapeHtml`・`textToHtml`、`commentItem`・`commentList`、`selectBox`（どれも `html` タグで、結果は `SafeHtml`）。手を動かす: `escape.mjs`・`tag-demo.mjs`（`esc` の入れ子で二重のエスケープ）・`book-page.mjs`（9216。自分のファイルは `./samples/mini-html.mjs` を import）。7節の `\u003c` が文字に化けていたのを直した。`samples/mini-html.mjs` の `html` タグ・`raw`・`escapeHtml`・`SafeHtml`（null・undefined・false は出さない、配列はつなぐ）、`attrs`・`safeUrl`（http・https・mailto・相対だけ）・`jsonForScript`（`<>&`・U+2028/2029 を `\uXXXX`）・`queryString`（`solutions/html-helpers.mjs`）、`layout`・`taskList`・`paginate`・`pagination`（`solutions/views.mjs`）、小さなテンプレートエンジン `compile`（tokenize → parse → render、`Object.hasOwn` だけをたどる、eval しない）、CSP の nonce
+- 第22章: 解答の部品: `getCookie`・`cookieLine`、`addFlash`・`takeFlash`（flash は配列）、`newToken`・`ensureCsrf`・`checkCsrf`（timingSafeEqual）。手を動かす: `visits.mjs`・`my-session.mjs`（9226。自分のファイルは `./samples/cookie-basic.mjs` を import、curl -c/-b）・`random-id.mjs`・`my-sign.mjs`（鍵は dev-only の値）。`parseCookies`・`serializeCookie`（名前は token、SameSite=None には Secure、`__Host-`・`__Secure-` の決まり）・`clearCookie`（`solutions/cookie.mjs`）、`sign`・`unsign`（HMAC、最後の `.`、鍵の配列で取り替え、32 文字以上）・`signJson`・`unsignJson`（`iat` で期限）、`SessionStore`（`ttlMs`・`now`、`create`/`get`/`set`/`destroy`/`regenerate`/`prune`）・`withSession`（`res.writeHead` を包んで保存、知らない ID は使わない、空のセッションは作らない、`req.regenerateSession()`・`req.destroySession()`、`Cache-Control: no-store`）・`newSessionId`（32 バイトの base64url）、パスワードは salt 付きの scrypt + `timingSafeEqual`（無いユーザーでもダミーで計算）、flash、CSRF トークン
+- 成果物 `project-bbs/solutions/`: 簡易掲示板（`~/dev/bbs` で作る。外部パッケージなし、ポート 9230）。`src/lib/` に第17〜22章と第3部の `atomic.mjs` をコピー（`import` のパスだけ変更）。`Store`（JSON のファイル、書き込みは Promise の鎖で1つずつ、`writeFileAtomic`）、`createBbsApp({ store, sessions, publicDir })` = `withSession(createApp(handler))`、`HttpError` は HTML の画面（401 は /login へ、/api と 413 は JSON のまま）、見るだけの客にはセッションを作らない、CSP は `script-src 'none'`。テスト `test/bbs.test.mjs` は `BBS_SERVER` のサーバを子プロセスで起動し（9231、`DATA_DIR` は一時フォルダ）、HTTP だけで 17 個確かめる。`src/lib/` と第5部の `lib/` のファイルの1行目は「第NN章 練習問題N」と章を付けて書く（番号は付け直した後のもの）。部品は `~/dev/part04` からコピーする
 
 ### 第4部で決めた書き方・作り方（第5部以降もそろえる）
 
-- ポート: 第17章 9170〜9179 / 第18章 9180〜9184 / 第19章 9190〜9195 / 第20章 9200〜9205 / 第21章 9210〜9215 / 第22章 9220〜9225 / 成果物 9230（テスト 9231）。第5部は 9300 以降など、別の帯を使う
+- ポート: 第17章 9170〜9179（「手を動かす」は 9179）/ 第18章 9180〜9184（「手を動かす」は 9183）/ 第19章 9190〜9196（「手を動かす」は 9196）/ 第20章 9200〜9206（「手を動かす」は 9206）/ 第21章 9210〜9216（「手を動かす」は 9216） / 第22章 9220〜9226（「手を動かす」は 9226） / 成果物 9230（テスト 9231）。第5部は 9300 以降など、別の帯を使う
 - 確認スクリプトは、サーバが落ちても後の確認がすべて失敗しないように、`restart_if_dead` で起動し直す（ただし「その後もサーバが動いている」の確認の直前には呼ばない）
 - サーバを相手にするテスト（`*.test.mjs`）の `fetch` には `AbortSignal.timeout(…)` を付ける（ひな形が応答しないとテストが止まるため）。テストのサーバは `listen(0)` か専用のポート
 - Flask と比べる節（各章の1節）は、まず Flask（と Werkzeug・Jinja2・itsdangerous）が何をしていたかを説明してから、Node.js で同じことを書く。最後の節は「Flask との対応」の表
@@ -292,7 +295,7 @@ nodejs/                        ← 教材のルート（このファイルがあ
 | 予告した内容 | 予告した場所 | 回収する部・章 |
 | --- | --- | --- |
 | 自作の Router・`createApp`・`compose`・`readForm`・`serveStatic`・`withSession` と Express の対応 | 各章の最後の節、成果物 6節 | 第5部 第23〜24章 ✅ |
-| 入力の確かめをライブラリで（zod など）、エラーの形をそろえる | 第20章 練習問題4、成果物 2.2節 | 第5部 第25章 ✅、第7部 第38章 |
+| 入力の確かめをライブラリで（zod など）、エラーの形をそろえる | 第20章 練習問題3・8、成果物 2.2節 | 第5部 第25章 ✅、第7部 第38章 |
 | セッションをデータベース・Redis に置く、サーバが複数台 | 第22章 4.3節 | 第6部 第34章、第10部 第52章 |
 | JSON のファイルの代わりにデータベース、一意制約、同時の書き込み | 成果物 3.3節 | 第6部 第29〜31章 |
 | パスワードのハッシュ（bcrypt・argon2 との比べ）、認証と認可 | 第22章 6.1節、成果物 3.5節 | 第10部 第51章 |
@@ -304,19 +307,19 @@ nodejs/                        ← 教材のルート（このファイルがあ
 
 ### 第5部（作成済み）で学習者が持っているもの
 
-第5部は外部パッケージを使う。`part05-express/setup-part05.sh` が部のフォルダを `~/dev/part05` にコピーして `npm ci --ignore-scripts`（作成先があれば何もしない）。`package.json` で版を固定: express 5.3.0、cors 2.8.6、morgan 1.12.1、express-session 1.19.0、zod 4.6.7、pino 10.4.0、ws 8.22.1、fastify 5.12.8、hono 4.13.16、@hono/node-server 2.1.6。`part05-express/lib/` に第4部の部品と `problem.mjs` のコピー（章をまたぐ `import` はここを通す）。
+第5部は外部パッケージを使う。第23章の最初に `bash （Finder から setup-part05.sh をドラッグ）` で1回だけ動かす。`part05-express/setup-part05.sh` が部のフォルダを `~/dev/part05` にコピーして `npm ci --ignore-scripts`（作成先があれば何もしない）。`package.json` で版を固定: express 5.3.0、cors 2.8.6、morgan 1.12.1、express-session 1.19.0、zod 4.6.7、pino 10.4.0、ws 8.22.1、fastify 5.12.8、hono 4.13.16、@hono/node-server 2.1.6。`part05-express/lib/` に第4部の部品と `problem.mjs` のコピー（章をまたぐ `import` はここを通す）。
 
-- 第23章: Express 5 の動き（`req.query` は getter で代入すると例外、同じ名前のクエリは配列、405 は無く 404、HEAD・OPTIONS は自動、`res.send(数)` の落とし穴、async の throw は 500 に届く、自動の弱い ETag）。`resource`（405 + Allow）、第21章のエンジンをビューエンジンに
-- 第24章: `mini-express`（列と `next`）、`rateLimit`（固定の窓、`RateLimit-*`・`Retry-After`）、`accessLog`、express-session の正しい設定。Express の `next()` は Promise を返さない
-- 第25章: `HttpProblem`・`problemHandler`・`notFound`（problem+json、ZodError → 422 + `errors[].pointer`、body-parser のエラーの読み替え）、`paginate`（署名つきカーソル、値で探す、1件多く取る）、`parseListQuery`（`z.coerce` を使わず数字だけの文字列、知らない名前・2回の指定は 400 + `errors[].parameter`）、`evaluatePreconditions`（RFC 9110 13.2.2 の順、強い比べ方と弱い比べ方、428）、冪等キーのサンプル
-- 第26章: 3つの層（routes → services → repositories、エラーはサービスのクラスを `mapDomainErrors` で HTTP に）、`loadConfig`（zod で環境変数、値はエラーに書かない、`ConfigError`）、pino と `requestLogger`（応答の後に1行、`reqId`、`redactUrl`）、`/healthz`・`/readyz`、SIGTERM で止める（遅らせる・時間切れで 1）
-- 第27章: ポーリング・ロングポーリング（`createWaiter` の片付け）・SSE（`formatEvent`・`createEventStreamParser`、`createEventHub`・`sseRoute`、`Last-Event-ID` と `reset`、心拍）・WebSocket（手書きのハンドシェイクとフレーム、ws、Origin の完全一致、`maxPayload`、心拍）。Node 22+ のグローバルな `WebSocket` は Origin を送らない
-- 第28章: 同じ API を Express・Fastify・Hono・Web 標準のハンドラで書き、`contract.mjs` の同じテストで確かめる。Fastify の既定（`coerceTypes`、`removeAdditional`、text/plain を読む、レスポンスのスキーマに無い項目は出ない、`err.validationContext`）。Web 標準とつなぐアダプタ（`rawHeaders`、`getSetCookie`、流す、`request.signal`）、小さなルーター（URLPattern、405、HEAD、玉ねぎのミドルウェア）。Koa・NestJS はコードの形だけ
+- 第23章: 解答の部品: `parseId`・`toArray`、`createGreetApp`、`notFound`・`errorHandler`。手を動かす: `hello.mjs`・`routes.mjs`・`body.mjs`・`errors.mjs`（9307）。Express 5 の動き（`req.query` は getter で代入すると例外、同じ名前のクエリは配列、405 は無く 404、HEAD・OPTIONS は自動、`res.send(数)` の落とし穴、async の throw は 500 に届く、自動の弱い ETag）。`resource`（405 + Allow）、第21章のエンジンをビューエンジンに
+- 第24章: 解答の部品: `requestId`（ひな形も next を呼ぶミドルウェアを返す）、`requireJson`、`createTasksRouter`。手を動かす: `order.mjs`・`timing.mjs`・`require-key.mjs`（dev-only の鍵）・`routers.mjs`（9317）。`mini-express`（列と `next`）、`rateLimit`（固定の窓、`RateLimit-*`・`Retry-After`）、`accessLog`、express-session の正しい設定。Express の `next()` は Promise を返さない
+- 第25章: 解答の部品: `problem`・`toErrors`、`CreateTask`（zod）、`parseLimit`・`nextLink`。手を動かす: `problem-api.mjs`・`zod-try.mjs`・`etag-lock.mjs`（9327）。`HttpProblem`・`problemHandler`・`notFound`（problem+json、ZodError → 422 + `errors[].pointer`、body-parser のエラーの読み替え）、`paginate`（署名つきカーソル、値で探す、1件多く取る）、`parseListQuery`（`z.coerce` を使わず数字だけの文字列、知らない名前・2回の指定は 400 + `errors[].parameter`）、`evaluatePreconditions`（RFC 9110 13.2.2 の順、強い比べ方と弱い比べ方、428）、冪等キーのサンプル
+- 第26章: 解答の部品: `readPort`・`readLogLevel`、`createHealthRouter({ isReady })`、`maskQuery`。手を動かす: `service-split.mjs`・`config-check.mjs`・`pino-log.mjs`・`graceful.mjs`（9337）。3つの層（routes → services → repositories、エラーはサービスのクラスを `mapDomainErrors` で HTTP に）、`loadConfig`（zod で環境変数、値はエラーに書かない、`ConfigError`）、pino と `requestLogger`（応答の後に1行、`reqId`、`redactUrl`）、`/healthz`・`/readyz`、SIGTERM で止める（遅らせる・時間切れで 1）
+- 第27章: 解答の部品: `toSse`・`ping`、`createWaiters`、`isAllowedOrigin`・`parseChatMessage`。手を動かす: `long-wait.mjs`・`sse-clock.mjs`・`ws-echo.mjs`・`ws-client.mjs`（9347。クライアントは `new WebSocket(url, { headers: { Origin } })` で Origin を付ける）。ポーリング・ロングポーリング（`createWaiter` の片付け）・SSE（`formatEvent`・`createEventStreamParser`、`createEventHub`・`sseRoute`、`Last-Event-ID` と `reset`、心拍）・WebSocket（手書きのハンドシェイクとフレーム、ws、Origin の完全一致、`maxPayload`、心拍）。Node 22+ のグローバルな `WebSocket` は Origin を送らない
+- 第28章: 解答の部品: `readJson`・`problemResponse`、`createHelloApp`（Hono、`app.request` で試す）、`buildApp`（Fastify、`app.inject`）。手を動かす: `fastify-try.mjs`・`hono-try.mjs`・`web-serve.mjs`（9357）。練習問題は8問（基本4・応用2・発展2）。同じ API を Express・Fastify・Hono・Web 標準のハンドラで書き、`contract.mjs` の同じテストで確かめる。Fastify の既定（`coerceTypes`、`removeAdditional`、text/plain を読む、レスポンスのスキーマに無い項目は出ない、`err.validationContext`）。Web 標準とつなぐアダプタ（`rawHeaders`、`getSetCookie`、流す、`request.signal`）、小さなルーター（URLPattern、405、HEAD、玉ねぎのミドルウェア）。Koa・NestJS はコードの形だけ
 - 成果物 `project-task-api/solutions/`（`task-api` パッケージ。`~/dev/task-api` で作る。express・zod・pino・cors だけ、ポート 9360）: 第26章 9節の形。`src/lib/`・`src/middleware/` に前の章の解答をコピーし、変えた所に `// 追加（成果物）:`・`// 変更（成果物）:`。タスクは `{ id, title, status, dueDate, createdAt, updatedAt, completedAt, version }`、ETag は `"version"`、PATCH・DELETE は If-Match 必須（428・412）、`expectedVersion` をデータの層まで渡す（SQL の `WHERE version = $2` にあたる）、サービスは `publish(type, task)` だけを受け取り、`server.mjs` が hub につなぐ。SSE は `task.created`・`task.updated`・`task.deleted`、止めるときに `sse.closeAll()` で `shutdown` を送ってから `server.close()`。設定は第26章の `loadConfig` に `CURSOR_SECRET`（本番で必須）・`RATE_LIMIT_PER_MINUTE`・`MAX_DOING`・`SSE_HEARTBEAT_MS` を足した。テスト `test/api.test.mjs` は `API_SERVER` のサーバを子プロセスで起動し（9361、一部 9362）、HTTP だけで 25 個確かめる
 
 ### 第5部で決めた書き方・作り方（第6部以降もそろえる）
 
-- ポート: 第23章 9300〜9309 / 第24章 9310〜9319 / 第25章 9320〜9329 / 第26章 9330〜9339 / 第27章 9340〜9349 / 第28章 9350〜9359 / 成果物 9360（テスト 9361・9362）。第6部は 9400 以降など、別の帯を使う
+- ポート: 第23章 9300〜9309 / 第24章 9310〜9319 / 第25章 9320〜9329 / 第26章 9330〜9339 / 第27章 9340〜9349 / 第28章 9350〜9359 / 成果物 9360（テスト 9361・9362）。「手を動かす」は各章の 9307・9317・9327・9337・9347・9357。サンプルは章のフォルダで `node samples/x.mjs` と動かす（先頭のコメントもその形）。第6部は 9400 以降など、別の帯を使う
 - サーバのサンプルは `listen(port)` を export し、`import.meta.main`（Node 24.2+）のときだけ決まった番号で待つ。テストは空いている番号
 - 第6部以降の成果物は、前の部の `project-task-api/solutions/` を出発点にする。データの層の形（`list`・`get`・`insert`・`update(id, fields, { expectedVersion })`・`remove(id, { expectedVersion })`）を保ったまま PostgreSQL に替える。`test/api.test.mjs` は、そのまま通ることを目標にする
 - 外のパッケージの版で変わる動き（Fastify の ajv の既定など）は、実際に入れた版で確かめ、版を書く
@@ -327,7 +330,7 @@ nodejs/                        ← 教材のルート（このファイルがあ
 | 予告した内容 | 予告した場所 | 回収する部・章 |
 | --- | --- | --- |
 | カーソルの条件・`WHERE version = $2`・冪等キーをデータベースで（索引、トランザクション、一意制約） | 第25章 6.2・7.3・8.2節、成果物 3.3節 | 第6部 第30章 |
-| 並べ替えの項目を決めた表から選ぶ理由（SQL インジェクション）、プレースホルダ | 第25章 練習問題1の解答 | 第6部 第31章 |
+| 並べ替えの項目を決めた表から選ぶ理由（SQL インジェクション）、プレースホルダ | 第25章 練習問題4の解答 | 第6部 第31章 |
 | メモリのデータの層を PostgreSQL のものに取り替える | 第26章 3・9節、成果物 7節 | 第6部 第31〜33章 |
 | 回数の制限・SSE のハブ・セッションを複数台で共有（Redis、Pub/Sub） | 第24章 5節、第27章 4.5節 | 第6部 第34章、第12部 第66章 |
 | zod のスキーマから TypeScript の型を作る | 第25章 5.1節 | 第7部 第38章 |

@@ -17,11 +17,27 @@
 | --- | --- |
 | [solutions/](solutions/) | 完成例（`task-api` パッケージ）。外から HTTP で確かめるテスト付き |
 
+> **読み方**
+> - 作るのは、新しいフォルダ `~/dev/task-api` です（1節で作ります）。自分のコードはここに書きます。
+> - 部品と完成例は、第23章で `setup-part05.sh` を動かして作った `~/dev/part05` の中にあります。1.1節では、そこから部品をコピーします。
+> - 完成例を動かしてみるときは、[solutions/README.md](solutions/README.md) のとおり `~/dev/task-api-example` にコピーしてから動かします。
+> - 一度に全部作ろうとせず、3.2節の順番で1つずつ作って、そのつど curl で確かめてください。
+
+## この成果物で身につくことを、後でどこで使うか
+
+| 身につくこと | 後で使う場面 |
+| --- | --- |
+| 第23〜28章の部品を組み合わせて、層に分けた API にする | 第6部（データの層を PostgreSQL に替える）、第7部（TypeScript にする） |
+| ETag と If-Match、冪等キー、ページ分け | 第6部 第30章（同時の書き換え）、第8部（画面から使う） |
+| SSE でタスクの変化を配る | 第8部（React の一覧を新しくする） |
+| 設定・ログ・ヘルスチェック・止め方 | 第12部（Docker・PaaS で本番に出す） |
+| 外から HTTP だけで確かめるテスト | 第6部からのすべての部（中を作り替えても同じかを確かめる） |
+
 ---
 
 ## 1. 準備
 
-作業は `~/dev/task-api` で行い、Git で管理します（教材のフォルダは OneDrive の中なので、`node_modules` や Git のリポジトリを作らないようにします）。
+作業は `~/dev/task-api` で行い、Git で管理します（教材のフォルダは見本として残しておくため、そこには書きません）。
 
 ```sh
 $ mkdir -p ~/dev/task-api && cd ~/dev/task-api
@@ -32,6 +48,10 @@ $ npm install --save-exact express@5.3.0 zod@4.6.7 pino@10.4.0 cors@2.8.6
 $ mkdir -p src/{lib,middleware,routes,services,repositories} test
 $ printf 'node_modules/\n.env\n' > .gitignore   # .env（自分の設定）はコミットしない
 ```
+
+- `mkdir -p`・`git init`・`npm init -y`・`printf … > .gitignore` は、第4部の成果物（掲示板）の1節と同じです。`src/{lib,middleware,…}` の `{}` は、中の名前を1つずつ当てはめて、いくつものフォルダをまとめて作る書き方です。
+- `mise use node@24` は、このフォルダで使う Node.js を 24 に決めて、`mise.toml` に書きます。
+- `npm install パッケージ@バージョン` は、決まったバージョンのパッケージを入れます。
 
 > バージョンは、執筆時点で教材を確かめたものです。新しいものを入れてもかまいませんが、動きが違ったら、まずこのバージョンで試してください。`--save-exact` は、`package.json` に `^` を付けずに書く指定です（第3部 第14章）。
 
@@ -60,23 +80,23 @@ $ printf 'node_modules/\n.env\n' > .gitignore   # .env（自分の設定）は�
 
 | コピーするもの | 元の場所 | 完成例での名前 |
 | --- | --- | --- |
-| `problemHandler`・`notFound`・`HttpProblem` | `part05-express/lib/problem.mjs`（第25章 練習問題2） | `src/middleware/problem.mjs` |
-| `parseListQuery` | 第25章 `solutions/query.mjs`（練習問題4） | `src/routes/list-query.mjs` |
-| `paginate` | 第25章 `solutions/cursor.mjs`（練習問題3） | `src/lib/cursor.mjs` |
-| `signJson`・`unsignJson` | `part05-express/lib/signed.mjs`（第22章 練習問題3） | `src/lib/signed.mjs` |
-| `evaluatePreconditions` | 第25章 `solutions/preconditions.mjs`（練習問題6） | `src/lib/preconditions.mjs` |
-| `rateLimit` | 第24章 `solutions/rate-limit.mjs`（練習問題3） | `src/middleware/rate-limit.mjs` |
-| `loadConfig` | 第26章 `solutions/config.mjs`（練習問題2） | `src/config.mjs` |
+| `problemHandler`・`notFound`・`HttpProblem` | `part05-express/lib/problem.mjs`（第25章 練習問題5） | `src/middleware/problem.mjs` |
+| `parseListQuery` | 第25章 `solutions/query.mjs`（練習問題6） | `src/routes/list-query.mjs` |
+| `paginate` | 第25章 `solutions/cursor.mjs`（練習問題7） | `src/lib/cursor.mjs` |
+| `signJson`・`unsignJson` | `part05-express/lib/signed.mjs`（第22章 練習問題6） | `src/lib/signed.mjs` |
+| `evaluatePreconditions` | 第25章 `solutions/preconditions.mjs`（練習問題8） | `src/lib/preconditions.mjs` |
+| `rateLimit` | 第24章 `solutions/rate-limit.mjs`（練習問題5） | `src/middleware/rate-limit.mjs` |
+| `loadConfig` | 第26章 `solutions/config.mjs`（練習問題5） | `src/config.mjs` |
 | エラーのクラス | 第26章 `solutions/errors.mjs` | `src/errors.mjs` |
-| `createTaskService` | 第26章 `solutions/task-service.mjs`（練習問題3） | `src/services/tasks.mjs` |
+| `createTaskService` | 第26章 `solutions/task-service.mjs`（練習問題6） | `src/services/tasks.mjs` |
 | `createMemoryTaskRepo` | 第26章 `solutions/memory-task-repo.mjs` | `src/repositories/memory-tasks.mjs` |
-| `requestLogger` | 第26章 `solutions/request-logger.mjs`（練習問題4。第24章の `accessLog` の代わりに使う） | `src/middleware/request-logger.mjs` |
-| `createTasksRouter`・`mapDomainErrors` | 第26章 `solutions/tasks-routes.mjs`（練習問題5） | `src/routes/tasks.mjs` |
-| `formatEvent` | 第27章 `solutions/sse-format.mjs`（練習問題2） | `src/lib/sse-format.mjs` |
-| `createEventHub`・`sseRoute` | 第27章 `solutions/event-hub.mjs`（練習問題3） | `src/lib/event-hub.mjs` |
+| `requestLogger` | 第26章 `solutions/request-logger.mjs`（練習問題7。第24章の `accessLog` の代わりに使う） | `src/middleware/request-logger.mjs` |
+| `createTasksRouter`・`mapDomainErrors` | 第26章 `solutions/tasks-routes.mjs`（練習問題8） | `src/routes/tasks.mjs` |
+| `formatEvent` | 第27章 `solutions/sse-format.mjs`（練習問題5） | `src/lib/sse-format.mjs` |
+| `createEventHub`・`sseRoute` | 第27章 `solutions/event-hub.mjs`（練習問題6） | `src/lib/event-hub.mjs` |
 
 ```sh
-$ N=~/Library/CloudStorage/OneDrive-個人用/program/nodejs/part05-express
+$ N=~/dev/part05                 # 第23章で作った、第5部のコピー
 $ cp $N/lib/problem.mjs src/middleware/problem.mjs
 $ cp $N/ch25-rest-api-design/solutions/cursor.mjs src/lib/
 $ cp $N/ch26-app-structure/solutions/task-service.mjs src/services/tasks.mjs
@@ -130,7 +150,7 @@ $ cp $N/ch26-app-structure/solutions/task-service.mjs src/services/tasks.mjs
 | 終わったタスク | `status` を戻すこと以外（題名・締め切り）は変えられない | 409 |
 | ボディ | 知らない項目（`id`・`version`・`done` など）は不可。オブジェクトでない（配列など）も不可 | 422 |
 
-これは、第26章 練習問題3の決まりと同じです。
+これは、第26章 練習問題6の決まりと同じです。
 
 ### 2.3 一覧のクエリ
 
@@ -142,7 +162,7 @@ $ cp $N/ch26-app-structure/solutions/task-service.mjs src/services/tasks.mjs
 | `limit` | 1〜100 の、数字だけの文字列 | 20 |
 | `cursor` | 前のページの `nextCursor` | — |
 
-- 間違い（知らない名前、2回の指定、`limit=' 20'`、`limit=2e1` など）は 400。本文の `errors` に、`{ "parameter": "limit", "detail": "…" }` の形で、どれが違うかを入れる（第25章 練習問題4）
+- 間違い（知らない名前、2回の指定、`limit=' 20'`、`limit=2e1` など）は 400。本文の `errors` に、`{ "parameter": "limit", "detail": "…" }` の形で、どれが違うかを入れる（第25章 練習問題6）
 - ページ分けはカーソル（第25章 6.2節）。カーソルは署名して、作り変えられたら 400。別の `sort` で作ったカーソルも 400
 - 並べる値が同じものは `id` の順。**締め切りの無いもの（`null`）は、昇順のときいちばん後ろ**（降順では前）
 - 途中でタスクが足されたり消されたりしても、カーソルで読み進めて、重なりや抜けが出ない
@@ -214,7 +234,7 @@ $ PORT=9300 LOG_LEVEL=debug npm start
 | `SSE_HEARTBEAT_MS` | `15000` | SSE の心拍 |
 | `SHUTDOWN_DELAY_MS` | `0` | 止める合図から、新しい接続を断るまで |
 | `SHUTDOWN_TIMEOUT_MS` | `10000` | それでも終わらないとき、あきらめるまで |
-| `SESSION_SECRET` | — | まだ使わない（第10部）。`production` では必須（第26章 練習問題2のまま） |
+| `SESSION_SECRET` | — | まだ使わない（第10部）。`production` では必須（第26章 練習問題5のまま） |
 
 - 起動するときに1回だけ確かめ、間違っていたら、**名前と理由だけ**（値は書かない）を書いて、終了コード 1 で終わる
 

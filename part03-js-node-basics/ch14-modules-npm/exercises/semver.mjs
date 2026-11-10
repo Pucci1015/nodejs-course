@@ -1,4 +1,4 @@
-// 練習問題2: npm が使っている semver（セマンティック バージョニング）の判定を、自分で作ってください。
+// 練習問題8: npm が使っている semver（セマンティック バージョニング）の判定を、自分で作ってください。
 // 要件は README と semver.test.mjs にあります。npm の semver パッケージは使わずに書きます。
 // 確かめ方: node --test semver.test.mjs
 

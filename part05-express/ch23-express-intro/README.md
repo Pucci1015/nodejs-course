@@ -11,11 +11,32 @@ Express は Node.js でいちばん長く使われている Web フレームワ�
 
 | フォルダ | 中身 |
 | --- | --- |
-| [samples/](samples/) | 最小のアプリ、ルーティング、req と res、ボディ、静的ファイル、ビューエンジン、エラー |
+| [samples/](samples/) | 本文で書くプログラムの完成形（`hello.mjs`・`routes.mjs`・`body.mjs`・`errors.mjs`）と、最小のアプリ、ルーティング、req と res、ボディ、静的ファイル、ビューエンジン、エラーを確かめるプログラム |
 | [exercises/](exercises/) | 練習問題 |
-| [solutions/](solutions/) | 模範解答（問題2の `tasks-app.mjs` は、第24・25章の出発点にもなります） |
+| [solutions/](solutions/) | 模範解答（問題5の `tasks-app.mjs` は、第24・25章の出発点にもなります） |
 
-> この章のサンプルと練習問題は、`npm` で入れた Express を使います。先に、[第5部の README](../README.md) の「準備」で `~/dev/part05` を作り、その中で動かしてください。
+> **読み方**
+> - 第5部の実習は `~/dev/part05/` で行います（教材のフォルダは見本として残しておくため）。第5部は npm のパッケージ（Express など）を使うので、コピーと `npm ci` をまとめてする `setup-part05.sh` を、**この章の最初に1回だけ**動かします。
+>
+>   ```sh
+>   $ bash （ここに Finder から part05-express フォルダの中の setup-part05.sh をドラッグ）
+>   $ cd ~/dev/part05/ch23-express-intro
+>   ```
+>
+>   `bash ファイル` は、シェルのスクリプトを動かします。`setup-part05.sh` は、第5部のフォルダを `~/dev/part05` にコピーし、そこで `npm ci`（ロックファイルのとおりにパッケージを入れる。第3部 第14章）をします。`~/dev/part05` が既にあれば、何もせずに終わります。
+> - この章のコマンドは、すべて `~/dev/part05/ch23-express-intro/` で実行します。
+> - 「**手を動かす**」の所は、新しいファイルに書いて動かしてください。ファイルの完成形は `samples/` にあります。「中身は読まなくてよい」と書いたサンプルは、動かして結果を見るだけで十分です。
+> - 「手を動かす」のサーバは 9307 番を使います。次のサーバを動かす前に `Ctrl+C` で止めてください。`curl` は別のターミナルで打ちます。
+> - `import express from 'express'` は、`~/dev/part05/node_modules` に入った Express を読み込みます。`~/dev/part05` の中なら、どのフォルダのファイルからでも読み込めます。
+
+## この章で学ぶことを、後でどこで使うか
+
+| この章で学ぶこと | 後で使う場面 |
+| --- | --- |
+| Express のアプリとルート、`req.params`・`req.query`（2・3節） | 第5部のすべての章、成果物のタスク API |
+| `express.json()` と 415・422（5節） | 第25章（zod で確かめる）、成果物 |
+| 404 のミドルウェアとエラーハンドラ（8節） | 第24章（エラーの流れ）、第25章（problem+json） |
+| 第4部の部品との対応（9節） | 第28章（ほかのフレームワークと比べる） |
 
 ---
 
@@ -63,7 +84,7 @@ http.createServer(app).listen(9300, '127.0.0.1');
 Flask との大きな違いは、**ハンドラが値を返すのではなく、`res` に書く**ことです。これは第4部の `node:http` と同じ形です。実は `app` は、第17章の `createApp` が返したものと同じ「`(req, res)` を受け取る関数」で、`http.createServer(app)` にそのまま渡せます。
 
 ```sh
-$ node hello-express.mjs
+$ node samples/hello-express.mjs
 typeof app = function
 http://127.0.0.1:9300/ で待っています（Ctrl+C で止める）
 ```
@@ -82,18 +103,47 @@ http://127.0.0.1:9300/ で待っています（Ctrl+C で止める）
 
 ### 2.1 第5部の作業用フォルダを作る
 
-第5部からは npm のパッケージを使います。第3部 第14章で学んだように、`node_modules` を OneDrive の中に作らないため、第5部のフォルダを `~/dev/part05` にコピーして、そこで動かします。
-
-```sh
-$ cd ~/Library/CloudStorage/OneDrive-個人用/program/nodejs/part05-express   # 教材のフォルダ（自分の場所に合わせる）
-$ bash setup-part05.sh            # ~/dev/part05 を作り、npm ci で Express などを入れる
-$ cd ~/dev/part05/ch23-express-intro/samples
-$ node hello-express.mjs
-```
+第5部からは npm のパッケージを使います。教材のフォルダは見本として残しておくため、第5部のフォルダを `~/dev/part05` にコピーして、そこに `node_modules` を作ります。この章の最初の「読み方」で、`setup-part05.sh` を動かして作りました。
 
 `setup-part05.sh` は、第5部のフォルダの `package.json` と `package-lock.json` を使って `npm ci` をします。ロックファイルのおかげで、誰が入れても同じ版のパッケージになります（第3部 第14章 9節）。執筆時点では Express 5.3.0 を使っています。
 
 > Express には、長く使われた 4 系と、2024年に出た 5 系があります。インターネットの記事やサンプルの多くは 4 系で書かれていて、5 系では動きが違うところがあります（この章では、違うところに印を付けます）。版と変更点は、必ず公式で確かめてください: https://expressjs.com/en/guide/migrating-5.html
+
+**手を動かす**: いちばん小さな Express のアプリ `hello.mjs` を作ります（完成形は [samples/hello.mjs](samples/hello.mjs)）。
+
+```js
+import express from 'express';
+
+const PORT = 9307;
+const app = express();
+app.disable('x-powered-by'); // 何で動いているかを外に知らせない
+
+app.get('/hello/:name', (req, res) => {
+  res.json({ message: `こんにちは、${req.params.name}さん` });
+});
+
+console.log('typeof app =', typeof app);
+app.listen(PORT, '127.0.0.1', () => console.log(`http://127.0.0.1:${PORT}/ で待っています（Ctrl+C で止める）`));
+```
+
+```sh
+$ node hello.mjs
+typeof app = function
+http://127.0.0.1:9307/ で待っています（Ctrl+C で止める）
+# 別のターミナルで
+$ curl -i http://127.0.0.1:9307/hello/alice
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+Content-Length: 43
+ETag: W/"2b-8U4nKxxhvOraYVei0Nz9wlWdPXI"
+...
+
+{"message":"こんにちは、aliceさん"}
+```
+
+- `express()` でアプリを作り、`app.get(パス, ハンドラ)` でルートを登録します。`:name` の所が `req.params.name` に入ります。
+- `res.json(値)` は、値を JSON にして、Content-Type と Content-Length も付けて返します。`ETag` も自動で付きます（4.1節）。
+- `app.disable('x-powered-by')` が何をしているかは、次の 2.2節で説明します。
 
 ### 2.2 `app.listen` と `X-Powered-By`
 
@@ -112,7 +162,7 @@ Express は、既定で `X-Powered-By: Express` というヘッダを付けま�
 
 ### 3.1 ルートとパスパラメータ
 
-ルートは `app.メソッド(パス, ハンドラ)` で登録します（[samples/routes-demo.mjs](samples/routes-demo.mjs)）。
+ルートは `app.メソッド(パス, ハンドラ)` で登録します。下の結果は [samples/routes-demo.mjs](samples/routes-demo.mjs) を `node samples/routes-demo.mjs` で動かして確かめたものです（中身は読まなくてよい）。
 
 ```js
 app.get('/tasks/stats', (req, res) => res.json({ route: 'GET /tasks/stats' }));
@@ -138,7 +188,7 @@ $ curl -s http://127.0.0.1:9301/archive/2026
 | `*path` | 残り全部（1つ以上のセグメント）。値は `/` で分けた**配列** | `*`（文字列） |
 | `{/:year}` | `{}` の中は、あってもなくてもよい | なし |
 
-- `req.params` の値は、いつも文字列（`*` は文字列の配列）です。数にするのも、形を確かめるのも、ハンドラの仕事です（練習問題2）
+- `req.params` の値は、いつも文字列（`*` は文字列の配列）です。数にするのも、形を確かめるのも、ハンドラの仕事です（練習問題5）
 - Express 5 では、パスに正規表現の記号（`?`・`+`・`(`）を書けなくなりました。4 系の記事にある `'/tasks/:id(\\d+)'` や `'/files/*'` は、5 系ではエラーになります
 - 壊れた `%xx`（`/tasks/%zz`）は、Express が 400 にします
 
@@ -149,13 +199,72 @@ $ curl -s 'http://127.0.0.1:9301/tasks?tag=a&tag=b&page=2'
 {"route":"GET /tasks","query":{"tag":["a","b"],"page":"2"}}
 ```
 
-`req.query` は、URL の `?` の後をオブジェクトにしたものです。**同じ名前が2回あると配列になる**ので、`req.query.tag` が文字列だと決めつけると、`?tag=a&tag=b` だけで `toLowerCase is not a function` の 500 になります（練習問題4）。第18章の `URLSearchParams` の `get` は「最初の1つ」を返したので、この心配はありませんでした。
+`req.query` は、URL の `?` の後をオブジェクトにしたものです。**同じ名前が2回あると配列になる**ので、`req.query.tag` が文字列だと決めつけると、`?tag=a&tag=b` だけで `toLowerCase is not a function` の 500 になります（練習問題9）。第18章の `URLSearchParams` の `get` は「最初の1つ」を返したので、この心配はありませんでした。
 
 Express 5 の既定（`query parser` が `simple`）では、`a[b]=1` のような書き方を入れ子にせず、`'a[b]'` という名前のまま扱います。4 系の既定は入れ子にする書き方（`extended`）で、`?user[admin]=true` のように、思わない形のオブジェクトを作られる原因になっていました（第20章 6節のプロトタイプ汚染と同じ種類の危険）。
 
+**手を動かす**: パスパラメータとクエリを読む `routes.mjs` を作ります（完成形は [samples/routes.mjs](samples/routes.mjs)）。
+
+```js
+import express from 'express';
+
+const PORT = 9307;
+const app = express();
+app.disable('x-powered-by');
+
+const tasks = [
+  { id: 1, title: '牛乳を買う', tags: ['買い物'] },
+  { id: 2, title: '第23章を読む', tags: ['勉強', 'node'] },
+];
+
+app.get('/tasks', (req, res) => {
+  console.log('req.query =', req.query);
+  const tag = req.query.tag;
+  // ?tag=a なら文字列、?tag=a&tag=b なら配列、無ければ undefined
+  const tags = tag === undefined ? [] : Array.isArray(tag) ? tag : [tag];
+  const found = tags.length === 0 ? tasks : tasks.filter((t) => tags.some((x) => t.tags.includes(x)));
+  res.json(found);
+});
+
+// 具体的なルートを先に書く（/tasks/:id より前）
+app.get('/tasks/stats', (req, res) => {
+  res.json({ count: tasks.length });
+});
+
+app.get('/tasks/:id', (req, res) => {
+  console.log('req.params =', req.params);
+  const id = Number(req.params.id); // req.params の値は、いつも文字列
+  const task = tasks.find((t) => t.id === id);
+  if (!task) {
+    return res.status(404).json({ error: 'not_found' });
+  }
+  res.json(task);
+});
+
+app.listen(PORT, '127.0.0.1', () => console.log(`http://127.0.0.1:${PORT}/ で待っています（Ctrl+C で止める）`));
+```
+
+```sh
+$ node routes.mjs
+# 別のターミナルで
+$ curl -s 'http://127.0.0.1:9307/tasks?tag=a&tag=node'
+[{"id":2,"title":"第23章を読む","tags":["勉強","node"]}]
+$ curl -s http://127.0.0.1:9307/tasks/stats
+{"count":2}
+$ curl -s http://127.0.0.1:9307/tasks/2
+{"id":2,"title":"第23章を読む","tags":["勉強","node"]}
+$ curl -si http://127.0.0.1:9307/tasks/9 | head -1
+HTTP/1.1 404 Not Found
+```
+
+- サーバのターミナルに `req.query = [Object: null prototype] { tag: [ 'a', 'node' ] }` と出ます。`?tag=a&tag=node` で配列になりました。`[Object: null prototype]` は、プロトタイプの無いオブジェクトという印です（`__proto__` のような名前でも、ただのキーになります）。
+- `Array.isArray(tag) ? tag : [tag]` で、文字列のときも配列のときも、配列にそろえています。
+- `/tasks/stats` を `/tasks/:id` より先に書いたので、`stats` は `:id` になりません（3.4節）。
+- `Number(req.params.id)` で数にしています。`'abc'` なら `NaN` になり、どのタスクとも一致しないので 404 です。形の確かめは練習問題1で作ります。
+
 ### 3.3 Express が既定でしないこと
 
-第18章の Router と同じリクエストを送って比べると、違いが見えます（[exercises/compare-routers.mjs](exercises/compare-routers.mjs)、練習問題6）。
+第18章の Router と同じリクエストを送って比べると、違いが見えます（[exercises/compare-routers.mjs](exercises/compare-routers.mjs)、練習問題7）。
 
 ```sh
 $ curl -si -X DELETE http://127.0.0.1:9301/tasks | head -1
@@ -182,7 +291,7 @@ app.set('strict routing', true);        // /tasks と /tasks/ を区別する
 app.set('case sensitive routing', true); // /tasks と /TASKS を区別する
 ```
 
-405 を返す設定はありません。返したいときは、自分で足します（練習問題3）。
+405 を返す設定はありません。返したいときは、自分で足します（練習問題6）。
 
 ### 3.4 ルートの順番と `app.route`
 
@@ -216,7 +325,7 @@ app
 | ヘッダ | `setHeader` | `res.set(名前, 値)`、`res.location(url)`、`res.type('text/plain')` |
 | ファイル | 第19章の `serveStatic` | `res.sendFile(絶対パス)`、`express.static`（6節） |
 
-`res.send` は、渡した値の種類で Content-Type を決めます（[samples/req-res-demo.mjs](samples/req-res-demo.mjs)）。
+`res.send` は、渡した値の種類で Content-Type を決めます（[samples/req-res-demo.mjs](samples/req-res-demo.mjs) を `node samples/req-res-demo.mjs` で動かして確かめます。中身は読まなくてよい）。
 
 ```sh
 $ curl -si http://127.0.0.1:9302/send/text | tr -d '\r' | grep -E '^(HTTP|Content-Type|ETag)'
@@ -231,7 +340,7 @@ Content-Type: application/json; charset=utf-8
 ```
 
 - 文字列は `text/html`、オブジェクトと配列は JSON、Buffer は `application/octet-stream` です。利用者の入力を文字列のまま `res.send` すると、HTML として表示されます（第21章の XSS の注意がそのままあてはまります）
-- **`res.send(数)` は、数の JSON を 200 で返します**。Express 4 では「ステータスコード」の意味だったので、古い記事を写すとこの間違いになります（練習問題1・4）。ステータスは `res.status()` か `res.sendStatus()` で決めます
+- **`res.send(数)` は、数の JSON を 200 で返します**。Express 4 では「ステータスコード」の意味だったので、古い記事を写すとこの間違いになります（練習問題4・9）。ステータスは `res.status()` か `res.sendStatus()` で決めます
 - `res.send` と `res.json` は、本文から **ETag**（弱い ETag）を自動で付け、`If-None-Match` が同じなら 304 を返します（第2部 第7章、第19章 5節）。本文を作る手間は省けませんが、送る量は減ります
 - `res.status(204).json(…)` のように本文を付けても、204 なので本文は送られません
 
@@ -246,7 +355,7 @@ app.get('/twice', (req, res) => {
 });
 ```
 
-客には1回目の本文が届き、2回目は例外になってサーバのログに出ます。よくあるのは、「エラーを返した後の `return` を忘れる」形です（練習問題4）。
+客には1回目の本文が届き、2回目は例外になってサーバのログに出ます。よくあるのは、「エラーを返した後の `return` を忘れる」形です（練習問題9）。
 
 ```js
 if (!note) {
@@ -279,7 +388,7 @@ app.use(express.json());                            // すべてのルートで 
 app.post('/form', express.urlencoded({ extended: false }), handler); // このルートだけフォームを読む
 ```
 
-[samples/body-demo.mjs](samples/body-demo.mjs) で、第20章の `readJson`・`readForm` と比べます。
+[samples/body-demo.mjs](samples/body-demo.mjs) で、第20章の `readJson`・`readForm` と比べます（`node samples/body-demo.mjs` で動かします。中身は読まなくてよい）。
 
 ```sh
 $ curl -s -H 'Content-Type: application/json' -d '{"title":"牛乳"}' http://127.0.0.1:9303/json
@@ -303,8 +412,54 @@ $ curl -s -d 'title=牛乳&tag=a&tag=b' http://127.0.0.1:9303/form
 
 注意するのは2点です。
 
-- **Content-Type が違うと、エラーにならずに `req.body` が `undefined` になる**。そのまま `req.body.title` と書くと TypeError の 500 です。API なら、`req.is('application/json')` を確かめて 415 を返すのが親切です（練習問題2）
+- **Content-Type が違うと、エラーにならずに `req.body` が `undefined` になる**。そのまま `req.body.title` と書くと TypeError の 500 です。API なら、`req.is('application/json')` を確かめて 415 を返すのが親切です（練習問題5）
 - Express 5 では、ボディを読むミドルウェアを通っていないと `req.body` は `undefined` です（4 系では `{}` でした）。`req.body?.title` のように書くか、先に確かめます
+
+**手を動かす**: JSON でタスクを受け取る `body.mjs` を作ります。415 と 422 を自分で返します（完成形は [samples/body.mjs](samples/body.mjs)）。
+
+```js
+import express from 'express';
+
+const PORT = 9307;
+const app = express();
+app.disable('x-powered-by');
+app.use(express.json()); // Content-Type が application/json のボディを読んで req.body に入れる
+
+const tasks = [];
+
+app.post('/tasks', (req, res) => {
+  if (!req.is('application/json')) {
+    return res.status(415).json({ error: 'JSON で送ってください' });
+  }
+  const title = typeof req.body.title === 'string' ? req.body.title.trim() : '';
+  if (title.length < 1 || title.length > 100) {
+    return res.status(422).json({ error: 'title は 1〜100 文字で書いてください' });
+  }
+  const task = { id: tasks.length + 1, title };
+  tasks.push(task);
+  res.status(201).location(`/tasks/${task.id}`).json(task);
+});
+
+app.listen(PORT, '127.0.0.1', () => console.log(`http://127.0.0.1:${PORT}/ で待っています（Ctrl+C で止める）`));
+```
+
+```sh
+$ node body.mjs
+# 別のターミナルで
+$ curl -i -H 'Content-Type: application/json' -d '{"title":" 牛乳 "}' http://127.0.0.1:9307/tasks
+HTTP/1.1 201 Created
+Location: /tasks/1
+...
+{"id":1,"title":"牛乳"}
+$ curl -si -d 'title=x' http://127.0.0.1:9307/tasks | head -1
+HTTP/1.1 415 Unsupported Media Type
+$ curl -s -H 'Content-Type: application/json' -d '{"title":1}' http://127.0.0.1:9307/tasks
+{"error":"title は 1〜100 文字で書いてください"}
+```
+
+- `app.use(express.json())` で、すべてのルートの前に「JSON を読む」をはさみました。
+- `res.status(201).location(URL).json(値)` のように、`res` の関数は続けて書けます。`location` は `Location` ヘッダを付けます。
+- 壊れた JSON（`-d '{"title":'`）を送ると、400 の HTML が返り、スタックトレースまで見えます。これを直すのが 8節です。
 
 ### 5.2 中身の確かめは、まだ自分の仕事
 
@@ -314,7 +469,7 @@ $ curl -s -d 'title=牛乳&tag=a&tag=b' http://127.0.0.1:9303/form
 
 ## 6. 静的ファイル
 
-`express.static(フォルダ)` は、第19章の `serveStatic` と同じ仕事をするミドルウェアです（[samples/static-demo.mjs](samples/static-demo.mjs)）。
+`express.static(フォルダ)` は、第19章の `serveStatic` と同じ仕事をするミドルウェアです（[samples/static-demo.mjs](samples/static-demo.mjs) を `node samples/static-demo.mjs` で動かして確かめます。中身は読まなくてよい）。
 
 ```js
 app.use(express.static(publicDir));                                    // / の下に public を見せる
@@ -345,7 +500,7 @@ $ curl -s --path-as-is http://127.0.0.1:9304/assets/../static-demo.mjs
 | Cache-Control | `maxAge`（既定は `max-age=0`）、`immutable` |
 | 圧縮（gzip・br） | **しない**（`compression` というミドルウェアか、前に置くリバースプロキシの仕事） |
 
-`express.static` が守ってくれるのは「指定したフォルダの外」だけです。**指定したフォルダの中は、すべて公開されます**。`express.static(import.meta.dirname)` のようにソースのフォルダを渡すと、サーバのソースや `.env` 以外の設定ファイルまで読まれます（練習問題4）。公開するフォルダには、公開してよいファイルだけを入れます。
+`express.static` が守ってくれるのは「指定したフォルダの外」だけです。**指定したフォルダの中は、すべて公開されます**。`express.static(import.meta.dirname)` のようにソースのフォルダを渡すと、サーバのソースや `.env` 以外の設定ファイルまで読まれます（練習問題9）。公開するフォルダには、公開してよいファイルだけを入れます。
 
 見つからなかったときは、既定（`fallthrough: true`）で次のミドルウェアへ進みます。だから、`express.static` の後に API のルートや 404 を置けます。
 
@@ -353,10 +508,10 @@ $ curl -s --path-as-is http://127.0.0.1:9304/assets/../static-demo.mjs
 
 Flask は `render_template('index.html', title=…)` で、Jinja2 のテンプレートから HTML を作りました。Express の `res.render` も同じ仕事ですが、**テンプレートエンジンは Express に入っていません**。使うエンジンを登録します。
 
-ビューエンジンは「`(ファイルのパス, 値, コールバック)` を受け取って、文字列をコールバックに渡す関数」です。第21章で作った小さなテンプレートエンジンを、そのまま登録できます（[samples/view-engine-demo.mjs](samples/view-engine-demo.mjs)）。
+ビューエンジンは「`(ファイルのパス, 値, コールバック)` を受け取って、文字列をコールバックに渡す関数」です。第21章で作った小さなテンプレートエンジンを、そのまま登録できます（[samples/view-engine-demo.mjs](samples/view-engine-demo.mjs)。`node samples/view-engine-demo.mjs` で動かします）。
 
 ```js
-import { compile } from '../../lib/template.mjs'; // 第21章 練習問題4の解答のコピー
+import { compile } from '../../lib/template.mjs'; // 第21章 練習問題7の解答のコピー
 
 app.engine('html', async (filePath, options, callback) => {
   try {
@@ -380,7 +535,7 @@ $ curl -s 'http://127.0.0.1:9306/?q=<b>' | grep 検索
 ```
 
 - `res.render` に渡した値に、`app.locals`（すべての画面で使う値）と `res.locals`（このリクエストだけの値。第24章でミドルウェアから入れる）が混ざってテンプレートに渡ります
-- Express は、ほかにも `settings`（`app.set` の値すべて）を混ぜてきます。テンプレートから見えないようにするのが安全です（練習問題5）
+- Express は、ほかにも `settings`（`app.set` の値すべて）を混ぜてきます。テンプレートから見えないようにするのが安全です（練習問題8）
 - よく使われるエンジンは、EJS・Pug・Nunjucks（Jinja2 とほぼ同じ書き方）などです。どれを使うときも、**値を自動でエスケープするか、エスケープしない書き方はどれか**を最初に確かめます。たとえば EJS では `<%= 値 %>` がエスケープし、`<%- 値 %>` はしません（第21章 6節）
 
 第5部の後半では、画面ではなく JSON の API を作ります。画面は第8部で React で作るので、ビューエンジンはこの章で仕組みを知っておけば十分です。
@@ -389,7 +544,7 @@ $ curl -s 'http://127.0.0.1:9306/?q=<b>' | grep 検索
 
 ### 8.1 例外は Express が受け止める
 
-[samples/error-demo.mjs](samples/error-demo.mjs) で、ハンドラの中の例外がどうなるかを確かめます。
+[samples/error-demo.mjs](samples/error-demo.mjs) で、ハンドラの中の例外がどうなるかを確かめます（全体は読まなくてよい）。
 
 ```js
 app.get('/sync', (req, res) => { throw new Error('DB に接続できません: …'); });
@@ -415,11 +570,12 @@ Express 5 は、ハンドラが返した Promise を見ていて、reject され
 ### 8.2 既定のエラーハンドラは、開発中は中身を見せる
 
 ```sh
-$ node error-demo.mjs
+$ node samples/error-demo.mjs
+# 別のターミナルで
 $ curl -s http://127.0.0.1:9305/sync | grep pre
 <pre>Error: DB に接続できません: postgres://app:dev-only-password@127.0.0.1/app<br> &nbsp; &nbsp;at file:///…/error-demo.mjs:15:9<br> …
 
-$ NODE_ENV=production node error-demo.mjs
+$ NODE_ENV=production node samples/error-demo.mjs
 $ curl -s http://127.0.0.1:9305/sync | grep pre
 <pre>Internal Server Error</pre>
 ```
@@ -447,15 +603,71 @@ app.use((err, req, res, next) => {
 ```
 
 ```sh
-$ CUSTOM=1 node error-demo.mjs
+$ CUSTOM=1 node samples/error-demo.mjs
 $ curl -s http://127.0.0.1:9305/sync
 {"error":"internal","message":"サーバのエラーです"}
 $ curl -s http://127.0.0.1:9305/teapot
 {"error":"error","message":"ティーポットなのでコーヒーは入れられません"}
 ```
 
-- 引数が3つだと（`(err, req, res) => …`）、Express はふつうのミドルウェアだと思い、エラーのときには呼びません。気づきにくい間違いです（練習問題4）
-- 400 番台の `err.message` を客に見せてよいのは、自分で書いた文だけです。第17章の `HttpError` のように「見せてよいエラー」の型を作ると、区別しやすくなります（練習問題2の `ApiError`）。第25章では、エラーの形を標準の形（RFC 9457）にそろえます
+- 引数が3つだと（`(err, req, res) => …`）、Express はふつうのミドルウェアだと思い、エラーのときには呼びません。気づきにくい間違いです（練習問題9）
+- 400 番台の `err.message` を客に見せてよいのは、自分で書いた文だけです。第17章の `HttpError` のように「見せてよいエラー」の型を作ると、区別しやすくなります（練習問題5の `ApiError`）。第25章では、エラーの形を標準の形（RFC 9457）にそろえます
+
+**手を動かす**: 404 とエラーを JSON で返す `errors.mjs` を作ります（完成形は [samples/errors.mjs](samples/errors.mjs)）。
+
+```js
+import express from 'express';
+
+const PORT = 9307;
+const app = express();
+app.disable('x-powered-by');
+
+app.get('/boom', async (req, res) => {
+  await new Promise((resolve) => setTimeout(resolve, 10));
+  throw new Error('DB に接続できません: 秘密の接続先'); // 客に見せてはいけない文
+});
+
+app.get('/teapot', (req, res) => {
+  const err = new Error('ティーポットなのでコーヒーは入れられません');
+  err.status = 418;
+  throw err;
+});
+
+// どのルートにもあてはまらなかったとき。ルートをすべて書いた後に置く
+app.use((req, res) => {
+  res.status(404).json({ error: 'not_found', message: `${req.method} ${req.path} はありません` });
+});
+
+// エラーハンドラ。いちばん最後に置き、引数は必ず4つ
+app.use((err, req, res, next) => {
+  const status = err.status ?? 500;
+  if (status >= 500) console.error(err); // 詳しいことはサーバのログにだけ
+  if (res.headersSent) return next(err);
+  res.status(status).json({
+    error: status >= 500 ? 'internal' : 'error',
+    message: status >= 500 ? 'サーバのエラーです' : err.message,
+  });
+});
+
+app.listen(PORT, '127.0.0.1', () => console.log(`http://127.0.0.1:${PORT}/ で待っています（Ctrl+C で止める）`));
+```
+
+```sh
+$ node errors.mjs
+# 別のターミナルで
+$ curl -i http://127.0.0.1:9307/boom
+HTTP/1.1 500 Internal Server Error
+...
+{"error":"internal","message":"サーバのエラーです"}
+$ curl -s http://127.0.0.1:9307/teapot
+{"error":"error","message":"ティーポットなのでコーヒーは入れられません"}
+$ curl -s http://127.0.0.1:9307/nothing
+{"error":"not_found","message":"GET /nothing はありません"}
+```
+
+- `/boom` の例外の文（`秘密の接続先`）は、客には見えず、サーバのターミナルにだけ出ます。
+- `async` の関数の中の `throw` も、Express 5 が受け止めてエラーハンドラに渡しました（8.1節）。
+- 2つの `app.use` を、すべてのルートの**後**に書いています。前に書くと、どのリクエストも 404 になります。
 
 ## 9. 第4部の部品・Flask との対応
 
@@ -465,7 +677,7 @@ $ curl -s http://127.0.0.1:9305/teapot
 | ルート | `@app.route('/t/<id>', methods=['GET'])` | `router.get('/t/:id', h)` | `app.get('/t/:id', h)` |
 | パスパラメータ | 関数の引数 | `req.params.id` | `req.params.id`（文字列） |
 | クエリ | `request.args.get('q')` | `req.query.get('q')`（URLSearchParams） | `req.query.q`（文字列か配列） |
-| 405 | Flask がする | Router がする | **しない**（練習問題3） |
+| 405 | Flask がする | Router がする | **しない**（練習問題6） |
 | JSON を読む | `request.get_json()` | `readJson(req)` | `express.json()` → `req.body` |
 | フォームを読む | `request.form` | `readForm(req)` | `express.urlencoded()` → `req.body` |
 | JSON を返す | `return jsonify(…)` | `sendJson(res, 200, …)` | `res.json(…)` |
@@ -487,7 +699,7 @@ $ curl -s http://127.0.0.1:9305/teapot
 
 ## 練習問題
 
-[exercises/README.md](exercises/README.md) に6問あります。解答は [solutions/README.md](solutions/README.md) です。
+[exercises/README.md](exercises/README.md) に9問あります（基本4問・応用3問・発展2問）。解答は [solutions/README.md](solutions/README.md) です。
 
 ## 参考資料
 

@@ -1,4 +1,4 @@
-// 練習問題2のテスト。OS の一時フォルダに public と outside を作って確かめ、最後に消す
+// 練習問題5のテスト。OS の一時フォルダに public と outside を作って確かめ、最後に消す
 // 使い方: node --test safe-path.test.mjs
 //         MODULE=../solutions/safe-path.mjs node --test safe-path.test.mjs   （解答例で確かめる）
 import { test } from 'node:test';

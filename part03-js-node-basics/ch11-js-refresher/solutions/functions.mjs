@@ -1,4 +1,4 @@
-// 練習問題2 の解答: クロージャを使った関数の部品
+// 練習問題8 の解答: クロージャを使った関数の部品
 // 確かめ方: cd ../exercises && MODULE=../solutions/functions.mjs node --test functions.test.mjs
 
 /** 1回だけ実行する関数を返す。2回目以降は、1回目の結果を返す */

@@ -1,4 +1,4 @@
-// 練習問題4の模範解答: 一覧のクエリを zod で確かめる
+// 練習問題6の模範解答: 一覧のクエリを zod で確かめる
 import { z } from 'zod';
 import { HttpProblem } from '../samples/http-problem.mjs';
 

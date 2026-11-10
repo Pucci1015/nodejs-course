@@ -1,4 +1,4 @@
-// 練習問題3の模範解答: タスクの決まりを、HTTP からもデータの置き場所からも切り離して書く
+// 練習問題6の模範解答: タスクの決まりを、HTTP からもデータの置き場所からも切り離して書く
 import { ConflictError, NotFoundError, ValidationError } from './errors.mjs';
 
 const STATUSES = ['todo', 'doing', 'done'];

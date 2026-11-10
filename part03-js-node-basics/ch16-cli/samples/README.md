@@ -2,6 +2,11 @@
 
 | ファイル | 内容 | 本文の節 | ポート |
 | --- | --- | --- | --- |
+| [hi.mjs](hi.mjs) | 「手を動かす」の完成形。シバンと `chmod +x` | 2.1 | — |
+| [args.mjs](args.mjs) | 「手を動かす」の完成形。`parseArgs` の `values` と `positionals` | 3.2 | — |
+| [read-stdin.mjs](read-stdin.mjs) | 「手を動かす」の完成形。標準入力を全部読む | 4 | — |
+| [out-err.mjs](out-err.mjs) | 「手を動かす」の完成形。結果は標準出力、進み具合は標準エラー出力 | 5.1 | — |
+| [stop-me.mjs](stop-me.mjs) | 「手を動かす」の完成形。Ctrl+C を受け取って片付けてから終わる | 8 | — |
 | [hello-cli/](hello-cli/) | `bin` を書いた小さなパッケージ。シバン、`chmod +x`、`npm link` を試す | 2 | — |
 | [args-demo.mjs](args-demo.mjs) | `util.parseArgs` で引数を解析する。`multiple`・`short`・`default`、エラーのときは終了コード 2 | 3 | — |
 | [stdin-demo.mjs](stdin-demo.mjs) | パイプなら全部読む、端末なら `readline/promises` で質問する | 4 | — |
@@ -12,7 +17,7 @@
 | [config-demo.mjs](config-demo.mjs) | 既定の値 < 設定ファイル（XDG） < 環境変数 < 引数 の優先順位 | 9 | — |
 | [cli-test-demo/](cli-test-demo/) | CLI を `spawn` で起動してテストする | 10 | — |
 
-外部のパッケージは使わないので、`npm install` は不要です。
+外部のパッケージは使わないので、`npm install` は不要です。`~/dev/part03/ch16-cli/samples` で、次のように動かします（`cd samples` で移ってから）。
 
 ```sh
 $ node args-demo.mjs add 牛乳を買う -t 買い物 --due 2026-11-05
@@ -22,5 +27,5 @@ $ node signal-demo.mjs              # Ctrl+C で止める
 $ cd cli-test-demo && node --test count.test.mjs
 ```
 
-- `signal-demo.mjs` と `config-demo.mjs` 以外は、ファイルを作りません。`signal-demo.mjs` は OS の一時フォルダに一時ファイルを1つ作り、終わるときに消します
+- `signal-demo.mjs` と `config-demo.mjs` 以外は、ファイルを作りません（`out-err.mjs` を `> result.txt` で動かしたときは、自分で作ったファイルなので `rm result.txt` で消します）。`signal-demo.mjs` は OS の一時フォルダに一時ファイルを1つ作り、終わるときに消します
 - `config-demo.mjs` は `~/.config/demo-cli/config.json` を読むだけで、書きません。試すときは `XDG_CONFIG_HOME=/tmp/xdg` のように、別の場所を指してから作ってください

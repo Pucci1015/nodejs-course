@@ -1,5 +1,5 @@
-// 練習問題4: WebSocket のハンドシェイクを確かめ、フレームを読み書きする（RFC 6455）
-// 要件は exercises/README.md の問題4です。確かめ方:
+// 練習問題7: WebSocket のハンドシェイクを確かめ、フレームを読み書きする（RFC 6455）
+// 要件は exercises/README.md の問題7です。確かめ方:
 //   $ node --test ws-protocol.test.mjs
 // 今のひな形は、サンプルの ws-handshake-demo.mjs と同じく、ふつうの小さな場合しか考えていません。
 import crypto from 'node:crypto';

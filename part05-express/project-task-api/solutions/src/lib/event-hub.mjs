@@ -1,4 +1,4 @@
-// 第27章 練習問題3の模範解答（ch27-realtime/solutions/event-hub.mjs）のコピー。止めるときに閉じる closeAll を足した（「追加（成果物）」）
+// 第27章 練習問題6の模範解答（ch27-realtime/solutions/event-hub.mjs）のコピー。止めるときに閉じる closeAll を足した（「追加（成果物）」）
 // イベントを配る「ハブ」と、SSE のルート
 import { formatEvent } from './sse-format.mjs';
 

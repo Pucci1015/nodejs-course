@@ -3,7 +3,7 @@
 // サーバは使わない。届いた URL を、path.join と path.relative でどう扱うかを表にする
 import path from 'node:path';
 
-const ROOT = '/Users/ryota/site/public';
+const ROOT = '/Users/alice/site/public';
 const targets = [
   '/index.html',
   '/docs/',

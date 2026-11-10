@@ -1,4 +1,4 @@
-// 練習問題4の模範解答: WebSocket のハンドシェイクを確かめ、フレームを読み書きする（RFC 6455）
+// 練習問題7の模範解答: WebSocket のハンドシェイクを確かめ、フレームを読み書きする（RFC 6455）
 import crypto from 'node:crypto';
 
 const GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11';

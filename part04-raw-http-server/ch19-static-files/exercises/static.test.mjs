@@ -1,4 +1,4 @@
-// 練習問題3のテスト。一時フォルダにファイルを作り、serveStatic を createApp で包んだサーバで確かめる
+// 練習問題6のテスト。一時フォルダにファイルを作り、serveStatic を createApp で包んだサーバで確かめる
 // 使い方: node --test static.test.mjs
 //         MODULE=../solutions/static.mjs node --test static.test.mjs   （解答例で確かめる）
 import { test } from 'node:test';

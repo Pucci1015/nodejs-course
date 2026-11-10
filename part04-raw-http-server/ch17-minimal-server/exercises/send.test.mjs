@@ -1,4 +1,4 @@
-// 練習問題4のテスト
+// 練習問題6のテスト
 // 使い方: node --test send.test.mjs
 //         MODULE=../solutions/send.mjs node --test send.test.mjs   （解答例で確かめる）
 import { test } from 'node:test';
@@ -14,7 +14,7 @@ const routes = {
   '/text': (res) => m.sendText(res, 200, 'こんにちは'),
   '/text-404': (res) => m.sendText(res, 404, 'ない', { 'Cache-Control': 'no-store' }),
   '/html': (res) => m.sendHtml(res, 200, '<p>日本語</p>'),
-  '/json': (res) => m.sendJson(res, 201, { name: '太郎', n: 1 }),
+  '/json': (res) => m.sendJson(res, 201, { name: 'ねこ', n: 1 }),
   '/json-undefined': (res) => m.sendJson(res, 200, undefined),
   '/redirect': (res) => m.redirect(res, '/login'),
   '/redirect-303': (res) => m.redirect(res, '/done', 303),
@@ -65,7 +65,7 @@ test('sendJson', async () => {
   const r = await get('/json');
   assert.equal(r.status, 201);
   assert.equal(r.headers.get('content-type'), 'application/json; charset=utf-8');
-  assert.deepEqual(await r.json(), { name: '太郎', n: 1 });
+  assert.deepEqual(await r.json(), { name: 'ねこ', n: 1 });
 });
 
 test('sendJson: JSON にできない値（undefined）は TypeError を投げる', async () => {

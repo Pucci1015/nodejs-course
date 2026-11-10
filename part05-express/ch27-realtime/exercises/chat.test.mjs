@@ -1,4 +1,4 @@
-// 練習問題5のテスト。サーバを別のプロセスで 127.0.0.1:9349 に起動して確かめる（落ちても、テストは続けられる）
+// 練習問題8のテスト。サーバを別のプロセスで 127.0.0.1:9349 に起動して確かめる（落ちても、テストは続けられる）
 // 使い方: node --test chat.test.mjs
 //         MODULE=../solutions/chat.mjs node --test chat.test.mjs   （解答例で確かめる）
 import { test, before, after } from 'node:test';

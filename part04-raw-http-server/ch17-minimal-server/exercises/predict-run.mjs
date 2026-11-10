@@ -1,4 +1,4 @@
-// 練習問題1: predict-handlers.mjs のハンドラを1つずつ、別のプロセスのサーバ（127.0.0.1:9176）で動かし、
+// 練習問題4: predict-handlers.mjs のハンドラを1つずつ、別のプロセスのサーバ（127.0.0.1:9176）で動かし、
 // 客として HTTP で開いた結果を表示する
 // 使い方: node predict-run.mjs <番号|all>
 import { spawn } from 'node:child_process';

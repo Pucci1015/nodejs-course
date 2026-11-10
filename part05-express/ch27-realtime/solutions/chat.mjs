@@ -1,4 +1,4 @@
-// 練習問題5の模範解答: WebSocket のチャット
+// 練習問題8の模範解答: WebSocket のチャット
 // 確かめ方（exercises の中で）: MODULE=../solutions/chat.mjs node --test chat.test.mjs
 import path from 'node:path';
 import express from 'express';

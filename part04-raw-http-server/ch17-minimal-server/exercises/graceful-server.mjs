@@ -1,5 +1,5 @@
-// 練習問題5: SIGTERM / SIGINT で安全に止まるサーバ
-// 仕様は README の練習問題5を見てください。
+// 練習問題8: SIGTERM / SIGINT で安全に止まるサーバ
+// 仕様は README の練習問題8を見てください。
 // 確かめる: bash check-shutdown.sh
 import http from 'node:http';
 

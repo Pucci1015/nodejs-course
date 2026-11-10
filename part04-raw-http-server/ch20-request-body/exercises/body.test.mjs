@@ -1,4 +1,4 @@
-// 練習問題2のテスト。ハンドラの中で readBody などを呼ぶサーバを起動して、fetch と生の TCP で確かめる
+// 練習問題5のテスト。ハンドラの中で readBody などを呼ぶサーバを起動して、fetch と生の TCP で確かめる
 // 使い方: node --test body.test.mjs
 //         MODULE=../solutions/body.mjs node --test body.test.mjs   （解答例で確かめる）
 import { test } from 'node:test';

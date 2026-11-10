@@ -1,4 +1,4 @@
-// 練習問題4の模範解答
+// 練習問題7の模範解答
 // 方針: 「トークンに分ける → 木にする（parse） → 木をたどって文字を作る（render）」の3段
 //       テンプレートの文字を JavaScript として実行する（eval・new Function）ことはしない
 import { escapeHtml } from '../samples/mini-html.mjs';

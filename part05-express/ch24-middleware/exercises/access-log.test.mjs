@@ -1,4 +1,4 @@
-// 練習問題4のテスト
+// 練習問題6のテスト
 // 使い方: node --test access-log.test.mjs
 //         MODULE=../solutions/access-log.mjs node --test access-log.test.mjs   （解答例で確かめる）
 import { test, before, after, beforeEach } from 'node:test';

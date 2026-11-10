@@ -1,4 +1,4 @@
-// 練習問題5 解答例: SIGTERM / SIGINT で安全に止まるサーバ
+// 練習問題8 解答例: SIGTERM / SIGINT で安全に止まるサーバ
 // 使い方: node graceful-server.mjs   （止めるのは Ctrl+C か kill PID）
 import http from 'node:http';
 

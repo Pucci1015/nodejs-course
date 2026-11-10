@@ -1,6 +1,6 @@
 // ログインとログアウト。セッション ID の作り直し、flash、CSRF トークン（第22章 6〜8節）
 // 使い方: node login-demo.mjs   → ブラウザで http://127.0.0.1:9222/
-//   ユーザー名 ryota、パスワード dev-only-password でログインできる（この練習用のもの）
+//   ユーザー名 alice、パスワード dev-only-password でログインできる（この練習用のもの）
 import crypto from 'node:crypto';
 import http from 'node:http';
 import { promisify } from 'node:util';
@@ -20,7 +20,7 @@ async function hashPassword(password) {
   const salt = crypto.randomBytes(16);
   return { salt, hash: await scrypt(password, salt, 32) };
 }
-const users = new Map([['ryota', { name: 'ryota', ...(await hashPassword('dev-only-password')) }]]);
+const users = new Map([['alice', { name: 'alice', ...(await hashPassword('dev-only-password')) }]]);
 const dummy = await hashPassword('dummy'); // 無いユーザーのときも、同じだけ時間をかけるため
 
 async function checkPassword(name, password) {
@@ -30,7 +30,7 @@ async function checkPassword(name, password) {
   return ok && user ? user : null;
 }
 
-// --- セッション（練習問題4で、きちんとした SessionStore にする）
+// --- セッション（練習問題7で、きちんとした SessionStore にする）
 const sessions = new Map();
 const newId = () => crypto.randomBytes(32).toString('base64url');
 

@@ -1,4 +1,4 @@
-// 練習問題3: バイトのチャンクを、1行ずつの文字列にする Transform を作ってください。
+// 練習問題6: バイトのチャンクを、1行ずつの文字列にする Transform を作ってください。
 // 要件は README と lines.test.mjs にあります（node:readline は使わずに作ります）。
 // 確かめ方: node --test lines.test.mjs
 import { Transform } from 'node:stream';

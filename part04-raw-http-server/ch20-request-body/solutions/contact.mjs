@@ -1,4 +1,4 @@
-// 問題4 解答例: お問い合わせフォームと JSON の API を、直したもの
+// 問題8 解答例: お問い合わせフォームと JSON の API を、直したもの
 // 使い方: node contact.mjs   → ブラウザで http://127.0.0.1:9205/
 import http from 'node:http';
 import { createApp, HttpError } from '../../ch17-minimal-server/solutions/app.mjs';

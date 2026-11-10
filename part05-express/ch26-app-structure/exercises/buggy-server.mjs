@@ -1,5 +1,5 @@
-// 練習問題6: 設定・ログ・止め方のバグを直す（7か所）
-// 仕様は exercises/README.md の問題6です。確かめ方:
+// 練習問題9: 設定・ログ・止め方のバグを直す（7か所）
+// 仕様は exercises/README.md の問題9です。確かめ方:
 //   $ bash check-server.sh
 // ふだん curl で試すぶんには、何の問題もなく動きます。
 import express from 'express';

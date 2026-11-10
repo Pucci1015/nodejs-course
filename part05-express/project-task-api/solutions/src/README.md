@@ -6,7 +6,7 @@
 | --- | --- |
 | [server.mjs](server.mjs) | 起動（コンポジションルート）。設定を読み、部品を作ってつなぎ、`listen` し、SIGTERM で止める |
 | [app.mjs](app.mjs) | `createApp({ service, sse, logger, config, isReady })`。ミドルウェアの順番を決める。`listen` はしない |
-| [config.mjs](config.mjs) | `loadConfig(env)`。環境変数を zod で確かめる（第26章 練習問題2に、成果物の設定を足した） |
+| [config.mjs](config.mjs) | `loadConfig(env)`。環境変数を zod で確かめる（第26章 練習問題5に、成果物の設定を足した） |
 | [errors.mjs](errors.mjs) | サービスの層のエラー。HTTP のステータスは知らない |
 | [routes/](routes/) | ルートの層。HTTP を読み、サービスを呼び、応答の形にする |
 | [services/](services/) | サービスの層。タスクの決まり |

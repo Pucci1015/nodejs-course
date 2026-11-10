@@ -1,25 +1,103 @@
 # 第25章 練習問題
 
-本文（[../README.md](../README.md)）を読んでから取り組んでください。模範解答は [../solutions/README.md](../solutions/README.md) にあります。
+本文（[../README.md](../README.md)）の「手を動かす」を終えてから取り組んでください。模範解答は [../solutions/README.md](../solutions/README.md) にあります。
+この練習問題は `~/dev/part05/ch25-rest-api-design/exercises/` で行います。最初に `cd exercises` で移動してください（`cd ~/dev/part05/ch25-rest-api-design/exercises` と打っても構いません）。
 
-| 問題 | テーマ | 使うファイル | 本文の節 | ポート |
-| --- | --- | --- | --- | --- |
-| 1 | API の設計をレビューして、直す | [review-api.md](review-api.md) | 2, 3, 4 | — |
-| 2 | エラーを Problem Details の形にそろえる `problemHandler` | [problem.mjs](problem.mjs)、[problem.test.mjs](problem.test.mjs) | 4 | 空いている番号 |
-| 3 | カーソルでページを分ける `paginate` | [cursor.mjs](cursor.mjs)、[cursor.test.mjs](cursor.test.mjs) | 6 | — |
-| 4 | 一覧のクエリを zod で確かめる `parseListQuery` | [query.mjs](query.mjs)、[query.test.mjs](query.test.mjs) | 5, 6 | — |
-| 5 | ステータスコードと応答の形のバグを直す | [buggy-api.mjs](buggy-api.mjs)、[check-design.sh](check-design.sh) | 3, 4, 5 | 9329 |
-| 6 | `If-Match`・`If-None-Match` を正しく確かめる | [preconditions.mjs](preconditions.mjs)、[preconditions.test.mjs](preconditions.test.mjs) | 7 | — |
+| 問題 | 種類 | テーマ | 使うファイル | 本文の節 | ポート |
+| --- | --- | --- | --- | --- | --- |
+| 1 | 基本 | Problem Details の本文を作る | [problem-json.mjs](problem-json.mjs)、[problem-json.test.mjs](problem-json.test.mjs) | 4 | — |
+| 2 | 基本 | タスクを作るときの入力を zod で書く | [task-schema.mjs](task-schema.mjs)、[task-schema.test.mjs](task-schema.test.mjs) | 5 | — |
+| 3 | 基本 | `limit` を確かめ、次のページの URL を作る | [limit.mjs](limit.mjs)、[limit.test.mjs](limit.test.mjs) | 5.2, 6 | — |
+| 4 | 基本 | API の設計をレビューして、直す（調べる問題） | [review-api.md](review-api.md) | 2, 3, 4 | — |
+| 5 | 応用 | エラーを Problem Details の形にそろえる `problemHandler` | [problem.mjs](problem.mjs)、[problem.test.mjs](problem.test.mjs) | 4 | 空いている番号 |
+| 6 | 応用 | 一覧のクエリを zod で確かめる `parseListQuery` | [query.mjs](query.mjs)、[query.test.mjs](query.test.mjs) | 5, 6 | — |
+| 7 | 発展 | カーソルでページを分ける `paginate` | [cursor.mjs](cursor.mjs)、[cursor.test.mjs](cursor.test.mjs) | 6 | — |
+| 8 | 発展 | `If-Match`・`If-None-Match` を正しく確かめる | [preconditions.mjs](preconditions.mjs)、[preconditions.test.mjs](preconditions.test.mjs) | 7 | — |
+| 9 | 発展 | ステータスコードと応答の形のバグを直す | [buggy-api.mjs](buggy-api.mjs)、[check-design.sh](check-design.sh) | 3, 4, 5 | 9329 |
 
-- どの問題も、`~/dev/part05/ch25-rest-api-design/exercises` の中で動かします
-- 問題2・3・4・6は `node --test ○○.test.mjs` ですべてのテストが通れば完成です。最初は、問題2が 12 個中 11 個、問題3が 9 個すべて、問題4が 10 個中 9 個、問題6が 12 個中 9 個失敗します
-- 問題5は `bash check-design.sh` で確かめます（最初は 20 個中 17 個失敗）
-- 模範解答は `MODULE=../solutions/problem.mjs node --test problem.test.mjs`、`bash check-design.sh ../solutions/design-api.mjs` のように確かめられます
-- 問題4・5は、`../samples/http-problem.mjs` と `../samples/tasks-db.mjs` を使います。問題3は、第4部で作った `../../lib/signed.mjs` を使います
+**発展**（7〜9）は、少し長めの問題です。できなくても次の章に進んでかまいません。
+
+## テストの使い方
+
+- 問題1〜3・5〜8: `○○.mjs` の「ここを書く」を埋め、`node --test ○○.test.mjs` ですべてのテストが通れば完成です。最初は、問題5が 12 個中 11 個、問題6が 10 個中 9 個、問題7が 9 個すべて、問題8が 12 個中 9 個失敗します。
+- 問題9は `bash check-design.sh` で確かめます（最初は 20 個中 17 個失敗）。
+- 問題6・9は、`../samples/http-problem.mjs` と `../samples/tasks-db.mjs` を使います。問題7は、第4部で作った `../../lib/signed.mjs` を使います。
 
 ---
 
-## 問題1 API の設計をレビューして、直す
+## 基本
+
+### 問題1 Problem Details の本文を作る
+
+[problem-json.mjs](problem-json.mjs) に、2つの関数を作ってください（本文4.1節）。
+
+- **`problem(status, { detail, instance })`**: Problem Details の本文のオブジェクトを返す
+  - `problem(404)` → `{ type: 'about:blank', title: 'Not Found', status: 404 }`
+  - `title` はステータスの名前（`http.STATUS_CODES[status]`）
+  - `detail`・`instance` は、渡されたときだけ入れる（無ければキーごと入れない）
+- **`toErrors(issues)`**: zod の `issues`（`[{ path: ['tags', 1], message: '…' }, …]`）を、`[{ pointer: '#/tags/1', detail: '…' }, …]` にする
+  - `pointer` は `'#/'` の後に、`path` を `/` でつないだもの
+
+```sh
+$ node --test problem-json.test.mjs
+ℹ pass 6
+ℹ fail 0
+```
+
+ヒント:
+
+- 本文4節の `problem-api.mjs` の `sendProblem` の中身を、オブジェクトを返す関数にしたものです。
+- 配列を `/` でつなぐのは `path.join('/')`、配列の1つずつを変えるのは `map` です。
+
+### 問題2 タスクを作るときの入力を zod で書く
+
+`POST /api/tasks` の入力の形を、zod のスキーマ `CreateTask` にして、[task-schema.mjs](task-schema.mjs) から `export` してください（本文5.1節）。
+
+| 項目 | 決まり |
+| --- | --- |
+| `title` | 文字列。前後の空白を取って 1〜100 文字。空のときの文は `title を入力してください` |
+| `status` | `todo`・`doing`・`done` のどれか。無ければ `todo` |
+| `dueDate` | 無くてよい。あれば `YYYY-MM-DD` の正しい日付 |
+| `tags` | 空でない文字列の配列で、5 個まで。前後の空白は取る。無ければ `[]` |
+| ほかの項目 | 間違い（知らない項目は断る） |
+
+```sh
+$ node --test task-schema.test.mjs
+ℹ pass 6
+ℹ fail 0
+```
+
+ヒント:
+
+- 本文5節の `zod-try.mjs` の `CreateTask` に、`dueDate` を足したものです。
+- 日付は `z.iso.date()`、無くてよいものは `.optional()`、既定の値は `.default(値)` です。
+- 知らない項目を断るので、`z.object` ではなく `z.strictObject` を使います。
+
+### 問題3 `limit` を確かめ、次のページの URL を作る
+
+一覧の API で使う2つの関数を、[limit.mjs](limit.mjs) に作ってください（本文5.2節・6節）。
+
+- **`parseLimit(value)`**: `req.query.limit` を確かめる
+  - 無い（`undefined`）なら `{ ok: true, value: 20 }`
+  - `'1'`〜`'100'` の整数の形なら `{ ok: true, value: 数 }`
+  - それ以外（`'0'`、`'101'`、`''`、`' 20'`、`'2e1'`、`'05'`、配列など）は `{ ok: false }`
+- **`nextLink(pathname, query, nextCursor)`**: 次のページの URL を作る
+  - `nextCursor` が `null` なら `null`（次のページが無い）
+  - それ以外は、今のクエリ（`query`）を残したまま、`cursor` を `nextCursor` にした URL
+  - `nextLink('/api/tasks', { status: 'todo', limit: '20' }, 'abc')` → `'/api/tasks?status=todo&limit=20&cursor=abc'`
+
+```sh
+$ node --test limit.test.mjs
+ℹ pass 6
+ℹ fail 0
+```
+
+ヒント:
+
+- `parseLimit` の形は、本文5.2節の正規表現 `/^[1-9][0-9]{0,2}$/` で確かめてから `Number` にし、100 以下かを見ます。
+- `new URLSearchParams(query)` でオブジェクトからクエリを作り、`set('cursor', 値)` で入れ（あれば置き換え）ます。`` `${params}` `` で `a=1&b=2` の形の文字列になり、値は URL 用にエンコードされます。
+
+### 問題4 API の設計をレビューして、直す（調べる問題）
 
 [review-api.md](review-api.md) は、ある人が書いた「タスク管理 API」の設計書です。コードを書く前に、設計だけを読んで問題を見つけます。
 
@@ -29,7 +107,11 @@
 
 ヒント: 本文 2節（リソースと URL）、3節（メソッドとステータスコード）、4節（エラーの形）の表を見ながら、1行ずつ確かめます。特に `GET /deleteTask` は、「誰が、いつ、そのリクエストを送るか」を考えてみてください。
 
-## 問題2 エラーを Problem Details の形にそろえる
+---
+
+## 応用
+
+### 問題5 エラーを Problem Details の形にそろえる
 
 [problem.mjs](problem.mjs) の `HttpProblem`・`notFound`・`problemHandler` を完成させて、どんなエラーも `application/problem+json`（RFC 9457）で返すようにしてください。サンプルの [http-problem.mjs](../samples/http-problem.mjs) は簡単な形なので、それを、実際に使える形にします。
 
@@ -46,23 +128,7 @@
 $ node --test problem.test.mjs
 ```
 
-## 問題3 カーソルでページを分ける
-
-[cursor.mjs](cursor.mjs) の `paginate(items, { sort, limit, cursor, secret })` を、キーセット・ページネーション（本文 6.2節）にしてください。今のひな形は「先頭から `limit` 件」を返すだけです。
-
-- `sort` は `'-createdAt'`（新しい順）・`'createdAt'`（古い順）・`'title'` のように、項目の名前と向き。値が同じものは `id` で並べる（向きは `sort` と同じ）
-- 返すものは `{ items, nextCursor }`。次のページが無ければ `nextCursor` は `null`。ちょうど割り切れるときに、空のページを作らない
-- カーソルには「前のページの最後の項目の、並べ替えの値と `id`」と `sort` を入れ、`lib/signed.mjs` の `signJson` で署名する。次のページは「その値より後ろ」から始める（位置ではなく値で探すので、前に増えても、その項目が消されても、ずれない）
-- 書き換えたカーソル、別の鍵のカーソル、別の `sort` で作ったカーソルは `CursorError`
-- `limit` は 1〜100 の整数。それ以外は `RangeError`。元の配列を並べ替えない
-
-```sh
-$ node --test cursor.test.mjs
-```
-
-考えてみてください: カーソルに署名をしないと、何が起きますか。カーソルの中身は客に見られても困りませんが、作り変えられると困るのはなぜでしょう（データベースを使う第6部では、カーソルの値がそのまま SQL の条件になります）。
-
-## 問題4 一覧のクエリを zod で確かめる
+### 問題6 一覧のクエリを zod で確かめる
 
 [query.mjs](query.mjs) の `ListQuery` と `parseListQuery(query)` を直して、`GET /api/tasks?status=todo,doing&sort=-dueDate&limit=50&due_before=2026-11-30` のようなクエリを、安全に読めるようにしてください。
 
@@ -82,31 +148,27 @@ $ node --test cursor.test.mjs
 $ node --test query.test.mjs
 ```
 
-## 問題5 ステータスコードと応答の形のバグを直す
+---
 
-[buggy-api.mjs](buggy-api.mjs) は、タスクの API です。どのルートも「動く」のですが、HTTP の決まりごととしては 9 か所が間違っています（足りないものも含みます）。次の仕様に合わせて直してください。
+## 発展
 
-| メソッドと URL | 成功 | 主なエラー |
-| --- | --- | --- |
-| `GET /api/tasks?limit=1〜100` | 200 `{ items }` | 400（limit の間違い） |
-| `GET /api/tasks/:id` | 200 | 404 |
-| `POST /api/tasks` | 201、`Location: /api/tasks/:id` | 415（JSON でない）、422（中身の間違い） |
-| `PATCH /api/tasks/:id` | 200 | 404、415、422（知らない項目、値の間違い） |
-| `DELETE /api/tasks/:id` | 204（本文なし） | 404 |
-| どれにもないパス | — | 404 |
+### 問題7 カーソルでページを分ける
 
-- エラーはすべて `application/problem+json`。本文の `status` は、HTTP のステータスと同じ
-- 422 の `errors` は `[{ pointer: '#/title', detail }]` の形
-- 500 のときも、サーバの中の文（例外の文や、zod の中の言葉）を客に見せない
-- 問題2の解答（`../solutions/problem.mjs`）や、自分で書いた `problem.mjs` を使ってかまいません
+[cursor.mjs](cursor.mjs) の `paginate(items, { sort, limit, cursor, secret })` を、キーセット・ページネーション（本文 6.2節）にしてください。今のひな形は「先頭から `limit` 件」を返すだけです。
+
+- `sort` は `'-createdAt'`（新しい順）・`'createdAt'`（古い順）・`'title'` のように、項目の名前と向き。値が同じものは `id` で並べる（向きは `sort` と同じ）
+- 返すものは `{ items, nextCursor }`。次のページが無ければ `nextCursor` は `null`。ちょうど割り切れるときに、空のページを作らない
+- カーソルには「前のページの最後の項目の、並べ替えの値と `id`」と `sort` を入れ、`lib/signed.mjs` の `signJson` で署名する。次のページは「その値より後ろ」から始める（位置ではなく値で探すので、前に増えても、その項目が消されても、ずれない）
+- 書き換えたカーソル、別の鍵のカーソル、別の `sort` で作ったカーソルは `CursorError`
+- `limit` は 1〜100 の整数。それ以外は `RangeError`。元の配列を並べ替えない
 
 ```sh
-$ bash check-design.sh
+$ node --test cursor.test.mjs
 ```
 
-確認14・15を特によく見てください。`PATCH` で `{"id":1}` を送ると、何が起きていたでしょう。zod で確かめたのに、なぜ防げなかったのでしょう。
+考えてみてください: カーソルに署名をしないと、何が起きますか。カーソルの中身は客に見られても困りませんが、作り変えられると困るのはなぜでしょう（データベースを使う第6部では、カーソルの値がそのまま SQL の条件になります）。
 
-## 問題6 `If-Match`・`If-None-Match` を正しく確かめる
+### 問題8 `If-Match`・`If-None-Match` を正しく確かめる
 
 サンプルの [etag-demo.mjs](../samples/etag-demo.mjs) は、`If-Match` を「文字列が同じか」で比べました。ふつうの使い方では動きますが、HTTP の仕様（RFC 9110 13.1・13.2.2）どおりではありません。[preconditions.mjs](preconditions.mjs) の2つの関数を、仕様どおりにしてください。
 
@@ -122,3 +184,27 @@ $ node --test preconditions.test.mjs
 ```
 
 考えてみてください: `PUT /api/tasks/7` を「まだ無いときだけ作る」には、どのヘッダを送ればよいでしょう。また、Express の自動の ETag（本文から作る弱い ETag）を `If-Match` に使えないのはなぜでしょう。
+
+### 問題9 ステータスコードと応答の形のバグを直す
+
+[buggy-api.mjs](buggy-api.mjs) は、タスクの API です。どのルートも「動く」のですが、HTTP の決まりごととしては 9 か所が間違っています（足りないものも含みます）。次の仕様に合わせて直してください。
+
+| メソッドと URL | 成功 | 主なエラー |
+| --- | --- | --- |
+| `GET /api/tasks?limit=1〜100` | 200 `{ items }` | 400（limit の間違い） |
+| `GET /api/tasks/:id` | 200 | 404 |
+| `POST /api/tasks` | 201、`Location: /api/tasks/:id` | 415（JSON でない）、422（中身の間違い） |
+| `PATCH /api/tasks/:id` | 200 | 404、415、422（知らない項目、値の間違い） |
+| `DELETE /api/tasks/:id` | 204（本文なし） | 404 |
+| どれにもないパス | — | 404 |
+
+- エラーはすべて `application/problem+json`。本文の `status` は、HTTP のステータスと同じ
+- 422 の `errors` は `[{ pointer: '#/title', detail }]` の形
+- 500 のときも、サーバの中の文（例外の文や、zod の中の言葉）を客に見せない
+- 問題5の解答（`../solutions/problem.mjs`）や、自分で書いた `problem.mjs` を使ってかまいません
+
+```sh
+$ bash check-design.sh
+```
+
+確認14・15を特によく見てください。`PATCH` で `{"id":1}` を送ると、何が起きていたでしょう。zod で確かめたのに、なぜ防げなかったのでしょう。

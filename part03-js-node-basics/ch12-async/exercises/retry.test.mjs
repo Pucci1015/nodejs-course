@@ -1,4 +1,4 @@
-// 練習問題4 用: retry.mjs の retry のテスト
+// 練習問題7 用: retry.mjs の retry のテスト
 // 使い方: node --test retry.test.mjs
 //   模範解答を試す: MODULE=../solutions/retry.mjs node --test retry.test.mjs
 import { test } from 'node:test';

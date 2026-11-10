@@ -1,4 +1,4 @@
-// 練習問題2 用: atomic.mjs のテスト
+// 練習問題5 用: atomic.mjs のテスト
 // 使い方: node --test atomic.test.mjs
 //   模範解答を試す: MODULE=../solutions/atomic.mjs node --test atomic.test.mjs
 // テスト用のファイルは、OS の一時フォルダの中に作って、最後に消します。

@@ -1,4 +1,4 @@
-// 練習問題5の模範解答: ログインのあるサイトを、問題2〜4の関数と第17〜21章の部品で書き直したもの
+// 練習問題8の模範解答: ログインのあるサイトを、問題5〜7の関数と第17〜21章の部品で書き直したもの
 // 使い方: node login.mjs   → ブラウザで http://127.0.0.1:9225/
 // 確かめる: bash ../exercises/check-login.sh ../solutions/login.mjs
 import crypto from 'node:crypto';
@@ -21,7 +21,7 @@ async function hashPassword(password) {
   return { salt, hash: await scrypt(password, salt, 32) };
 }
 const users = new Map();
-for (const [name, pw] of [['ryota', 'dev-only-password'], ['hanako', 'another-dev-password']]) users.set(name, { name, ...(await hashPassword(pw)) });
+for (const [name, pw] of [['alice', 'dev-only-password'], ['bob', 'another-dev-password']]) users.set(name, { name, ...(await hashPassword(pw)) });
 const dummy = await hashPassword('dummy');
 
 async function authenticate(name, password) {

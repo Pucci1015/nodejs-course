@@ -1,5 +1,5 @@
-// 練習問題5: 時間のかかる書き出し。途中で Ctrl+C すると、出力ファイルが中途半端になる
-// 仕様は README の練習問題5を見てください。
+// 練習問題9: 時間のかかる書き出し。途中で Ctrl+C すると、出力ファイルが中途半端になる
+// 仕様は README の練習問題9を見てください。
 // 確かめる: bash check-long-task.sh
 // 使い方: node long-task.mjs <出力ファイル> [--items 件数] [--delay ミリ秒]
 import fs from 'node:fs/promises';

@@ -1,5 +1,5 @@
 // Server-Sent Events（第27章 3節）
-//   $ node sse-demo.mjs
+//   $ node samples/sse-demo.mjs
 //   ブラウザで http://127.0.0.1:9341/sse.html を2つのタブで開き、片方から送ってみてください
 //   curl で見るとき（-N は「ためずに、届いたらすぐ出す」）:
 //     curl -N http://127.0.0.1:9341/events

@@ -1,4 +1,4 @@
-// 問題2 解答例: URL のパスから、公開するフォルダの中のファイルのパスを、安全に作る
+// 問題5 解答例: URL のパスから、公開するフォルダの中のファイルのパスを、安全に作る
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { HttpError } from '../../ch17-minimal-server/solutions/app.mjs';

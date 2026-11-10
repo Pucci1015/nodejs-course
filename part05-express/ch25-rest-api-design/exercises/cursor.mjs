@@ -1,5 +1,5 @@
-// 練習問題3: カーソルでページを分ける（キーセット・ページネーション）
-// 要件は exercises/README.md の問題3です。確かめ方:
+// 練習問題7: カーソルでページを分ける（キーセット・ページネーション）
+// 要件は exercises/README.md の問題7です。確かめ方:
 //   $ node --test cursor.test.mjs
 import { signJson, unsignJson } from '../../lib/signed.mjs';
 

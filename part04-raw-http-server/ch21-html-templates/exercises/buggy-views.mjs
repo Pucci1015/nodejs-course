@@ -1,4 +1,4 @@
-// 練習問題5: 読書メモのサイト。表示のバグがたくさんあります
+// 練習問題8: 読書メモのサイト。表示のバグがたくさんあります
 // 確かめる: bash check-views.sh
 // 使い方: node buggy-views.mjs   → ブラウザで http://127.0.0.1:9215/
 import http from 'node:http';

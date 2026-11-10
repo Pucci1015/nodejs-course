@@ -1,4 +1,4 @@
-// 練習問題5: EventEmitter を継承して、進み具合をイベントで知らせる仕事の列（JobQueue）を作ってください。
+// 練習問題7: EventEmitter を継承して、進み具合をイベントで知らせる仕事の列（JobQueue）を作ってください。
 // 要件は README と job-queue.test.mjs にあります。
 // 確かめ方: node --test job-queue.test.mjs
 import { EventEmitter } from 'node:events';

@@ -1,10 +1,10 @@
-// 練習問題4 の解答: 大きなアクセスログ（.gz も）を、少しずつ読みながら集計する
+// 練習問題8 の解答: 大きなアクセスログ（.gz も）を、少しずつ読みながら集計する
 // 使い方: node log-stream.mjs ログのファイル [--top 5]
 // 確かめ方: cd ../exercises && MODULE=../solutions/log-stream.mjs node --test log-stream.test.mjs
 import fs from 'node:fs';
 import { createInterface } from 'node:readline';
 import zlib from 'node:zlib';
-import { parseLine } from '../../ch11-js-refresher/solutions/log-summary.mjs'; // 第11章 練習問題4
+import { parseLine } from '../../ch11-js-refresher/solutions/log-summary.mjs'; // 第11章 練習問題6
 
 export async function summarizeLogFile(file, { top = 3 } = {}) {
   // .gz なら、読む → 展開する、をつなぐ。展開した後も Stream なので、全体をメモリに載せない

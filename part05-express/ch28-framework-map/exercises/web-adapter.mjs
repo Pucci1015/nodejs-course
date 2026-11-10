@@ -1,5 +1,5 @@
-// 練習問題2: Node.js の req・res と、Web 標準の Request・Response をつなぐ
-// 要件は exercises/README.md の問題2です。確かめ方:
+// 練習問題7: Node.js の req・res と、Web 標準の Request・Response をつなぐ
+// 要件は exercises/README.md の問題7です。確かめ方:
 //   $ node --test web-adapter.test.mjs
 // 今のひな形は、サンプルの web-handler-tasks.mjs の toNodeHandler と同じ、いちばん簡単なものです。
 import { Readable } from 'node:stream';
