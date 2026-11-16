@@ -1,0 +1,7 @@
+/* 第45章 4節: Tailwind CSS のうち、決まりの値（色や大きさ）とユーティリティのクラスだけを読み込む */
+/* （ブラウザの決まりの見た目を消す preflight は読み込まない。index.css の見た目と並べて比べるため） */
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
+
+/* dark: を、OS の設定ではなく <html data-theme="dark"> のときに効かせる */
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));

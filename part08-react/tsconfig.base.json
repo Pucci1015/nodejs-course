@@ -1,0 +1,29 @@
+{
+  // 第8部で共通の TypeScript の設定（ブラウザで動くコード用。第40章 6節で1行ずつ説明します）
+  // 各章の tsconfig.json が "extends" でこのファイルを読み込みます
+  "compilerOptions": {
+    // どの JavaScript の文法・標準の関数を使ってよいか。DOM はブラウザの document・HTMLElement など
+    "target": "es2024",
+    "lib": ["es2024", "DOM", "DOM.Iterable"],
+    // Vite（バンドラ）の決まりで import を解決する（第40章）
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    // JSX を React の関数の呼び出しに変える（第41章）
+    "jsx": "react-jsx",
+    // import.meta.env（vite/client）と、テストで使う process.env（node）の型
+    "types": ["vite/client", "node"],
+    "moduleDetection": "force",
+
+    // 型の確かめを厳しくする（第7部と同じ）
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noFallthroughCasesInSwitch": true,
+    "erasableSyntaxOnly": true,
+    "verbatimModuleSyntax": true,
+    "allowImportingTsExtensions": true,
+
+    // tsc は確かめるだけ。JavaScript に変えるのは Vite の仕事
+    "noEmit": true,
+    "skipLibCheck": true
+  }
+}

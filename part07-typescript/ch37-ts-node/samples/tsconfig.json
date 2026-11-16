@@ -1,0 +1,6 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "include": ["."],
+  // enum-demo.ts は、わざと enum を使っている。build-try と todo-api は、それぞれの tsconfig.json で確かめる
+  "exclude": ["enum-demo.ts", "build-try", "todo-api"]
+}

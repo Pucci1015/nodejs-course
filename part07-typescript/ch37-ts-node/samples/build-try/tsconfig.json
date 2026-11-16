@@ -1,0 +1,12 @@
+{
+  // 1.3節: tsc で JavaScript のファイルを作るための設定
+  "extends": "../../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "outDir": "dist",
+    "rootDir": "src",
+    "rewriteRelativeImportExtensions": true,
+    "sourceMap": true
+  },
+  "include": ["src"]
+}

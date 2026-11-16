@@ -121,7 +121,7 @@ nodejs/                        ← 教材のルート（このファイルがあ
 ## 4. サンプルとスクリプトの決まり
 
 - **シェルスクリプトは bash** で書き、`#!/usr/bin/env bash` と `set -euo pipefail` を基本にする（診断スクリプトなど、失敗を扱うものは理由をコメントに書いて `-e` を外す）。**macOS 標準の bash 3.2 で動くこと**（連想配列 `declare -A`、`${var,,}`、`mapfile` などは使わない）。
-- **Node.js のコードは ES Modules**（`.mjs`、または `package.json` に `"type": "module"`）で書き、組み込みモジュールは `node:fs/promises` のように `node:` を付ける。第7部までは JavaScript、第7部以降は TypeScript。
+- **Node.js のコードは ES Modules**（`.mjs`、または `package.json` に `"type": "module"`）で書き、組み込みモジュールは `node:fs/promises` のように `node:` を付ける。第6部までは JavaScript、第7部以降は TypeScript（`.ts`。第7部の節を参照）。
 - 外部パッケージは、その部で扱うまで使わない（第1部・第2部は標準機能のみ）。
 - 練習用のフォルダやリポジトリを作るスクリプトは:
   - 作成先を第1引数で受け取り、既定は `~/dev/...` にする
@@ -144,10 +144,10 @@ nodejs/                        ← 教材のルート（このファイルがあ
 | 3 モダン JavaScript と Node.js の基礎 | `part03-js-node-basics` ✅ | 11 JavaScript 再入門 / 12 非同期処理 / 13 イベントループ / 14 モジュールとパッケージ管理 / 15 Node.js の標準 API / 16 CLI ツールを作る | スコープ・クロージャ・`this`・クラス・分割代入・配列メソッド、コールバック→Promise→async/await、エラー処理と `Promise.all`、シングルスレッドとノンブロッキング I/O・libuv・Flask（WSGI）との比較、ESM と CommonJS、npm・`package.json`・semver・ロックファイル、`fs/promises`・`path`・`process`・`events`、Buffer と Stream、引数・標準入出力・終了コード | メモを Markdown で管理する CLI |
 | 4 フレームワークなしで Web サーバを作る | `part04-raw-http-server` ✅ | 17 `node:http` で最小のサーバ / 18 ルーティングを自作する / 19 静的ファイル配信 / 20 フォームと JSON を受け取る / 21 HTML を生成する / 22 Cookie とセッションを自作する | リクエストとレスポンス、ストリームとしてのリクエスト、URL とクエリの解析、パスパラメータ、MIME・キャッシュヘッダ・パストラバーサル対策、ボディの読み取り・urlencoded と multipart、テンプレートとエスケープ・XSS、セッション ID の生成と保存 | フレームワークなしの簡易掲示板 |
 | 5 Express とサーバサイドの設計 | `part05-express` ✅ | 23 Express 入門 / 24 ミドルウェア / 25 REST API の設計 / 26 アプリケーションの構成 / 27 リアルタイム通信 / 28 他のフレームワークの地図 | 第4部の自作コードと Flask との対応、処理の連鎖とエラーハンドリング、リソースと URL・ステータスコード・ページネーション・入力バリデーション、レイヤー分け・設定と環境変数・ロギング、ポーリング・SSE・WebSocket、Fastify・Hono・Next.js | タスク管理 REST API（メモリ保存） |
-| 6 データベース | `part06-database` | 29 リレーショナル DB と SQL / 30 SQL の実践 / 31 Node.js から DB を使う / 32 Docker と PostgreSQL / 33 ORM とマイグレーション / 34 キャッシュと Redis 入門 | SQLite、テーブル設計と正規化、JOIN・集計・インデックス・トランザクション、プレースホルダと SQL インジェクション対策・コネクションプール、Docker Desktop / OrbStack・Compose、Prisma または Drizzle、キーバリューストア・セッション保存 | タスク管理 API を PostgreSQL で永続化 |
-| 7 TypeScript | `part07-typescript` | 35 TypeScript の基礎 / 36 型の表現力 / 37 Node.js プロジェクトでの TypeScript / 38 型と実行時の境界 | 型注釈と推論・`tsc`・`tsconfig.json`、ユニオンと絞り込み・ジェネリクス・ユーティリティ型、実行方法（Node.js の型除去機能、tsx、ビルド）と ESM、外部入力は型で守れない・Zod | タスク管理 API を TypeScript に移行 |
-| 8 フロントエンドと React | `part08-react` | 39 素の JavaScript で API とつなぐ / 40 ビルドツール / 41 React の基礎 / 42 Hooks と再描画の仕組み / 43 データ取得とフォーム / 44 ルーティングと状態の設計 / 45 スタイリングとアクセシビリティ / 46 フルスタックフレームワーク | `fetch` と DOM・画面とデータのずれ、バンドル・Vite、コンポーネント・JSX・props・state、`useState`・`useEffect`・カスタムフック、ローディングとエラー・TanStack Query・バリデーション、React Router・状態の置き場所、CSS Modules・Tailwind・キーボード操作とセマンティック HTML、SSR とハイドレーション・Server Components・Next.js | タスク管理アプリの画面（React + TS） |
-| 9 Next.js | `part09-nextjs` | 47 Next.js 入門 / 48 Server Components と Client Components / 49 Server Actions と Route Handlers / 50 レンダリングとキャッシュの戦略 | App Router とファイルによるルーティング・Vite の React アプリとの違い、コードがサーバとブラウザのどちらで動くか・サーバ側のデータ取得、フォーム送信の受け方・Express API との役割分担、静的生成・動的レンダリング・再検証・Vercel へのデプロイ。第10部以降は Express + React 版を主に進め、Next.js での書き方を各章で補足する | タスク管理アプリを Next.js で作り直し、Express + React 版と比べる |
+| 6 データベース | `part06-database` ✅ | 29 リレーショナル DB と SQL / 30 SQL の実践 / 31 Node.js から DB を使う / 32 Docker と PostgreSQL / 33 ORM とマイグレーション / 34 キャッシュと Redis 入門 | SQLite、テーブル設計と正規化、JOIN・集計・インデックス・トランザクション、プレースホルダと SQL インジェクション対策・コネクションプール、Docker Desktop / OrbStack・Compose、Prisma または Drizzle、キーバリューストア・セッション保存 | タスク管理 API を PostgreSQL で永続化 |
+| 7 TypeScript | `part07-typescript` ✅ | 35 TypeScript の基礎 / 36 型の表現力 / 37 Node.js プロジェクトでの TypeScript / 38 型と実行時の境界 | 型注釈と推論・`tsc`・`tsconfig.json`、ユニオンと絞り込み・ジェネリクス・ユーティリティ型、実行方法（Node.js の型除去機能、tsx、ビルド）と ESM、外部入力は型で守れない・Zod | タスク管理 API を TypeScript に移行 |
+| 8 フロントエンドと React | `part08-react` ✅ | 39 素の JavaScript で API とつなぐ / 40 ビルドツール / 41 React の基礎 / 42 Hooks と再描画の仕組み / 43 データ取得とフォーム / 44 ルーティングと状態の設計 / 45 スタイリングとアクセシビリティ / 46 フルスタックフレームワーク | `fetch` と DOM・画面とデータのずれ、バンドル・Vite、コンポーネント・JSX・props・state、`useState`・`useEffect`・カスタムフック、ローディングとエラー・TanStack Query・バリデーション、React Router・状態の置き場所、CSS Modules・Tailwind・キーボード操作とセマンティック HTML、SSR とハイドレーション・Server Components・Next.js | タスク管理アプリの画面（React + TS） |
+| 9 Next.js | `part09-nextjs` ✅ | 47 Next.js 入門 / 48 Server Components と Client Components / 49 Server Actions と Route Handlers / 50 レンダリングとキャッシュの戦略 | App Router とファイルによるルーティング・Vite の React アプリとの違い、コードがサーバとブラウザのどちらで動くか・サーバ側のデータ取得、フォーム送信の受け方・Express API との役割分担、静的生成・動的レンダリング・再検証（デプロイは第12部）。第10部以降は Express + React 版を主に進め、Next.js での書き方を各章で補足する | タスク管理アプリを Next.js で作り直し、Express + React 版と比べる |
 | 10 認証とセキュリティ | `part10-auth-security` | 51 認証の基礎 / 52 セッションとトークン / 53 メール送信と本人確認 / 54 OAuth 2.0 と OpenID Connect / 55 Web セキュリティの総点検 | ハッシュ化（bcrypt / Argon2）・認証と認可、Cookie セッションと JWT・`HttpOnly`・`Secure`・`SameSite`、SMTP・SPF・DKIM・メール送信サービス・登録確認とパスワードリセット・Mailpit、GitHub ログイン、XSS・CSRF・SQL インジェクション・CSP・OWASP Top 10、依存パッケージの脆弱性とサプライチェーン。**攻撃の再現は自分のローカル環境に限る** | ユーザー登録・メール確認・ログイン |
 | 11 テストとコード品質 | `part11-testing` | 56 テストの考え方 / 57 API とデータベースのテスト / 58 フロントエンドのテスト / 59 静的解析と CI | 単体・結合・E2E、`node:test` と Vitest、HTTP レベルのテスト・テスト用 DB、Testing Library・Playwright、ESLint とフォーマッタ・GitHub Actions | テストと CI が整ったアプリ |
 | 12 デプロイと運用 | `part12-deploy` | 60 本番環境の考え方 / 61 Docker でコンテナ化 / 62 クラウドへのデプロイ / 63 ファイルの保存 / 64 バックグラウンドジョブ / 65 CDN とキャッシュ / 66 監視とパフォーマンス | 開発と本番・ビルド・プロセス管理・シークレット、Dockerfile・マルチステージ・Apple Silicon と CPU アーキテクチャ、PaaS（Render、Fly.io など）・マネージド DB・独自ドメインと HTTPS、オブジェクトストレージ（S3 互換）・署名付き URL・MinIO、キュー（BullMQ + Redis）・定期実行・再試行と冪等性、CDN の仕組み・`Cache-Control` の設計・キャッシュの消し方、ログとエラー監視・計測してから改善・複数プロセスとロードバランサ | 画像添付・メール通知つきで独自ドメインに公開 |
@@ -221,11 +221,11 @@ nodejs/                        ← 教材のルート（このファイルがあ
 | Public Suffix List をパッケージ（tldts など）で扱う | 第9章練習問題6 | 第3部 第14章 ✅ |
 | Express の cors・ログ（morgan など）・エラーハンドリングのミドルウェア | 第9章5.5節、第6章練習問題7、第10章練習問題6 | 第5部 第24章 ✅ |
 | REST の設計（ページネーション、バリデーション、エラーの形） | 第10章5節・練習問題5 | 第5部 第25章 ✅ |
-| SSE・WebSocket で画面とサーバのずれを減らす | 第10章練習問題4 | 第5部 第27章 ✅、第8部（画面から受け取る） |
-| 冪等キーをデータベースに保存する、トランザクション | 第10章練習問題8 | 第6部 第30章 |
-| 開発サーバのプロキシ（Vite の proxy）で CORS を避ける | 第9章5節、練習問題5の解答 | 第8部 第40章 |
-| 画面とサーバの状態のずれ、取り直し（TanStack Query） | 第10章3.3節・練習問題4 | 第8部 第39章・第43章 |
-| SSR とハイドレーション、ソフト 404 | 第10章4.2節・練習問題4 | 第8部 第46章 |
+| SSE・WebSocket で画面とサーバのずれを減らす | 第10章練習問題4 | 第5部 第27章 ✅、第8部 第39・43章 ✅ |
+| 冪等キーをデータベースに保存する、トランザクション | 第10章練習問題8 | 第6部 第30章 ✅ |
+| 開発サーバのプロキシ（Vite の proxy）で CORS を避ける | 第9章5節、練習問題5の解答 | 第8部 第40章 5節 ✅ |
+| 画面とサーバの状態のずれ、取り直し（TanStack Query） | 第10章3.3節・練習問題4 | 第8部 第39章・第43章 ✅ |
+| SSR とハイドレーション、ソフト 404 | 第10章4.2節・練習問題4 | 第8部 第46章 ✅ |
 | 例外でサーバが止まる（第2部は同期の例外。unhandled rejection は第3部）、待っている間の割り込み（第2部は `setTimeout`） | 第10章練習問題6・8 | 第3部 第12〜13章 ✅ |
 | `node:test` によるテスト | 第7〜9章の `*.test.mjs` | 第11部 第56章 |
 | 本番の HTTPS（リバースプロキシ、独自ドメインの証明書、HSTS の preload） | 第8章、第10章1節 | 第12部 第62章 |
@@ -265,7 +265,7 @@ nodejs/                        ← 教材のルート（このファイルがあ
 | 依存パッケージの危険（install scripts、typosquatting、`npm audit`） | 第14章12節 | 第10部 第55章 |
 | Worker のプール、複数プロセス、イベントループの遅れの監視 | 第13章6〜7節 | 第12部 第66章 |
 | ReDoS を静的解析で見つける（eslint-plugin-regexp など） | 第13章 練習問題6 | 第11部 第59章 |
-| 同時に書き直すと片方が消える（ロック、楽観的ロック、一意制約） | 第15章 練習問題5、成果物 5節 | 第6部 第30章 |
+| 同時に書き直すと片方が消える（ロック、楽観的ロック、一意制約） | 第15章 練習問題5、成果物 5節 | 第6部 第30章 ✅ |
 | テストの考え方（関数のテストと外からのテストの分け方） | 第16章10節 | 第11部 第56章 |
 
 ### 第4部（作成済み）で学習者が持っているもの
@@ -295,14 +295,14 @@ nodejs/                        ← 教材のルート（このファイルがあ
 | 予告した内容 | 予告した場所 | 回収する部・章 |
 | --- | --- | --- |
 | 自作の Router・`createApp`・`compose`・`readForm`・`serveStatic`・`withSession` と Express の対応 | 各章の最後の節、成果物 6節 | 第5部 第23〜24章 ✅ |
-| 入力の確かめをライブラリで（zod など）、エラーの形をそろえる | 第20章 練習問題3・8、成果物 2.2節 | 第5部 第25章 ✅、第7部 第38章 |
-| セッションをデータベース・Redis に置く、サーバが複数台 | 第22章 4.3節 | 第6部 第34章、第10部 第52章 |
-| JSON のファイルの代わりにデータベース、一意制約、同時の書き込み | 成果物 3.3節 | 第6部 第29〜31章 |
+| 入力の確かめをライブラリで（zod など）、エラーの形をそろえる | 第20章 練習問題3・8、成果物 2.2節 | 第5部 第25章 ✅、第7部 第38章 ✅ |
+| セッションをデータベース・Redis に置く、サーバが複数台 | 第22章 4.3節 | 第6部 第34章 ✅、第10部 第52章 |
+| JSON のファイルの代わりにデータベース、一意制約、同時の書き込み | 成果物 3.3節 | 第6部 第29〜31章 ✅ |
 | パスワードのハッシュ（bcrypt・argon2 との比べ）、認証と認可 | 第22章 6.1節、成果物 3.5節 | 第10部 第51章 |
 | 署名付きトークン（JWT）と、Cookie のセッションとの比べ | 第22章 5.1節 | 第10部 第52章 |
 | XSS・CSRF・CSP の総点検、`Origin` ヘッダでの CSRF 対策、fetch で送る API の守り方 | 第21章 2.1・8節、第22章 8節 | 第10部 第55章 |
 | HTTPS での `Secure`・`__Host-` の Cookie | 第22章 2.1〜2.2節 | 第12部 第62章 |
-| テンプレートエンジン（EJS・Nunjucks など）と React の JSX のエスケープ | 第21章 1・6節 | 第5部 第23章 ✅、第8部 第41章 |
+| テンプレートエンジン（EJS・Nunjucks など）と React の JSX のエスケープ | 第21章 1・6節 | 第5部 第23章 ✅、第8部 第41章 2.3節 ✅ |
 | 外から HTTP で確かめるテスト、テスト用のデータ | 成果物 `test/bbs.test.mjs` | 第11部 第57章 |
 
 ### 第5部（作成済み）で学習者が持っているもの
@@ -319,9 +319,9 @@ nodejs/                        ← 教材のルート（このファイルがあ
 
 ### 第5部で決めた書き方・作り方（第6部以降もそろえる）
 
-- ポート: 第23章 9300〜9309 / 第24章 9310〜9319 / 第25章 9320〜9329 / 第26章 9330〜9339 / 第27章 9340〜9349 / 第28章 9350〜9359 / 成果物 9360（テスト 9361・9362）。「手を動かす」は各章の 9307・9317・9327・9337・9347・9357。サンプルは章のフォルダで `node samples/x.mjs` と動かす（先頭のコメントもその形）。第6部は 9400 以降など、別の帯を使う
+- ポート: 第23章 9300〜9309 / 第24章 9310〜9319 / 第25章 9320〜9329 / 第26章 9330〜9339 / 第27章 9340〜9349 / 第28章 9350〜9359 / 成果物 9360（テスト 9361・9362）。「手を動かす」は各章の 9307・9317・9327・9337・9347・9357。サンプルは章のフォルダで `node samples/x.mjs` と動かす（先頭のコメントもその形）。第6部は 9420 以降（第6部の節を参照）
 - サーバのサンプルは `listen(port)` を export し、`import.meta.main`（Node 24.2+）のときだけ決まった番号で待つ。テストは空いている番号
-- 第6部以降の成果物は、前の部の `project-task-api/solutions/` を出発点にする。データの層の形（`list`・`get`・`insert`・`update(id, fields, { expectedVersion })`・`remove(id, { expectedVersion })`）を保ったまま PostgreSQL に替える。`test/api.test.mjs` は、そのまま通ることを目標にする
+- 第6部以降の成果物は、前の部の `project-task-api/solutions/` を出発点にする。`test/api.test.mjs` は、そのまま通ることを目標にする（第6部で、データの層の形は `listPage`・`findOpenByTitle`・`countByStatus` を足して `list` をやめた。第6部の節を参照）
 - 外のパッケージの版で変わる動き（Fastify の ajv の既定など）は、実際に入れた版で確かめ、版を書く
 - 執筆時点では Node.js 24.22 と 26.13 で、すべてのテストと確認スクリプトの模範解答が通ることを確かめた
 
@@ -329,19 +329,159 @@ nodejs/                        ← 教材のルート（このファイルがあ
 
 | 予告した内容 | 予告した場所 | 回収する部・章 |
 | --- | --- | --- |
-| カーソルの条件・`WHERE version = $2`・冪等キーをデータベースで（索引、トランザクション、一意制約） | 第25章 6.2・7.3・8.2節、成果物 3.3節 | 第6部 第30章 |
-| 並べ替えの項目を決めた表から選ぶ理由（SQL インジェクション）、プレースホルダ | 第25章 練習問題4の解答 | 第6部 第31章 |
-| メモリのデータの層を PostgreSQL のものに取り替える | 第26章 3・9節、成果物 7節 | 第6部 第31〜33章 |
-| 回数の制限・SSE のハブ・セッションを複数台で共有（Redis、Pub/Sub） | 第24章 5節、第27章 4.5節 | 第6部 第34章、第12部 第66章 |
-| zod のスキーマから TypeScript の型を作る | 第25章 5.1節 | 第7部 第38章 |
-| SSE を画面から受け取る、CORS で Vite の画面から呼ぶ | 第27章 5節、成果物 2.8節 | 第8部（第39・43章） |
-| Next.js の Route Handlers を動かす | 第28章 5.2節 | 第9部 第49章 |
+| カーソルの条件・`WHERE version = $2`・冪等キーをデータベースで（索引、トランザクション、一意制約） | 第25章 6.2・7.3・8.2節、成果物 3.3節 | 第6部 第30章 ✅、第6部 成果物 ✅ |
+| 並べ替えの項目を決めた表から選ぶ理由（SQL インジェクション）、プレースホルダ | 第25章 練習問題4の解答 | 第6部 第31章 ✅ |
+| メモリのデータの層を PostgreSQL のものに取り替える | 第26章 3・9節、成果物 7節 | 第6部 第31〜33章・成果物 ✅ |
+| 回数の制限・SSE のハブ・セッションを複数台で共有（Redis、Pub/Sub） | 第24章 5節、第27章 4.5節 | 第6部 第34章 ✅、第12部 第66章 |
+| zod のスキーマから TypeScript の型を作る | 第25章 5.1節 | 第7部 第38章 ✅ |
+| SSE を画面から受け取る、CORS で Vite の画面から呼ぶ | 第27章 5節、成果物 2.8節 | 第8部 第39・43章 ✅ |
+| Next.js の Route Handlers を動かす | 第28章 5.2節 | 第9部 第49章 2節 ✅ |
 | 401・403、ログインしたユーザーごとの冪等キー・回数の制限、WebSocket・SSE の認証 | 第25章 3.2節、第27章 3.3節、成果物 5節 | 第10部 |
 | helmet・CSP などのヘッダの総点検 | 第24章 6節 | 第10部 第55章 |
 | `req.ip` とリバースプロキシ（`trust proxy`）、本番の `.env` の代わり、圧縮 | 第23章 4節、第24章 6節、第26章 5.3節 | 第12部 第60〜62章 |
 | ファイルのアップロード（multer、オブジェクトストレージ） | 第24章 6節 | 第12部 第63章 |
 | 二重に実行されても困らないジョブ（冪等キーの考え方） | 第25章 8.2節 | 第12部 第64章 |
 | 構造化ログを集めて探す・数える | 第26章 6.1節 | 第12部 第66章 |
+
+### 第6部（作成済み）で学習者が持っているもの
+
+第6部も外部パッケージを使う。第29章の最初に `setup-part06.sh` を1回だけ動かす（`~/dev/part06` にコピーして `npm ci --ignore-scripts`）。版: pg 8.23.1、drizzle-orm 0.45.4、drizzle-kit 0.31.11、redis 6.3.1、express 5.3.0、zod 4.6.7、pino 10.4.0。章をまたぐ `import` はせず、使う部品は章の `samples/`・`exercises/`・`solutions/` にコピーを置く。
+
+- 第29〜31章は Node.js 組み込みの `node:sqlite`（Docker なし）。第32章で Docker Desktop（か OrbStack）を入れ、部の直下の `compose.yaml`（名前 `nodejs-course-part06`）で postgres:18（127.0.0.1:5433、app / `dev-only-password` / app、ボリューム pgdata、`docker/postgres-init/01-databases.sql` がデータベース ch33・taskapi を作る）と redis:8（127.0.0.1:6380、ボリュームなし）を動かす。コンテナで動かす compose.yaml は、執筆の環境に Docker が無かったので構文だけ確かめた（PostgreSQL 16・Redis 7 を直接動かしてテストした）
+- 第29章: SELECT・INSERT・UPDATE・DELETE、制約、外部キー、正規化。練習問題8問（SQL の文字列を export する問題、`?` の関数、外部キーの表、ToDo の CLI、バグ直し）
+- 第30章: JOIN・LEFT JOIN（ON と WHERE の違い）、GROUP BY・HAVING・評価の順・JOIN で行が増える問題、インデックスと EXPLAIN、トランザクション、version と冪等キー（第25章の 412・409 とつなぐ）、キーセット（limit + 1）。練習問題8問
+- 第31章（9427、練習問題の API は 9428）: `?` と SQL インジェクション（攻撃の文字列は使わず、`Let's` の `'` だけで壊れることを見せる）、行とタスクの変換、`createSqliteTaskRepo`（列の許可リスト、RETURNING）、同期の `withTransaction`（外のトランザクションに入る）、`user_version` のマイグレーション、`statusForDbError`（errcode 2067 UNIQUE・275 CHECK・1299 NOT NULL・787 FK・1555 PK）、Express の API（`mustBeString`、`err.expose`、DB のメッセージは見せない `DB_DETAIL`）。練習問題9問
+- 第32章（9437）: Docker・Compose・psql、`pg` の `Pool` と `$1`、型（count・bigint・numeric は文字列、timestamptz は Date、date は `setTypeParser` で文字列にしないと JST で1日ずれる）、`pool.connect()` と `release()`、接続を借りる `withTransaction`、`n = n + 1`・`FOR UPDATE`・`SKIP LOCKED`、エラーコード（23505・23514・23502・23503・22P02 など、`err.constraint`、`err.detail` は見せない）、SQL のファイルのマイグレーション（`schema_migrations`）、`pg-task-repo.mjs`。練習問題9問。テストの部品 `exercises/pg-test.mjs`（テストごとにスキーマを作って `search_path`、返されていない接続は 1 秒後に切る）。練習問題8は アドバイザリロック + sha256 のチェックサムのマイグレーション（成果物で使う）
+- 第33章（9447、データベース ch33）: Drizzle（`pgTable`・`check`・部分 `uniqueIndex`・`relations`）、drizzle-kit（設定のパスは打ったフォルダから数える。`import.meta.dirname` は使えない）の `generate --name`・`migrate`（記録は `drizzle.__drizzle_migrations`）、クエリビルダ・`toSQL()`・`SQL_LOG=1`、N+1（ロガーで SQL の回数を数える）、`db.query` の `with`、`db.transaction` と `tx`、エラーは `DrizzleQueryError` に包まれ `err.cause` が pg のエラー、`tx.rollback()`、`getTableColumns` で知らない項目を断る（Drizzle は `set()` の知らないキーを黙って捨てる、`.where(undefined)` は WHERE なし）。drizzle-kit 経由の esbuild の `npm audit`（moderate）は開発用なので `audit fix --force` しないと書いた。練習問題8問、テストの部品 `exercises/drizzle-test.mjs`。練習問題8は学習者が `exercises/` で `npx drizzle-kit generate --name add_priority` を打つ
+- 第34章（9457・9458）: redis-cli（文字列・TTL の -1 と -2・INCR・ハッシュ・SCAN、KEYS は使わない）、node-redis（`createClient`、`reconnectStrategy` は5回であきらめる、`setEx`・`multi()`・`expire(…, 'NX')`、`close()`）、cache-aside と消し方、`INCR` と固定の窓の回数の制限、セッションを Redis に（2台のサーバで共有）、Pub/Sub（`duplicate()`、残らない）。express-session + connect-redis は名前だけ（第10部）。練習問題8問、テストの部品 `exercises/redis-test.mjs`（キーの頭 `test:…:` を消す）
+- 成果物 `project-task-api/solutions/`（ポート 9460、テスト 9461・9462、データベース taskapi）: 第5部の完成例から、データの層を `createPgTaskRepo(pool)`（`listPage` のキーセット SQL。NULL は PostgreSQL の既定の位置、title は `COLLATE "C"`。`findOpenByTitle`・`countByStatus`・`insert`・`update`・`remove`、23505 `tasks_open_title` を `ConflictError` に）に替え、`memory-tasks.mjs` は消した。冪等キーは `createPgIdempotencyStore`（`INSERT … ON CONFLICT DO NOTHING` の `claim`、`complete`・`delete`・`purgeExpired`）。ミドルウェアの store は async。`lib/cursor.mjs` は `encodeCursor`・`decodeCursor` だけ。`src/db/pool.mjs`（`redactUrl`）・`src/db/migrate.mjs`（第32章 練習問題8 + `npm run migrate`）、`migrations/001_create_tasks.sql`・`002_create_idempotency_keys.sql`。設定に `DATABASE_URL`（本番で必須、開発の既定は taskapi）・`DATABASE_SCHEMA`（テスト用）・`DATABASE_POOL_MAX`。止めるときに `pool.end()`。印は `// 追加（第6部）:`・`// 変更（第6部）:`。テストは 30 個（1〜25 は第5部と同じ、26 同時の PATCH、27 同時の同じ題名、28 再起動しても残る、29 2台で同じ冪等キー、30 つなげないと終了コード 1 でパスワードを隠す）。サーバごとにスキーマを作って `DATABASE_SCHEMA` で渡す。学習者は `~/dev/task-api` でブランチ `part06-postgres` を作って進める
+- レート制限と SSE のハブはメモリのまま（「もっとやるなら」で第34章の Redis 版を案内）
+
+### 第6部で決めた書き方・作り方（第7部以降もそろえる）
+
+- ポート: 第31章 9420〜9429 / 第32章 9430〜9439 / 第33章 9440〜9449 / 第34章 9450〜9459 / 成果物 9460（テスト 9461・9462）。手を動かすは 9427・9437・9447・9457。PostgreSQL 5433・Redis 6380（Mac のほかのものとぶつけない）
+- 開発用の仮の秘密の値は `dev-only-…`。ログに URL を書くときはパスワードを `***` に
+- データベースを使うテストは、テストごとにスキーマ（`test_プロセス番号_乱数`）か Redis のキーの頭を作り、終わったら消す。本文で作ったデータには触らない
+- SQL インジェクションなどは、`'` を含む値（`Let's ストレッチ`）だけで示し、攻撃の文字列は書かない
+- 外のパッケージの版で変わる動き（drizzle-kit、node-redis の API）は、入れた版で確かめて書く
+- 執筆時点では Node.js 24.22、PostgreSQL 16、Redis 7.0 で、すべての練習問題の模範解答と成果物のテストが通ることを確かめた（compose.yaml の postgres:18・redis:8 では未確認）
+
+### 第6部で予告した内容（後の部で回収する）
+
+| 予告した内容 | 予告した場所 | 回収する部・章 |
+| --- | --- | --- |
+| データの層の形を型（`interface TaskRepo`）に、SQL の結果の行に型を付ける | 成果物 7節 | 第7部 第37・38章・成果物 ✅ |
+| 画面に日付を出す（date の文字列、タイムゾーン） | 第32章 4.2節 | 第8部 第46章 4.3節・成果物 ✅ |
+| ユーザーとタスク（外部キー、`user_id` を足すマイグレーション）、ログインごとの冪等キー | 第29章 6節、成果物 7節 | 第10部 |
+| express-session + connect-redis、ログインの回数の制限 | 第34章 5.2節 | 第10部 第52章 |
+| インジェクションをまとめて扱う | 第31章 1節 | 第10部 第55章 |
+| データベースを使うテスト、偽物のリポジトリに取り替える | 成果物 4節、第33章 7節 | 第11部 第57章 |
+| 自分のアプリをコンテナにする、マネージドの PostgreSQL、`/readyz` で DB を確かめる | 第32章 1節、成果物 5節 | 第12部 第60〜62章 |
+| `SKIP LOCKED` の仕事の列、BullMQ（Redis） | 第32章 6.2節、第34章 6.2節 | 第12部 第64章 |
+| キャッシュの置き場所（CDN と `Cache-Control`） | 第34章 3.2節 | 第12部 第65章 |
+| 複数台で SSE を配る（Pub/Sub）、計測してからキャッシュ | 第34章 3.2・6.2節 | 第12部 第66章 |
+
+### 第7部（作成済み）で学習者が持っているもの
+
+第35章の最初に `setup-part07.sh` を1回だけ動かす（`~/dev/part07` にコピーして `npm ci --ignore-scripts`）。版: typescript 6.0.3（7 は typescript-eslint が未対応なので使わず、本文で触れるだけ）、@types/node 24.19.2、@types/express 5.0.6、@types/pg 8.23.1、eslint 10.13.0、@eslint/js 10.0.1、typescript-eslint 8.72.1、tsx 4.23.15、zod 4.6.7、express 5.3.0、pg 8.23.1、pino 10.4.0。
+
+- `.ts` はビルドせず `node x.ts`（Node.js 24 の型の除去）で動かし、`npx tsc`（`noEmit`）で確かめる。部の直下の `tsconfig.base.json`（es2024・nodenext・strict・noUncheckedIndexedAccess・erasableSyntaxOnly・verbatimModuleSyntax・allowImportingTsExtensions・noEmit・moduleDetection force）を、章・samples・exercises・solutions の `tsconfig.json` が `extends` する（TS 6 は tsconfig があると `tsc ファイル名` を断る TS5112 ので、フォルダごとに `npx tsc`）。ESLint は部の直下の `eslint.config.js`（`defineConfig`・`recommendedTypeChecked`・projectService）
+- 練習問題のテストは `x.test.ts`（`node --test x.test.ts`）。動きのテストに加え、`exercises/typecheck.ts`（TypeScript の API）で `[問題のファイル, x.check.ts]` を確かめる。`x.check.ts` は `// @ts-expect-error` と `type-assert.ts` の `Expect<Equal<…>>`。書きかけの関数は `throw new Error('まだ書いていません')`
+- 第35章: 型の除去、基本の型と推論、関数・オブジェクト（type と interface）、`undefined`・`null`、`any`・`unknown`・`as`、リテラル型とユニオン（enum は使わない）、tsconfig、`@ts-expect-error` と `Expect<Equal>`。練習問題8問
+- 第36章: 絞り込み、判別できるユニオンと `never`、型ガード（`catch` の `err` は unknown）、ジェネリクス、ユーティリティ型とマップ型、Result 型、`as const`・`keyof typeof`・`satisfies`、クラス（`#private`・implements。引数のプロパティは使わない）。練習問題8問
+- 第37章（9470〜9479）: 型の除去・tsx・`tsc` のビルドの違い、`@types`、Node.js の API の型、`todo-api`（`interface TaskRepo`、メモリと PostgreSQL の実装、`db.query<Row>`）、Express の型と宣言のマージ（`express.d.ts`）、ESLint（`no-floating-promises`・`no-misused-promises`）、`npm run check`。練習問題8問
+- 第38章（9480〜9489）: `as` は何も確かめない、`z.infer`・`z.input`・`z.output`、境界で確かめる `parse<S extends z.ZodType>`、problem+json の `errors[].pointer`、条件型と `infer`、`fetch` の応答の確かめ（`UpstreamError`）、環境変数（`z.stringbool`・`preprocess`。`z.coerce` の落とし穴）、ブランド型、`z.toJSONSchema`。練習問題8問
+- 成果物 `project-task-api/solutions/`（ポート 9490、テスト 9491・9492、データベース taskapi。第6部の compose を使う）: 第6部の完成例を、動きを変えずにすべて `.ts` にした。`src/types.ts`（`Task`・`Status`・`Sort`・`interface TaskRepo`・`interface IdempotencyStore`・判別できるユニオン `IdempotencyRecord`）と `src/express.d.ts`（`req.id`・`req.log`）を足した。`as` は `server.ts` の `AddressInfo` の1か所だけ。Zod で確かめる所に、カーソルの中身と冪等キーの表の `response` 列を足した。`pg-tasks.ts` の `COLUMNS`・`SORT_SQL` は `satisfies Record<…>`。`server.close` の中は `cleanup().catch(…)`。`tsconfig.json` と `eslint.config.js`（`test/` だけ `no-unsafe-…` を止める）を持つ。`npm run check`（tsc → ESLint → 30 個のテスト）。印は `// 追加（第7部）:`・`// 変更（第7部）:`。学習者は `~/dev/task-api` でブランチ `part07-typescript` を作り、import されるほうから1つずつ `git mv` で `.ts` にする
+
+### 第7部で決めた書き方・作り方（第8部以降もそろえる）
+
+- ポート: 第37章 9470〜9479 / 第38章 9480〜9489 / 成果物 9490（テスト 9491・9492）
+- 第7部以降のコードは TypeScript（`.ts`）。`node` の型の除去で動く書き方だけを使う（enum・引数のプロパティ・namespace の値は使わない）
+- `as` は避け、絞り込み・型ガード・Zod・`satisfies` で書く。外から来るものは Zod で確かめてから使う
+- tsc のエラーを本文に貼るときは、学習者が見る形（`file.ts:7:3 - error TS…`）にする。行番号は、先頭のコメントを除いたファイルで数えて、実際に確かめる
+- 解答と成果物の `src/` は `tsc` と ESLint でエラー 0（サンプルは、わざと間違えて見せるもの（`bug.ts`・`floating.ts`・`enum-demo.ts` など）を除いて `tsc` でエラー 0）。テスト・`typecheck.ts`・`x.check.ts` は `tsc` だけ
+- 執筆時点では Node.js 24.22、PostgreSQL 16 で、すべての練習問題の模範解答と成果物のテスト（`npm run check`）が通ることを確かめた
+
+### 第7部で予告した内容（後の部で回収する）
+
+| 予告した内容 | 予告した場所 | 回収する部・章 |
+| --- | --- | --- |
+| React の画面も TypeScript で、`@types/react`、Vite の tsconfig | 第35章、第37章 2節 | 第8部 第40章 6節 ✅ |
+| 画面の状態（読み込み中・成功・失敗）を判別できるユニオンで | 第36章 2節 | 第8部 第39章・第43章 2.2節 ✅ |
+| サーバとブラウザで同じ Zod のスキーマを使う（フォームの確かめ、API の応答の確かめ） | 第38章 8節 | 第8部 第43章 5.1節・成果物 ✅ |
+| Server Actions の入力を Zod で | 第38章 | 第9部 第49章 3.2節・成果物 ✅ |
+| `req.user` を宣言のマージで、`UserId` のブランド型、トークンの中身を Zod で | 第37章 5.2節、第38章 7節 | 第10部 |
+| 偽物のリポジトリを `TaskRepo` に合わせる | 第37章 4節、成果物 5節 | 第11部 第57章 |
+| `npm run check` を GitHub Actions で | 第37章 7節 | 第11部 第59章 |
+| ビルドして動かす方法と比べる（本番の Docker のイメージ） | 第37章 1.4節 | 第12部 |
+
+### 第8部（作成済み）で学習者が持っているもの
+
+第39章の最初に `setup-part08.sh` を1回だけ動かす（`~/dev/part08` にコピーして `npm ci --ignore-scripts`）。版: react・react-dom 19.3.1、@types/react・@types/react-dom 19.3.0、vite 8.3.5、@vitejs/plugin-react 6.1.2、vitest 4.1.12、jsdom 30.1.3、@testing-library/react 16.3.3・dom 10.4.2・user-event 14.6.8、@tanstack/react-query 5.105.0、react-router 8.5.1（`createBrowserRouter`、`RouterProvider` は `react-router/dom`）、tailwindcss・@tailwindcss/vite 4.3.3、eslint-plugin-react-hooks 7.1.1、ほかは第7部と同じ（typescript 6.0.3、eslint 10.13.0、typescript-eslint 8.72.1、zod 4.6.7、express 5.3.0）。
+
+- 練習用の API: 部の直下の `api/`（第7部の成果物の `src/` のコピーに、メモリのデータの層 `repositories/memory-tasks.ts` と `api/server.ts` を足したもの）。`~/dev/part08` で `npm run api` → `127.0.0.1:9500`。CORS は `localhost:5173`・`127.0.0.1:5173`。起動のたびに例のタスクを5つ（`SEED=0` で無し）、`API_DELAY_MS` で遅らせられる。PostgreSQL は要らない
+- 画面は 5173（`vite preview` は 4173）。第39章だけは `tools/serve.ts`（静的ファイルのサーバ、5173）で開き、第40章から Vite
+- 部の直下の `tsconfig.base.json` は、第7部の設定に `lib: DOM`・`moduleResolution: bundler`・`jsx: react-jsx`・`types: [vite/client, node]` を足したもの。`eslint.config.js` は第7部の設定に `reactHooks.configs.flat.recommended` を足したもの（`ch39-vanilla-api/` は見ない）
+- 練習問題のテストは Vitest + jsdom（設定ファイル無し。先頭に `// @vitest-environment jsdom`）。`npx vitest run x.test.tsx`、模範解答は `MODULE=../solutions/x.tsx npx vitest run x.test.tsx`。テストは `await import(/* @vite-ignore */ new URL(process.env.MODULE ?? './x.tsx', import.meta.url).pathname)` で読む（相対パスは、Vitest の root が今いるフォルダなので壊れる）。`afterEach(cleanup)`。書きかけの部品は戻り値の型を `ReactNode` にして `throw new Error('まだ書いていません')`
+- テストと解答で同じクラス（`ApiError` の `instanceof`）を使う問題は、解答が `../exercises/api.ts` などを import する（第43・44・46章）
+- 第39章: DOM の木、`textContent` と XSS、`fetch` と problem+json、CORS、3つの状態、`createStore`、フォーム、`If-Match`、SSE。練習問題8問
+- 第40章: なぜビルドするか、Vite と HMR、CSS・JSON の import、`import.meta.env`（秘密を書かない）、プロキシ、Vite は型を確かめない（`npx tsc`）、ハッシュ付きのファイル名と `import()`、プラグイン（`virtual:build-info`）。練習問題8問
+- 第41章: JSX（関数の呼び出し、自動のエスケープ）、props、`map` と `key`、出し分け、`useState`、制御されたフォーム、state を持ち上げる、Testing Library（8節）。練習問題8問
+- 第42章: 描画は関数を呼ぶこと、スナップショットと更新関数、`with`・`toSorted`、`useEffect` と後片付け・StrictMode、`useEffect` が要らない場面（set-state-in-effect の注意）、`useRef`、`useMemo`、カスタムフック、`useReducer`。練習問題8問（`useLocalStorage`・`useDebounce` など）
+- 第43章: `useEffect` で読む（`AbortController`、ユニオンの状態）、TanStack Query（`taskKeys`、`useQuery`・`useMutation`、`invalidateQueries`、楽観的な更新）、Zod のフォーム（`''`→null）、422 を `pointer` で項目ごとに、412（If-Match）、SSE で `invalidateQueries`。Vite のプロキシ `/api` → 9500。練習問題8問
+- 第44章: `createBrowserRouter`・`<Outlet />`・`errorElement`・`*`、`useParams` を確かめる、条件を URL に（`parseFilters`・`toSearchParams`・`useFilters` は更新関数の形）、`Link`・`NavLink`・`useNavigate`、state の置き場所、Context（`null` を既定にしてカスタムフックで確かめる、React 19 の `<Context value>`）。練習問題8問
+- 第45章: 全体の CSS・CSS Modules・Tailwind CSS 4（`@custom-variant dark`）、CSS 変数と `data-theme`・`prefers-color-scheme`、意味のある HTML・名前・`:focus-visible`・コントラスト・skip link、`useId`・`aria-describedby`・`aria-invalid`、`role="status"`（最初から置く）、`<dialog>` の `showModal`（キャンセルにフォーカス・閉じたら戻す）、roving tabindex のタブ。練習問題8問
+- 第46章: CSR・SSR・SSG、自分で作る SSR（Express + `renderToString` + `hydrateRoot`、`<!--app-html-->` などの置き場所、`vite build --ssr`）、`<script>` に入れる JSON は `<` をエスケープ、ハイドレーションの食い違い（`useSyncExternalStore` の `useHydrated`）、日付は `Intl` の `en-CA` で YYYY-MM-DD・`Date.UTC` で日数、本当の 404 と `<title>`、`renderToPipeableStream` と `<Suspense>`・`use`、Server Components の考え方。練習問題8問
+- 成果物 `project-task-web/solutions/`（パッケージ `task-web`）: 学習者は `~/dev/task-api` でブランチ `part08-web` を作り、`web/` に置く（API とは別の `package.json`）。`vite.config.ts` は `/api` を `API_TARGET`（既定 `http://127.0.0.1:9490` = 第7部の API）に中継。一覧（`useInfiniteQuery` で「もっと読む」、条件は URL、既定の並べ方 `dueDate` は URL に書かないが API にはいつも `sort` を送る、題名の絞り込みは読み込んだ中から）、作る（`Idempotency-Key`、422 は項目の横）、1つのタスク（状態の変更・409、変わった項目だけ PATCH、412 で「読み直す」、`key={task.version}` でフォームを作り直す、`<dialog>` で消す）、`PageTitle`（`pathname` が変わったら h1 にフォーカス。最初のページ＝key `default` は除く）、`AnnouncerProvider` は Layout の中。`src/routes.tsx` が `routes: RouteObject[]` を export。テストは `test/fake-api.ts`（fetch の代わりの偽の API）と `test/app.test.tsx`（`createMemoryRouter(routes)`、名前で探す 19 個、`vi.setSystemTime` で 2026-12-10）。`npm run check`（tsc → ESLint → Vitest）
+
+### 第8部で決めた書き方・作り方（第9部以降もそろえる）
+
+- ポート: 画面 5173（preview 4173）、練習用の API 9500、成果物の API（第7部）9490
+- 画面のテストは、役割と名前（`getByRole('button', { name: '…' })`）で探す。要件の表に名前を書いておく
+- API の応答・フォームの入力は Zod で確かめる（画面の `schemas.ts` は第7部の `types.ts` の `Task` と同じ形）
+- Hooks の決まりは ESLint（eslint-plugin-react-hooks 7）に見張らせる。わざと依存配列を減らすときは、理由のコメントと、その行だけの `eslint-disable-next-line`
+- U+2028・U+2029 などの文字は、ソースにそのまま書かずエスケープで書く（パーサが壊れる）
+- 執筆時点では Node.js 24.22、Chromium（Playwright）で、すべての練習問題の模範解答と成果物の `npm run check` が通り、サンプルと成果物がブラウザで動くことを確かめた
+
+### 第8部で予告した内容（後の部で回収する）
+
+| 予告した内容 | 予告した場所 | 回収する部・章 |
+| --- | --- | --- |
+| 画面とサーバで同じスキーマのファイルを共有する、Next.js のファイルによるルーティング・SSR・`notFound()`・`metadata`・`loading.tsx`・Server Components | 第43章 5節、第44章 2節、第46章 5〜8節 | 第9部 第47〜49章・成果物 ✅ |
+| ログインのフォーム、ログインしている人を Context で、401 でログインのページへ | 第39章 5節、第44章 7節、第45章 6節、成果物 7節 | 第10部 |
+| `getByRole` で書くテスト、画面と API のテストを GitHub Actions で、Playwright の E2E | 第45章 5節、成果物 7節 | 第11部 第58・59章 |
+| `.env` を本番とステージングで変える、`dist` を配るサーバで `index.html` を返す、ハッシュ付きのファイルを CDN で長く覚えさせる、検索エンジン | 第40章 4・7節、第44章 2.4節、第46章 5節 | 第12部（第65章ほか） |
+
+### 第9部（作成済み）で学習者が持っているもの
+
+第47章の最初に `setup-part09.sh` を1回だけ動かす（`~/dev/part09` にコピーして `npm ci --ignore-scripts`。`.next`・`.next-test`・`*.tsbuildinfo`・`next-env.d.ts` はコピーしない）。版: next 16.4.3、@next/eslint-plugin-next 16.4.3、server-only 0.0.1、ほかは第8部と同じ（react 19.3.1、vitest 4.1.12、jsdom 30.1.3、zod 4.6.7、typescript 6.0.3、eslint 10.13.0 など）。
+
+- Next.js の設定は `tools/next.config.ts`（`cacheComponents: true`・`partialPrefetching: true`・`agentRules: false`・`distDir: process.env.NEXT_DIST_DIR ?? '.next'`）と `tools/tsconfig.next.json`。章の「手を動かす」は、章のフォルダに `web/` を作ってこの2つをコピーし、1つのアプリを育てる。ESLint は部の直下の `eslint.config.js`（第8部の設定 + `@next/eslint-plugin-next`）
+- 練習用の API は第8部と同じ `api/`（9500）。Next.js のサーバから呼ぶので CORS は使わない（ブラウザの EventSource を直接つなぐときだけ `CORS_ORIGINS=http://localhost:9520 npm run api`）
+- ポート: 第47章 9510・第48章 9520・第49章 9530・第50章 9540・成果物 9550。テストは各章の 6・7（API・Next.js）と 8（Server Action のテストの API）番台
+- 練習問題のテスト: `tools/servers.ts` が API と `next dev`（または `buildAndStartNext` で `next build` → `next start`）を `.next-test` で起動し、ページを `fetch` して HTML を確かめる（`APP=../solutions npx vitest run app.test.ts`）。部品は jsdom（`MODULE=…`、`vi.mock('next/navigation')`）。Server Action は `vi.mock('server-only')`・`next/cache`・`next/navigation`（redirect は投げる）にして、`API_URL` を決めてから動的 import でふつうの関数として呼ぶ
+- 第47章: 最小のアプリ、ファイルが URL、`layout`・`page`・共通メニュー、`Link`、サーバで API を読む（`lib/api.ts`）、`loading`・`[id]`・`notFound()`・`error.tsx`、`searchParams`、`metadata`、`next build`・`next start`、ESLint。練習問題8問
+- 第48章: Server / Client Component、`'use client'` の境界と children、送れる props、`server-only`・環境変数（`NEXT_PUBLIC_`）、`<Suspense>` で分けて流す、`use`、`usePathname`（Suspense の中で）・`useSearchParams`・`router.refresh`。練習問題8問
+- 第49章: Route Handler（health・BFF の `/api/tasks`・`RouteContext`）、`'use server'`（async 関数しか export できない）、`useActionState`・`useFormStatus`・`bind`・`useOptimistic`、Server Action の安全（引数はブラウザから届く値、だれが呼んだかは第10部）、SSE の中継。練習問題8問
+- 第50章: `next build` の ○ ◐ ƒ、`connection()`、`'use cache'`・`cacheLife`・`cacheTag`、`updateTag`（Server Action）・`revalidateTag(tag, 'max')`（Route Handler、`Bearer dev-only-revalidate-secret`）、`generateStaticParams`、開発と本番の違い。練習問題8問
+- 成果物 `project-task-next/solutions/`（パッケージ `task-next`）: 学習者は `~/dev/task-api` でブランチ `part09-next`（`part08-web` から）を作り、`next/` に置く。`lib/schemas.ts`・`dates.ts` は第8部の `web/` からコピー。API は `API_URL`（既定 9490）をサーバから呼ぶ。一覧は GET の `next/form` と `searchParams`（`?status=a,b` と `?status=a&status=b` の両方）、「次のページ」のリンク。`app/tasks/actions.ts` の4つの Server Action（`FormState` = errors・values・stale）、成功で `refresh()`、412 では呼ばず `stale: true`、知らせは `?created=1`・`?deleted=題名`。冪等キーは付けない（`useFormStatus` で防ぐ。キーを作る場所がハイドレーション・Cache Components と合わないため）。キャッシュは使わない（第50章 8節の1番）。テストは `test/pages.test.ts`（偽の API を HTTP で 9556、next dev 9557、14 個）・`actions.test.ts`（9558、14 個）・`components.test.tsx`（6 個）。README 5節に第8部との比較表
+
+### 第9部で決めた書き方・作り方（第10部以降もそろえる）
+
+- Next.js のアプリは Cache Components を有効にする（今の create-next-app の既定）。API やリクエストの値を読む部品は `<Suspense>` の中に置く
+- API を呼ぶ関数は `lib/api.ts` に置き、1行目で `import 'server-only'`。Client Component は Server Action を通して書き換える
+- Server Action の引数はブラウザから届く値として確かめる。返す型は `{ errors, values }` のような形にし、打った値を消さない
+- テストの開発サーバは `NEXT_DIST_DIR=.next-test` と別のポートで起動し、学習者の `npm run dev` とぶつからないようにする
+- SSR の HTML を正規表現で確かめるときは、React が文字のつなぎ目に入れる `<!-- -->` を取り除いてから比べる。属性の順番に頼らない
+
+### 第9部で予告した内容（後の部で回収する）
+
+| 予告した内容 | 予告した場所 | 回収する部・章 |
+| --- | --- | --- |
+| ログインしていないときのページ、ログインのフォームを Server Action で、Route Handler でログインのコールバック、Server Action で「だれが呼んだか」を確かめる、人ごとのページは覚えない、合言葉は `crypto.timingSafeEqual` で比べる | 第47章 6節、第48章 4節、第49章 4節、第50章 8節・練習問題6の解答、成果物 8節 | 第10部 |
+| CI でビルドする、ページ・Server Action・API のテストを GitHub Actions で、Playwright の E2E | 第50章 7節、成果物 6・8節 | 第11部 |
+| `next build` したアプリのデプロイ、本番の環境変数、ヘルスチェック、`metadata` と検索エンジン・SNS、静的なページの配信、ビルドする場所からデータに届くか | 第47章 8・9節、第48章 4節、第49章 2節、第50章 3・6・7節、成果物 8節 | 第12部 |
+| Next.js で作るか、Express + React で作るか | 第47章 3節、成果物 5節 | 第13部 |
 
 ## 7. 作業の手順（Claude 向け）
 

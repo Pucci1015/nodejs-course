@@ -1,0 +1,9 @@
+{
+  "name": "build-try",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "node --enable-source-maps dist/main.js"
+  }
+}
