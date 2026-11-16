@@ -15,10 +15,10 @@ HTML・CSS・JavaScript の基本と Flask での開発経験がある人が、*
 | [第3部](part03-js-node-basics/README.md) | モダン JavaScript と Node.js の基礎 | 11〜16 | メモを Markdown ファイルで管理する CLI ツール | ✅ |
 | [第4部](part04-raw-http-server/README.md) | フレームワークなしで Web サーバを作る | 17〜22 | フレームワークを使わない簡易掲示板 | ✅ |
 | [第5部](part05-express/README.md) | Express とサーバサイドの設計 | 23〜28 | タスク管理アプリの REST API（メモリ上に保存） | ✅ |
-| 第6部 | データベース | 29〜34 | タスク管理 API を PostgreSQL で永続化 | |
-| 第7部 | TypeScript | 35〜38 | タスク管理 API を TypeScript に移行 | |
-| 第8部 | フロントエンドと React | 39〜46 | タスク管理アプリの画面を React + TypeScript で作る | |
-| 第9部 | Next.js | 47〜50 | タスク管理アプリを Next.js で作り直し、Express + React 版と比べる | |
+| [第6部](part06-database/README.md) | データベース | 29〜34 | タスク管理 API を PostgreSQL で永続化 | ✅ |
+| [第7部](part07-typescript/README.md) | TypeScript | 35〜38 | タスク管理 API を TypeScript に移行 | ✅ |
+| [第8部](part08-react/README.md) | フロントエンドと React | 39〜46 | タスク管理アプリの画面を React + TypeScript で作る | ✅ |
+| [第9部](part09-nextjs/README.md) | Next.js | 47〜50 | タスク管理アプリを Next.js で作り直し、Express + React 版と比べる | ✅ |
 | 第10部 | 認証とセキュリティ | 51〜55 | タスク管理アプリにユーザー登録・メール確認・ログインを追加 | |
 | 第11部 | テストとコード品質 | 56〜59 | テストと CI が整ったタスク管理アプリ | |
 | 第12部 | デプロイと運用 | 60〜66 | 画像添付・メール通知を備えたタスク管理アプリを独自ドメインで公開 | |
@@ -34,7 +34,7 @@ HTML・CSS・JavaScript の基本と Flask での開発経験がある人が、*
 
 ### 作業用のフォルダについて
 
-この教材のフォルダは OneDrive の同期フォルダに置かれています。教材を読んだり、小さなスクリプトを実行したりするのは問題ありませんが、`npm install` を実行するプロジェクトや Git の練習用リポジトリは、同期されない **`~/dev/`** の下に作ってください（`node_modules` の大量のファイルが同期され続け、Mac が重くなるのを防ぐため）。練習問題のスクリプトも、既定で `~/dev/` の下に作るようになっています。
+この教材のフォルダ（`~/Documents/nodejs-course`）は、見本として書き換えずに残しておきます。`npm install` を実行するプロジェクト、Git の練習用リポジトリ、本文の「手を動かす」で作るファイルは、すべて **`~/dev/`** の下に作ってください。第5部からは、各部の最初に `setup-partNN.sh` で、その部のフォルダを `~/dev/partNN` にコピーしてから使います。練習問題のスクリプトも、既定で `~/dev/` の下に作るようになっています。
 
 ## 前提と想定する学習量
 

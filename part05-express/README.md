@@ -72,4 +72,4 @@ $ bash （ここに Finder から part05-express フォルダの中の setup-par
 
 ---
 
-教材全体の目次: [../README.md](../README.md) ／ 前: [第4部 フレームワークなしで Web サーバを作る](../part04-raw-http-server/README.md) ／ 次: 第6部 データベース（準備中）
+教材全体の目次: [../README.md](../README.md) ／ 前: [第4部 フレームワークなしで Web サーバを作る](../part04-raw-http-server/README.md) ／ 次: [第6部 データベース](../part06-database/README.md)

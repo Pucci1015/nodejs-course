@@ -1,0 +1,20 @@
+/* 第47章 2節: アプリ全体の CSS。layout.tsx で import する */
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  line-height: 1.6;
+}
+header nav {
+  display: flex;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #d1d9e0;
+}
+main {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 1rem;
+}
+a[aria-current='page'] {
+  font-weight: bold;
+}

@@ -1,0 +1,30 @@
+/* 第45章 2.2節: CSS Modules。ここに書いたクラスの名前は、このファイルを import した部品の中だけで使われる */
+.card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+}
+
+.done {
+  background: var(--done-bg);
+}
+
+.title {
+  flex: 1;
+  margin: 0;
+  font-size: 1rem;
+}
+
+/* 5.2節: 完了の印を、色だけで伝えない（線と「完了」の文字も付ける） */
+.done .title {
+  text-decoration: line-through;
+}
+
+.badge {
+  font-size: 0.8rem;
+  color: var(--muted);
+}

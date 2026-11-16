@@ -1,0 +1,40 @@
+# 第6部で使う PostgreSQL（第32章から）と Redis（第34章）。開発用です
+# 使い方（part06 のフォルダで）:
+#   docker compose up -d --wait    動かす（動き始めるまで待つ）
+#   docker compose ps              様子を見る
+#   docker compose stop            止める（データは残る）
+#   docker compose down            止めて、コンテナを消す（データは残る）
+#   docker compose down -v         止めて、データ（ボリューム）も消す。元に戻せない
+# パスワードは、この PC の中だけで使う開発用の仮のものです。本番では使わないでください
+name: nodejs-course-part06
+
+services:
+  postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: dev-only-password
+      POSTGRES_DB: app
+    ports:
+      - "127.0.0.1:5433:5432" # この PC からだけ、5433 番でつなげる（Mac に別の PostgreSQL があっても、ぶつからない）
+    volumes:
+      - pgdata:/var/lib/postgresql # データを、コンテナを消しても残る場所（ボリューム）に置く
+      - ./docker/postgres-init:/docker-entrypoint-initdb.d:ro # 最初に1回だけ動かす SQL
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d app"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+  redis:
+    image: redis:8
+    ports:
+      - "127.0.0.1:6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+volumes:
+  pgdata:

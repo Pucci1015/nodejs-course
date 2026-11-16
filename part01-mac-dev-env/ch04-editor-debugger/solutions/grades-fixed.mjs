@@ -2,19 +2,19 @@
 // 使い方: node bug-grades.mjs
 //
 // 期待する出力:
-//   1位 鈴木 94.3
-//   2位 田中 91.7
-//   3位 佐藤 82.3
-//   4位 高橋 70.0
-//   5位 伊藤 57.7
-//   合格者（平均70点以上）: 鈴木, 田中, 佐藤, 高橋（4人）
+//   1位 bob 94.3
+//   2位 dave 91.7
+//   3位 alice 82.3
+//   4位 carol 70.0
+//   5位 eve 57.7
+//   合格者（平均70点以上）: bob, dave, alice, carol（4人）
 
 const students = [
-  { name: '佐藤', scores: [80, 92, 75] },
-  { name: '鈴木', scores: [100, 88, 95] },
-  { name: '高橋', scores: [65, 70, 75] },
-  { name: '田中', scores: [90, 85, 100] },
-  { name: '伊藤', scores: [55, 60, 58] },
+  { name: 'alice', scores: [80, 92, 75] },
+  { name: 'bob', scores: [100, 88, 95] },
+  { name: 'carol', scores: [65, 70, 75] },
+  { name: 'dave', scores: [90, 85, 100] },
+  { name: 'eve', scores: [55, 60, 58] },
 ];
 
 function average(scores) {

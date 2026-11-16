@@ -1,0 +1,13 @@
+{
+  "name": "todo-api",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch src/server.ts",
+    "start": "node src/server.ts",
+    "typecheck": "tsc",
+    "lint": "eslint .",
+    "test": "node --test \"test/*.test.ts\"",
+    "check": "npm run typecheck && npm run lint && npm test"
+  }
+}

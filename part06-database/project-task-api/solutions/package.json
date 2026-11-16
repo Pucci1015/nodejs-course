@@ -1,0 +1,24 @@
+{
+  "name": "task-api",
+  "version": "1.0.0",
+  "description": "タスク管理 REST API（第6部の成果物。データは PostgreSQL に置く）",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node --env-file-if-exists=.env src/server.mjs",
+    "dev": "node --watch --env-file-if-exists=.env src/server.mjs",
+    "migrate": "node --env-file-if-exists=.env src/db/migrate.mjs",
+    "test": "node --test \"test/*.test.mjs\""
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "dependencies": {
+    "cors": "2.8.6",
+    "express": "5.3.0",
+    "pg": "8.23.1",
+    "pino": "10.4.0",
+    "zod": "4.6.7"
+  },
+  "license": "MIT"
+}
