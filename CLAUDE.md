@@ -148,7 +148,7 @@ nodejs/                        ← 教材のルート（このファイルがあ
 | 7 TypeScript | `part07-typescript` ✅ | 35 TypeScript の基礎 / 36 型の表現力 / 37 Node.js プロジェクトでの TypeScript / 38 型と実行時の境界 | 型注釈と推論・`tsc`・`tsconfig.json`、ユニオンと絞り込み・ジェネリクス・ユーティリティ型、実行方法（Node.js の型除去機能、tsx、ビルド）と ESM、外部入力は型で守れない・Zod | タスク管理 API を TypeScript に移行 |
 | 8 フロントエンドと React | `part08-react` ✅ | 39 素の JavaScript で API とつなぐ / 40 ビルドツール / 41 React の基礎 / 42 Hooks と再描画の仕組み / 43 データ取得とフォーム / 44 ルーティングと状態の設計 / 45 スタイリングとアクセシビリティ / 46 フルスタックフレームワーク | `fetch` と DOM・画面とデータのずれ、バンドル・Vite、コンポーネント・JSX・props・state、`useState`・`useEffect`・カスタムフック、ローディングとエラー・TanStack Query・バリデーション、React Router・状態の置き場所、CSS Modules・Tailwind・キーボード操作とセマンティック HTML、SSR とハイドレーション・Server Components・Next.js | タスク管理アプリの画面（React + TS） |
 | 9 Next.js | `part09-nextjs` ✅ | 47 Next.js 入門 / 48 Server Components と Client Components / 49 Server Actions と Route Handlers / 50 レンダリングとキャッシュの戦略 | App Router とファイルによるルーティング・Vite の React アプリとの違い、コードがサーバとブラウザのどちらで動くか・サーバ側のデータ取得、フォーム送信の受け方・Express API との役割分担、静的生成・動的レンダリング・再検証（デプロイは第12部）。第10部以降は Express + React 版を主に進め、Next.js での書き方を各章で補足する | タスク管理アプリを Next.js で作り直し、Express + React 版と比べる |
-| 10 認証とセキュリティ | `part10-auth-security` | 51 認証の基礎 / 52 セッションとトークン / 53 メール送信と本人確認 / 54 OAuth 2.0 と OpenID Connect / 55 Web セキュリティの総点検 | ハッシュ化（bcrypt / Argon2）・認証と認可、Cookie セッションと JWT・`HttpOnly`・`Secure`・`SameSite`、SMTP・SPF・DKIM・メール送信サービス・登録確認とパスワードリセット・Mailpit、GitHub ログイン、XSS・CSRF・SQL インジェクション・CSP・OWASP Top 10、依存パッケージの脆弱性とサプライチェーン。**攻撃の再現は自分のローカル環境に限る** | ユーザー登録・メール確認・ログイン |
+| 10 認証とセキュリティ | `part10-auth-security` ✅ | 51 認証の基礎 / 52 セッションとトークン / 53 メール送信と本人確認 / 54 OAuth 2.0 と OpenID Connect / 55 Web セキュリティの総点検 | ハッシュ化（bcrypt / Argon2）・認証と認可、Cookie セッションと JWT・`HttpOnly`・`Secure`・`SameSite`、SMTP・SPF・DKIM・メール送信サービス・登録確認とパスワードリセット・Mailpit、GitHub ログイン、XSS・CSRF・SQL インジェクション・CSP・OWASP Top 10、依存パッケージの脆弱性とサプライチェーン。**攻撃の再現は自分のローカル環境に限る** | ユーザー登録・メール確認・ログイン |
 | 11 テストとコード品質 | `part11-testing` | 56 テストの考え方 / 57 API とデータベースのテスト / 58 フロントエンドのテスト / 59 静的解析と CI | 単体・結合・E2E、`node:test` と Vitest、HTTP レベルのテスト・テスト用 DB、Testing Library・Playwright、ESLint とフォーマッタ・GitHub Actions | テストと CI が整ったアプリ |
 | 12 デプロイと運用 | `part12-deploy` | 60 本番環境の考え方 / 61 Docker でコンテナ化 / 62 クラウドへのデプロイ / 63 ファイルの保存 / 64 バックグラウンドジョブ / 65 CDN とキャッシュ / 66 監視とパフォーマンス | 開発と本番・ビルド・プロセス管理・シークレット、Dockerfile・マルチステージ・Apple Silicon と CPU アーキテクチャ、PaaS（Render、Fly.io など）・マネージド DB・独自ドメインと HTTPS、オブジェクトストレージ（S3 互換）・署名付き URL・MinIO、キュー（BullMQ + Redis）・定期実行・再試行と冪等性、CDN の仕組み・`Cache-Control` の設計・キャッシュの消し方、ログとエラー監視・計測してから改善・複数プロセスとロードバランサ | 画像添付・メール通知つきで独自ドメインに公開 |
 | 13 総合演習 | `part13-capstone` | 67 要件と設計 / 68 実装（前半） / 69 実装（後半） / 70 公開と振り返り | 機能一覧・画面・API・テーブル設計・Express + React か Next.js かの選択、認証と中心機能、リアルタイム・ファイル保存・バックグラウンドジョブなど、デプロイ・README とポートフォリオ化・次に学ぶこと。教材の指示なしで進めることが目的 | 自分で決めた題材のアプリ |
@@ -203,20 +203,20 @@ nodejs/                        ← 教材のルート（このファイルがあ
 | `.mjs`、`node:` プレフィックス、ES Modules | 第2章サンプル | 第3部 第14章 ✅ |
 | npm、semver、`sudo npm install -g` をしない理由 | 第1章8.3節、第2章6.6節 | 第3部 第14章 ✅ |
 | パストラバーサル対策、MIME タイプ | 第4章 `serve.mjs` | 第4部 第19章 ✅ |
-| `innerHTML` と XSS、`textContent` | 第4章 `demo.js` | 第4部 第21章 ✅、第10部 第55章 |
-| 秘密情報（`.env`）とローテーション | 第3章13.3節、練習問題5 | 第10部、第12部 第60章 |
+| `innerHTML` と XSS、`textContent` | 第4章 `demo.js` | 第4部 第21章 ✅、第10部 第55章 ✅ |
+| 秘密情報（`.env`）とローテーション | 第3章13.3節、練習問題5 | 第10部 ✅（鍵・`client_secret` は環境変数で、例は `dev-only-…`）、第12部 第60章（取り替え） |
 | ESLint の設定、CI | 第4章4節 | 第11部 第59章 |
 
 ### 第2部で予告した内容（後の部で回収する）
 
 | 予告した内容 | 予告した場所 | 回収する部・章 |
 | --- | --- | --- |
-| HTML のエスケープと XSS（`escapeHtml`、`textContent`） | 第10章2.3節・3.1節・練習問題6・7 | 第4部 第21章 ✅、第10部 第55章 |
+| HTML のエスケープと XSS（`escapeHtml`、`textContent`） | 第10章2.3節・3.1節・練習問題6・7 | 第4部 第21章 ✅、第10部 第55章 ✅ |
 | ボディを Stream として読む、大きなアップロード | 第6章11.2節 | 第3部 第15章 ✅（Stream・背圧）、第4部 第20章 ✅ |
 | ルーティングを `split('/')` で書く。大きい版の `todo-spa.mjs` は正規表現（`/^\/api\/tasks\/(\d+)$/`） | 第10章5節・練習問題1・3・6 | 第4部 第18章 ✅ |
-| セッション（ランダムな ID、署名付き Cookie、Flask の `session`・`flash`） | 第7章3節、第8章2節、第10章練習問題7 | 第4部 第22章 ✅、第10部 第52章 |
-| CSRF（GET で状態を変えない、`SameSite`、CSRF トークン） | 第10章6.1節 | 第4部 第22章 ✅（`SameSite`・トークン）、第10部 第55章 |
-| パスワードのハッシュ化（bcrypt / Argon2） | 第8章2節 | 第10部 第51章 |
+| セッション（ランダムな ID、署名付き Cookie、Flask の `session`・`flash`） | 第7章3節、第8章2節、第10章練習問題7 | 第4部 第22章 ✅、第10部 第52章 ✅ |
+| CSRF（GET で状態を変えない、`SameSite`、CSRF トークン） | 第10章6.1節 | 第4部 第22章 ✅（`SameSite`・トークン）、第10部 第52・55章 ✅ |
+| パスワードのハッシュ化（bcrypt / Argon2） | 第8章2節 | 第10部 第51章 ✅ |
 | Shift_JIS などの変換を npm のパッケージ（iconv-lite）で行う | 第7章2節 | 第3部 第14章 ✅ |
 | Public Suffix List をパッケージ（tldts など）で扱う | 第9章練習問題6 | 第3部 第14章 ✅ |
 | Express の cors・ログ（morgan など）・エラーハンドリングのミドルウェア | 第9章5.5節、第6章練習問題7、第10章練習問題6 | 第5部 第24章 ✅ |
@@ -260,9 +260,9 @@ nodejs/                        ← 教材のルート（このファイルがあ
 | パストラバーサル（`path.join` は `..` を止めない、`path.relative` で外を指すか調べる） | 第15章 練習問題4、成果物 2.2節 | 第4部 第19章 ✅ |
 | ボディの大きさの上限、Stream で読むリクエストのボディ | 第15章7節 | 第4部 第20章 ✅ |
 | サーバを止めるとき（受け付けをやめ、処理中を終えてから終わる） | 第16章8.2節 | 第4部 第17章 ✅、第12部 第60章 |
-| `crypto.timingSafeEqual`、パスワードのハッシュ化 | 第15章8.1節 | 第10部 第51・52章 |
-| コマンドインジェクション（`exec` と `execFile`）、エディタをシェルで起動しない | 第15章8.2節、成果物 3.4節 | 第10部 第55章 |
-| 依存パッケージの危険（install scripts、typosquatting、`npm audit`） | 第14章12節 | 第10部 第55章 |
+| `crypto.timingSafeEqual`、パスワードのハッシュ化 | 第15章8.1節 | 第10部 第51・52章 ✅ |
+| コマンドインジェクション（`exec` と `execFile`）、エディタをシェルで起動しない | 第15章8.2節、成果物 3.4節 | 第10部 第55章 ✅ |
+| 依存パッケージの危険（install scripts、typosquatting、`npm audit`） | 第14章12節 | 第10部 第55章 ✅ |
 | Worker のプール、複数プロセス、イベントループの遅れの監視 | 第13章6〜7節 | 第12部 第66章 |
 | ReDoS を静的解析で見つける（eslint-plugin-regexp など） | 第13章 練習問題6 | 第11部 第59章 |
 | 同時に書き直すと片方が消える（ロック、楽観的ロック、一意制約） | 第15章 練習問題5、成果物 5節 | 第6部 第30章 ✅ |
@@ -296,11 +296,11 @@ nodejs/                        ← 教材のルート（このファイルがあ
 | --- | --- | --- |
 | 自作の Router・`createApp`・`compose`・`readForm`・`serveStatic`・`withSession` と Express の対応 | 各章の最後の節、成果物 6節 | 第5部 第23〜24章 ✅ |
 | 入力の確かめをライブラリで（zod など）、エラーの形をそろえる | 第20章 練習問題3・8、成果物 2.2節 | 第5部 第25章 ✅、第7部 第38章 ✅ |
-| セッションをデータベース・Redis に置く、サーバが複数台 | 第22章 4.3節 | 第6部 第34章 ✅、第10部 第52章 |
+| セッションをデータベース・Redis に置く、サーバが複数台 | 第22章 4.3節 | 第6部 第34章 ✅、第10部 第52章・成果物 ✅（成果物は PostgreSQL の `PgSessionStore`） |
 | JSON のファイルの代わりにデータベース、一意制約、同時の書き込み | 成果物 3.3節 | 第6部 第29〜31章 ✅ |
-| パスワードのハッシュ（bcrypt・argon2 との比べ）、認証と認可 | 第22章 6.1節、成果物 3.5節 | 第10部 第51章 |
-| 署名付きトークン（JWT）と、Cookie のセッションとの比べ | 第22章 5.1節 | 第10部 第52章 |
-| XSS・CSRF・CSP の総点検、`Origin` ヘッダでの CSRF 対策、fetch で送る API の守り方 | 第21章 2.1・8節、第22章 8節 | 第10部 第55章 |
+| パスワードのハッシュ（bcrypt・argon2 との比べ）、認証と認可 | 第22章 6.1節、成果物 3.5節 | 第10部 第51章 ✅ |
+| 署名付きトークン（JWT）と、Cookie のセッションとの比べ | 第22章 5.1節 | 第10部 第52章 ✅ |
+| XSS・CSRF・CSP の総点検、`Origin` ヘッダでの CSRF 対策、fetch で送る API の守り方 | 第21章 2.1・8節、第22章 8節 | 第10部 第55章 ✅ |
 | HTTPS での `Secure`・`__Host-` の Cookie | 第22章 2.1〜2.2節 | 第12部 第62章 |
 | テンプレートエンジン（EJS・Nunjucks など）と React の JSX のエスケープ | 第21章 1・6節 | 第5部 第23章 ✅、第8部 第41章 2.3節 ✅ |
 | 外から HTTP で確かめるテスト、テスト用のデータ | 成果物 `test/bbs.test.mjs` | 第11部 第57章 |
@@ -336,8 +336,8 @@ nodejs/                        ← 教材のルート（このファイルがあ
 | zod のスキーマから TypeScript の型を作る | 第25章 5.1節 | 第7部 第38章 ✅ |
 | SSE を画面から受け取る、CORS で Vite の画面から呼ぶ | 第27章 5節、成果物 2.8節 | 第8部 第39・43章 ✅ |
 | Next.js の Route Handlers を動かす | 第28章 5.2節 | 第9部 第49章 2節 ✅ |
-| 401・403、ログインしたユーザーごとの冪等キー・回数の制限、WebSocket・SSE の認証 | 第25章 3.2節、第27章 3.3節、成果物 5節 | 第10部 |
-| helmet・CSP などのヘッダの総点検 | 第24章 6節 | 第10部 第55章 |
+| 401・403、ログインしたユーザーごとの冪等キー・回数の制限、WebSocket・SSE の認証 | 第25章 3.2節、第27章 3.3節、成果物 5節 | 第10部 成果物 ✅（SSE は人ごとのハブ。WebSocket の認証は扱っていない） |
+| helmet・CSP などのヘッダの総点検 | 第24章 6節 | 第10部 第55章 ✅ |
 | `req.ip` とリバースプロキシ（`trust proxy`）、本番の `.env` の代わり、圧縮 | 第23章 4節、第24章 6節、第26章 5.3節 | 第12部 第60〜62章 |
 | ファイルのアップロード（multer、オブジェクトストレージ） | 第24章 6節 | 第12部 第63章 |
 | 二重に実行されても困らないジョブ（冪等キーの考え方） | 第25章 8.2節 | 第12部 第64章 |
@@ -372,9 +372,9 @@ nodejs/                        ← 教材のルート（このファイルがあ
 | --- | --- | --- |
 | データの層の形を型（`interface TaskRepo`）に、SQL の結果の行に型を付ける | 成果物 7節 | 第7部 第37・38章・成果物 ✅ |
 | 画面に日付を出す（date の文字列、タイムゾーン） | 第32章 4.2節 | 第8部 第46章 4.3節・成果物 ✅ |
-| ユーザーとタスク（外部キー、`user_id` を足すマイグレーション）、ログインごとの冪等キー | 第29章 6節、成果物 7節 | 第10部 |
-| express-session + connect-redis、ログインの回数の制限 | 第34章 5.2節 | 第10部 第52章 |
-| インジェクションをまとめて扱う | 第31章 1節 | 第10部 第55章 |
+| ユーザーとタスク（外部キー、`user_id` を足すマイグレーション）、ログインごとの冪等キー | 第29章 6節、成果物 7節 | 第10部 成果物 ✅（列の名前は `owner_id`。マイグレーション 004） |
+| express-session + connect-redis、ログインの回数の制限 | 第34章 5.2節 | 第10部 第51・52章 ✅（connect-redis は名前だけ。成果物は PostgreSQL に置いた） |
+| インジェクションをまとめて扱う | 第31章 1節 | 第10部 第55章 ✅ |
 | データベースを使うテスト、偽物のリポジトリに取り替える | 成果物 4節、第33章 7節 | 第11部 第57章 |
 | 自分のアプリをコンテナにする、マネージドの PostgreSQL、`/readyz` で DB を確かめる | 第32章 1節、成果物 5節 | 第12部 第60〜62章 |
 | `SKIP LOCKED` の仕事の列、BullMQ（Redis） | 第32章 6.2節、第34章 6.2節 | 第12部 第64章 |
@@ -410,7 +410,7 @@ nodejs/                        ← 教材のルート（このファイルがあ
 | 画面の状態（読み込み中・成功・失敗）を判別できるユニオンで | 第36章 2節 | 第8部 第39章・第43章 2.2節 ✅ |
 | サーバとブラウザで同じ Zod のスキーマを使う（フォームの確かめ、API の応答の確かめ） | 第38章 8節 | 第8部 第43章 5.1節・成果物 ✅ |
 | Server Actions の入力を Zod で | 第38章 | 第9部 第49章 3.2節・成果物 ✅ |
-| `req.user` を宣言のマージで、`UserId` のブランド型、トークンの中身を Zod で | 第37章 5.2節、第38章 7節 | 第10部 |
+| `req.user` を宣言のマージで、`UserId` のブランド型、トークンの中身を Zod で | 第37章 5.2節、第38章 7節 | 第10部 ✅（`req.user`・`session.d.ts`、ID トークンの中身は Zod。ブランド型は使わなかった） |
 | 偽物のリポジトリを `TaskRepo` に合わせる | 第37章 4節、成果物 5節 | 第11部 第57章 |
 | `npm run check` を GitHub Actions で | 第37章 7節 | 第11部 第59章 |
 | ビルドして動かす方法と比べる（本番の Docker のイメージ） | 第37章 1.4節 | 第12部 |
@@ -448,7 +448,7 @@ nodejs/                        ← 教材のルート（このファイルがあ
 | 予告した内容 | 予告した場所 | 回収する部・章 |
 | --- | --- | --- |
 | 画面とサーバで同じスキーマのファイルを共有する、Next.js のファイルによるルーティング・SSR・`notFound()`・`metadata`・`loading.tsx`・Server Components | 第43章 5節、第44章 2節、第46章 5〜8節 | 第9部 第47〜49章・成果物 ✅ |
-| ログインのフォーム、ログインしている人を Context で、401 でログインのページへ | 第39章 5節、第44章 7節、第45章 6節、成果物 7節 | 第10部 |
+| ログインのフォーム、ログインしている人を Context で、401 でログインのページへ | 第39章 5節、第44章 7節、第45章 6節、成果物 7節 | 第10部 成果物 ✅（ログインしている人は Context ではなく TanStack Query の `['me']` に置いた） |
 | `getByRole` で書くテスト、画面と API のテストを GitHub Actions で、Playwright の E2E | 第45章 5節、成果物 7節 | 第11部 第58・59章 |
 | `.env` を本番とステージングで変える、`dist` を配るサーバで `index.html` を返す、ハッシュ付きのファイルを CDN で長く覚えさせる、検索エンジン | 第40章 4・7節、第44章 2.4節、第46章 5節 | 第12部（第65章ほか） |
 
@@ -478,10 +478,47 @@ nodejs/                        ← 教材のルート（このファイルがあ
 
 | 予告した内容 | 予告した場所 | 回収する部・章 |
 | --- | --- | --- |
-| ログインしていないときのページ、ログインのフォームを Server Action で、Route Handler でログインのコールバック、Server Action で「だれが呼んだか」を確かめる、人ごとのページは覚えない、合言葉は `crypto.timingSafeEqual` で比べる | 第47章 6節、第48章 4節、第49章 4節、第50章 8節・練習問題6の解答、成果物 8節 | 第10部 |
+| ログインしていないときのページ、ログインのフォームを Server Action で、Route Handler でログインのコールバック、Server Action で「だれが呼んだか」を確かめる、人ごとのページは覚えない、合言葉は `crypto.timingSafeEqual` で比べる | 第47章 6節、第48章 4節、第49章 4節、第50章 8節・練習問題6の解答、成果物 8節 | 第10部 ✅（第52〜55章の「Next.js では」の節で考え方を表に。成果物は Express + React 版だけ） |
 | CI でビルドする、ページ・Server Action・API のテストを GitHub Actions で、Playwright の E2E | 第50章 7節、成果物 6・8節 | 第11部 |
 | `next build` したアプリのデプロイ、本番の環境変数、ヘルスチェック、`metadata` と検索エンジン・SNS、静的なページの配信、ビルドする場所からデータに届くか | 第47章 8・9節、第48章 4節、第49章 2節、第50章 3・6・7節、成果物 8節 | 第12部 |
 | Next.js で作るか、Express + React で作るか | 第47章 3節、成果物 5節 | 第13部 |
+
+### 第10部（作成済み）で学習者が持っているもの
+
+第51章の最初に `setup-part10.sh` を1回だけ動かす（`~/dev/part10` にコピーして `npm ci --ignore-scripts`。どの深さの `node_modules`・`dist` もコピーしない）。版: express 5.3.0、express-session 1.19.0 + @types/express-session 1.19.0、helmet 8.3.0、nodemailer 10.3.1 + @types/nodemailer 8.0.2（nodemailer 10 は型を同梱していない）、zod 4.6.7、typescript 6.0.3、eslint 10.13.0、typescript-eslint 8.72.1。`tsconfig.base.json`・`eslint.config.js` は第7部と同じ形。
+
+- 道具（`tools/`）: `fake-smtp.ts`（`npm run mail`。SMTP 127.0.0.1:1025、受け取ったメールは `http://127.0.0.1:8025/api/messages`。`temp-fail@example.com` は 451、`no-such-user@example.com` は 550）、`mini-idp.ts`（`npm run idp`。127.0.0.1:9640、認可コード + PKCE、RS256 と JWKS、ユーザー alice（確認済み）と bob（`email_verified: false`）、クライアント `task-app` / `dev-only-client-secret`、戻り先は 9647 の `/auth/callback` と `http://localhost:5173/api/auth/idp/callback`）。部の直下の `compose.yaml` は Mailpit（axllent/mailpit:v1.33.0。執筆の環境では Docker が使えず構文だけ確かめた）
+- 練習問題は第7部と同じ形（`node --test x.test.ts`、`MODULE=../solutions/x.ts`、テストの中に `tsc` で型を確かめるテスト、ひな形は `throw new Error('まだ書いていません')`、投げることを確かめるテストは、その文を除く `rejected` で確かめる）。問題4は毎章 `predict.md`（考えて答える問題。答えは solutions/README）
+- 第51章（9617）: 認証と認可、SHA-256 だけではだめ（`naive-hash.ts`）、ソルト、遅いハッシュ（`node:crypto` の Argon2id と scrypt の時間を比べる）、`password.ts`（Argon2id の PHC 文字列、`timingSafeEqual`）、`policy.ts`（12〜128 文字・NFKC・よく使われるもの・メールアドレスを含まない）、登録とログインの API（ダミーのハッシュで時間をそろえる）、`limiter.ts`（失敗を数える）、認可の関数 `can`。練習問題8問（email・phc・policy・predict・rehash・backoff・authorize（共有されたタスク）・パスワードを変える API）
+- 第52章（9627）: express-session（`session-app.ts`、`regenerate`・`save`・`destroy`、`requireAuth`）、Cookie の属性とセッション固定、`requireSameOrigin`（`Origin`）、`node:crypto` だけの HS256 の JWT（`jwt.ts`。`alg` を確かめる・期限・書き換え）、store を持ってある人のセッションを全部消す（`store-demo.ts`）、MemoryStore は開発用（connect-redis は名前だけ）、Next.js では。練習問題8問（cookie-options・base64url・require-auth・predict・origin-check（Referer）・verify-jwt・timeout・logout-all。`exercises/client.ts` は Cookie の入れ物を持つテストの道具）
+- 第53章（9637）: メールが届くまで（SMTP・MX・SPF・DKIM・DMARC）、`nc` で SMTP を話す、nodemailer（`send-mail.ts`・`mail-errors.ts`。`err.responseCode`・`err.permanent`）、`Mailer` の形と偽物、`token.ts`（32 バイト、表にはハッシュ、期限・1回だけ・使い道、URL の `#` の後ろ）、`mails.ts`、`email-app.ts`（登録 → 確認 → ログイン、登録済みでも同じ 202、送るのを待たない `deliver`）、再設定、届くメールにする（本番の話）。練習問題8問（reset-mail・smtp-data・smtp-reply・predict・token-store・retry・mail-queue・再設定の API）
+- 第54章（9640・9647）: OAuth 2.0 と OIDC、認可コードフローを手で（`pkce.ts`・`exchange.ts`、`state`・`nonce`・PKCE）、ID トークンを確かめる（`id-token.ts`。RS256・JWKS・`iss`・`aud`・`exp`・`nonce`）、`oidc-client.ts`（ログインするアプリ。セッションのキー `oidc`）、`sub` とメールアドレス（`email_verified` が無ければ結びつけない）、GitHub でログイン（`github-login.ts`。セッションのキー `githubUser`。執筆の環境では動かしていない）、Auth.js。練習問題8問（callback・basic-auth・pick-key・predict・verify-id-token・exchange・link-account・設定を IdP から読むアプリ）
+- 第55章（9657）: 点検の地図（OWASP Top 10 2025 の表。「必ず公式で確認」）、helmet（`plain.ts`・`headers.ts`。12 個のヘッダ、X-Powered-By を消す）、CSP の nonce（`csp-nonce.ts`。`CSP_REPORT_ONLY=1` では `upgrade-insecure-requests` を外す）、XSS の点検、CSRF（`fetch-metadata.ts`。Chromium で、別のサイトからの POST が 403 になることを確かめた）、インジェクション（`sql.ts` は `node:sqlite` と `Let's ストレッチ`、`run-command.ts` は `exec` と `execFile` と `--`）、認可の漏れ（`owner-check.ts`）、SSRF（`outbound-url.ts`。`net.BlockList` は IPv4 を写した IPv6 も IPv4 の決まりで見る、`dns.lookup` の `all: true`）、依存パッケージ（`npm audit`、`audit-part10.json` は本物の結果）、エラーを見せない（`errors.ts`。`errorId`）。練習問題8問（csp・fetch-metadata・count-lines・predict・owner-app・safe-fetch・error-handler・audit-gate（CLI））
+- 成果物 `project-task-auth/solutions/`（API は第7部と同じ 9490、テスト 9491〜9494、画面 5173）: 学習者は `~/dev/task-api` でブランチ `part10-auth` を `part08-web` から作る（`next/` は使わない）。API: マイグレーション 003（`users`・`user_identities`・`email_tokens`・`sessions`）と 004（`tasks.owner_id`。**今あるタスクと冪等キーを消す**）、`src/auth/`（章の部品のコピーと `PgSessionStore`）、`pg-users.ts`、`services/auth.ts`、`routes/auth.ts`（`/api/auth/register`・`verify-email`・`resend-verification`・`login`・`logout`・`logout-all`・`me`・`forgot-password`・`reset-password`・`idp/login`・`idp/callback`）、`requireUser`・`requireSameOrigin`、helmet、express-session（`sid`、本番は `__Host-sid` と `Secure`、`rolling`、`saveUninitialized: false`）、`serviceFor(req)` でリクエストごとに `createPgTaskRepo(pool, userId)` のサービス（`services/tasks.ts` は第7部のまま）、`createUserHubs`（SSE を人ごとに）、冪等キーは `idempotency(store, { scope })` で人ごと、`/api/auth` の POST は `LOGIN_RATE_LIMIT_PER_MINUTE` で別に数える。設定に `APP_URL`・`SMTP_*`・`MAIL_FROM`・`OIDC_*`（3つそろえる）・`SESSION_MAX_AGE_HOURS`、`SESSION_SECRET` は開発では起動のたびに乱数。テストは `test/helpers.ts`（テストの中で偽の SMTP サーバを起動、`signUp`、base ごとの Cookie の `jar`）、`api.test.ts`（第7部の 30 個をログイン付きに）、`auth.test.ts`（31〜45。IdP も中で起動）の 45 個。画面（`web/`）: ログインしている人は TanStack Query の `['me']`（Context にしない）、`createQueryClient` で 401 なら `['me']` を `null`、`RequireLogin`（path の無いルート）、`safeNext`、ログイン・登録・確認（ボタンで POST）・再設定・新しいパスワードのページ、ログアウトでタスクのキャッシュを消す、`VITE_IDP_LOGIN=1` で IdP のリンク。テストは `app.test.tsx` 19 個 + `auth.test.tsx` 15 個
+
+### 第10部で決めた書き方・作り方（第11部以降もそろえる）
+
+- ポート: 第51章 9617 / 第52章 9627 / 第53章 9637（メールは 1025・8025） / 第54章 9640（IdP）・9647 / 第55章 9657 / 成果物は第7部の API の 9490（テスト 9491〜9494）と画面 5173
+- 攻撃の例は書かない。守り方と「自分のサーバが正しく断るか」を確かめる形にする（SQL は `'` を含む値だけ、XSS は `<p>` だけ、Cookie を作り変えるコードは書かない、ポートを調べるのは 127.0.0.1 だけ）。部の README の冒頭に「攻撃の再現は自分の Mac の中だけ」と書いた
+- メールは本物の宛先に送らない。例のアドレスは `alice@example.com`・`bob@example.com`。秘密の値は `dev-only-…`
+- 外の SMTP サーバや IdP を相手にするテストは、偽物（`tools/` のコピー）をテストの中で空いているポートに起動する
+- express-session を使う SSE は、止めるときに `res.once('finish', () => socket.end())`（`socket` は先に取っておく）で接続も閉じる。閉じないと `server.close()` が客の keep-alive が切れるまで（約4秒）待つ
+- 執筆の環境では Mailpit（Docker）と GitHub の OAuth App は動かせなかった。Mailpit の代わりに `tools/fake-smtp.ts` で確かめ、GitHub でログインは型と ESLint だけを確かめたと本文に書いた
+- `npm audit` は、ESLint の `minimatch` の moderate が8件出る（開発用の道具だけ。`--omit=dev` なら 0）。直った版は執筆時点で2週間たっていないので、版を上げていない
+- 執筆時点では Node.js 24.22、PostgreSQL 16 で、すべての練習問題の模範解答と、成果物の API（45 個）・画面（34 個）の `npm run check` が通ることを確かめた。成果物は Chromium（Playwright）で、登録 → メールのリンク → ログイン → SSE → 別の人に見えない → ログアウト → 再設定 → IdP（結びつく・結びつかない）を通しで確かめた
+
+### 第10部で予告した内容（後の部で回収する）
+
+| 予告した内容 | 予告した場所 | 回収する部・章 |
+| --- | --- | --- |
+| ログイン・API・画面のテストの層を分ける、本物の API まで通す E2E（成果物の 4.2節を自動に） | 成果物 7節 | 第11部 第56〜58章 |
+| `npm audit` を CI で毎回動かす | 第55章 9節 | 第11部 第59章 |
+| HTTPS の本番で `Secure`・`__Host-` の Cookie、`trust proxy`、HSTS | 第52章、第55章 2節、成果物 2.3節 | 第12部 第62章 |
+| メール送信サービス・本番の SMTP の設定、秘密の値を環境変数で・取り替え | 第53章 8節 | 第12部 第60章 |
+| メールを後ろで送る・送れなかったら送り直す（キュー・ワーカー） | 第53章 3.3・7節、練習問題7、成果物 5節 | 第12部 第64章 |
+| 画像の URL を取りに行くときの SSRF、署名付き URL | 第55章 8節 | 第12部 第63章 |
+| エラーとログの監視（`errorId` で探す） | 第55章 10節 | 第12部 第66章 |
+| 本物の IdP（Google・GitHub）でログイン、認可の漏れを自分の題材で点検 | 第54章 7節、第55章 7節 | 第13部 |
 
 ## 7. 作業の手順（Claude 向け）
 

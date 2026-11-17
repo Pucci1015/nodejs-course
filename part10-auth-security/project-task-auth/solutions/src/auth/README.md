@@ -1,0 +1,16 @@
+# src/auth — ログインの部品（第10部）
+
+ほとんどは、第51〜54章で書いたものの写しです。HTTP も Express も知らないので、サービス（`../services/auth.ts`）と `server.ts` から使います。
+
+| ファイル | 元 | 中身 |
+| --- | --- | --- |
+| [password.ts](password.ts) | 第51章 3節 | `hashPassword`・`verifyPassword`（Argon2id の PHC の文字列、`timingSafeEqual`）。`dummyHash()` を足した（ユーザーがいないときも、同じ時間をかけて確かめる） |
+| [policy.ts](policy.ts)・[common-passwords.txt](common-passwords.txt) | 第51章 4節 | `checkPassword(password, email)`。12〜128 文字、よく使われるものでない、メールアドレスを含まない。間違いの文の配列を返す |
+| [tokens.ts](tokens.ts) | 第53章 4節 | `newToken()`（32 バイトの乱数の base64url。43 文字）・`hashToken()`（SHA-256。表にはハッシュだけを置く） |
+| [mailer.ts](mailer.ts) | 第53章 3.2節 | `Mail`・`Mailer` の型と、`createSmtpMailer({ host, port, from })`（nodemailer） |
+| [mails.ts](mails.ts) | 第53章 5.1節・練習問題1 | `buildVerifyMail`・`buildAlreadyRegisteredMail`・`buildResetMail`。テキストと HTML（中の値はエスケープ） |
+| [oidc.ts](oidc.ts) | 第54章 5節・練習問題8 | `createOidcClient({ issuer, clientId, clientSecret, redirectUri })`。`start()` は IdP へ送る URL と、セッションに覚える state・nonce・verifier を返す。`finish(code, saved)` はコードを ID トークンに取り替え、署名（JWKS。知らない `kid` なら1回だけ読み直す）・`iss`・`aud`・`exp`・`nonce` を確かめて、中身を返す |
+| [pg-session-store.ts](pg-session-store.ts) | 第10部で新しく（第52章 2.3節の MemoryStore の代わり） | `class PgSessionStore extends session.Store`。セッションを表 `sessions` に置く。`destroyAllForUser(userId, exceptSid?)` で、その人のセッションを全部消す。`purgeExpired()` で期限切れを消す |
+
+- 鍵や `client_secret` は、ここに書きません。`config.ts` が環境変数から読んで、`server.ts` が渡します
+- `common-passwords.txt` は、第51章と同じ短い例の一覧です。本番では、もっと大きな一覧（漏れたパスワードの一覧など）を使います（第51章 4節）

@@ -63,4 +63,4 @@ $ bash （ここに Finder から part09-nextjs フォルダの中の setup-part
 
 ---
 
-教材全体の目次: [../README.md](../README.md) ／ 前: [第8部 フロントエンドと React](../part08-react/README.md) ／ 次: 第10部 認証（準備中）
+教材全体の目次: [../README.md](../README.md) ／ 前: [第8部 フロントエンドと React](../part08-react/README.md) ／ 次: [第10部 認証とセキュリティ](../part10-auth-security/README.md)

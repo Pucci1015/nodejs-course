@@ -1,0 +1,17 @@
+# src — 第10部の成果物の完成例（画面）
+
+第8部の画面に、ログインのページを足したものです（第10部で足したものは、表の「第10部」の行）。完成例の全体は [../README.md](../README.md) にあります。
+
+| ファイル・フォルダ | 中身 |
+| --- | --- |
+| [Layout.tsx](Layout.tsx) | どのページにも出す枠（第44章 2.2節、第45章 5節）。第10部: メニューを、ログインしているかで変え、アドレスとログアウトのボタンを出す |
+| [api/](api/) | API とつながる部分 |
+| [components/](components/) | いくつかのページで使う部品 |
+| [filters.ts](filters.ts) | 一覧の条件と、URL の検索パラメータの行き来（第44章 4節） |
+| [index.css](index.css) | アプリ全体の CSS（第45章 2・3・5節）。色は CSS 変数にまとめ、OS の設定が暗い色なら入れ替える |
+| [lib/](lib/) | 画面に頼らない小さな関数 |
+| [main.tsx](main.tsx) | 画面の入り口。キャッシュ・ルーター・StrictMode をつなぐ |
+| [queryClient.ts](queryClient.ts) | 第10部: キャッシュ（QueryClient）を作る。どこかの API が 401 を返したら「ログインしていない」（`['me']` を `null`）にする。テストも同じものを使う |
+| [pages/](pages/) | ページの部品 |
+| [routes.tsx](routes.tsx) | URL とページの対応表（第44章 2節）。テストが createMemoryRouter で使えるように、表だけを export する。第10部: ログインなどのページを足し、タスクのページを `RequireLogin`（path の無いルート）の中に入れた |
+| [useFilters.ts](useFilters.ts) | 一覧の条件を URL の検索パラメータに持つ（第44章 4節） |

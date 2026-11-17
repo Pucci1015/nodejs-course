@@ -1,0 +1,13 @@
+# src/routes — ルートの層
+
+| ファイル | 中身 |
+| --- | --- |
+| [auth.ts](auth.ts) | 第10部: `createAuthRouter({ auth, users, store, oidc, oidcIssuer, limiter, sessionCookie })`。`/api/auth` の登録・確認・ログイン・ログアウト・再設定・練習用の IdP（成果物の README 2.1節の表）。ボディを Zod で確かめ、ログインのときはセッションの ID を作り直してから `userId` を入れる |
+| [tasks.ts](tasks.ts) | `createTasksRouter({ serviceFor, cursorSecret, idempotencyStore })`（`/api/tasks` の5つと 405）と、`mapDomainErrors()`（サービスのエラーを HTTP のステータスにする）。第26章 練習問題8に、ページ分け・ETag・冪等キーを足した。第6部で、一覧はカーソルを読んで1ページ分だけをサービスに頼むようにした。**第10部で、サービスをリクエストごとに `serviceFor(req)` で受け取り（その人のタスクだけを扱うサービス）、冪等キーを人ごとにした** |
+| [list-query.ts](list-query.ts) | `parseListQuery`。一覧のクエリを zod で確かめる（第25章 練習問題6） |
+
+第7部で `.ts` にしました。`req.body`（`any`）は直接使わず、Zod の `parse` を通した後の値だけを使います。
+
+ルートがすること: パスの id を数にする（形が違えば 404）、`Content-Type` を確かめる（415）、ボディとクエリの「形」を zod で確かめる、`If-Match` から客が見ていた版を決める、サービスを呼ぶ、ステータス・ヘッダ・JSON にする。
+
+ルートがしないこと: 題名の長さ、締め切り、`doing` の数などの決まり（サービスがする）。
