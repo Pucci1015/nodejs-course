@@ -1,0 +1,7 @@
+# 第61章 3.1節: 変わりにくいものを先にコピーして、npm ci の層を使い回す
+FROM node:24-bookworm-slim
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
+COPY src ./src
+CMD ["node", "src/server.ts"]

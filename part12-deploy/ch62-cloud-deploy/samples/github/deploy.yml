@@ -1,0 +1,51 @@
+# 第62章 7節: main に push されて、テストが通ったら、Render にデプロイし、新しい版が動くまで待つ
+# 置き場所: リポジトリの .github/workflows/deploy.yml
+# 執筆の環境からは GitHub と Render で動かしていません。YAML として読めることだけを確かめました。
+# 書き方は変わることがあるので、必ず公式（GitHub Actions・Render のドキュメント）で確認してください。
+name: deploy
+
+on:
+  push:
+    branches: [main]
+
+# 同じ時に2つのデプロイを走らせない。後から来たほうは、前のものが終わるのを待つ（途中で取り消さない）
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+# GITHUB_TOKEN にできることを、リポジトリを読むことだけにする（第11部 第59章）
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+
+  deploy:
+    needs: test # test が成功したときだけ動く
+    runs-on: ubuntu-latest
+    # 「production」の環境の Secrets だけを使える。GitHub の設定で「だれかが承認してから動かす」にもできる
+    environment:
+      name: production
+      url: https://app.example.com
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - name: Render にデプロイを頼む
+        # デプロイフックの URL は合言葉と同じ。Secrets に置き、ログに出さない（-s で進み具合も出さない）
+        run: curl -fsS -X POST "$RENDER_DEPLOY_HOOK_URL" > /dev/null
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+      - name: 新しい版が動くまで待つ
+        # /version が、このコミット（GITHUB_SHA）を返すまで待つ。10分で来なければ失敗にする
+        run: node scripts/wait-for-version.ts https://app.example.com/version "$GITHUB_SHA" --timeout 600

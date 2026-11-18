@@ -1,0 +1,15 @@
+# test/support — テストの道具
+
+名前が `.test.ts` で終わらないので、これ自体はテストとして動きません。
+
+| ファイル                                     | 中身                                                                                                                                                                                                                                                                     | 使うテスト                |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------- |
+| [helpers.ts](helpers.ts)                     | サーバの起動と停止、`api()`、`problem()`、SSE を読む `openEvents()`、届いたメールを待つ `takeMail()`、登録 → 確認 → ログインの `signUp()`（第10部）。第11部で、`API_SERVER` を `test/` から見たパスとして読むようにし、SSE の行を分ける正規表現を `indexOf` に書き直した | `http/`                   |
+| [fake-smtp.ts](fake-smtp.ts)                 | 偽の SMTP サーバ（第10部の `tools/` のコピー）。E2E では、`node test/support/fake-smtp.ts` でコマンドとして起動する                                                                                                                                                      | `http/`、E2E              |
+| [mini-idp.ts](mini-idp.ts)                   | 練習用の IdP（第10部の `tools/` のコピー）                                                                                                                                                                                                                               | `http/auth.test.ts`       |
+| [memory-tasks.ts](memory-tasks.ts)           | 第11部で追加: メモリに置く偽物のリポジトリ（第8部の練習用の API のもの）。`seed` で始めの状態を渡せる                                                                                                                                                                    | `unit/`、`contract/`      |
+| [test-db.ts](test-db.ts)                     | 第11部で追加: テスト用のスキーマを作り、アプリと同じマイグレーションを動かす。`newUser()` でタスクの持ち主を作る                                                                                                                                                         | `contract/`               |
+| [mini-s3.ts](mini-s3.ts)                     | 第12部で追加: 練習用の S3（第12部の `tools/` のコピー。`S3_HOST` で待ち受けるアドレスを変えられるようにした）。テストの中で起動するほか、E2E と `compose.yaml` ではコマンドとして動かす（`npm run s3` も）                                                               | `http/`、`contract/`、E2E |
+| [memory-blob-store.ts](memory-blob-store.ts) | 第12部で追加: `BlobStore` のメモリの偽物（第63章 練習問題6）。署名付き URL は `memory://…` の形の文字列                                                                                                                                                                  | `unit/`、`contract/`      |
+
+第12部: [helpers.ts](helpers.ts) に、練習用の S3 を1つ起動する `s3Server()`、空いているポートの `freePort()`、サーバと同じ列に仕事を入れる `addJob(server, name, data)` を足し、`startServer` が `REDIS_URL`・`QUEUE_PREFIX`（スキーマの名前）・`S3_ENDPOINT` を渡すようにしました。`cleanup()` は、Redis のキーも消します。[fake-smtp.ts](fake-smtp.ts) は、`HOST` で待ち受けるアドレスを変えられるようにしました（`compose.yaml` で使う）。

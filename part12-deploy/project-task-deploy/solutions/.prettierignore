@@ -1,0 +1,9 @@
+# Prettier で整えないもの（第59章 5節）
+package-lock.json
+web/package-lock.json
+playwright-report
+test-results
+coverage
+dist
+# よく使われるパスワードの一覧（1行1つのデータ）
+src/auth/common-passwords.txt

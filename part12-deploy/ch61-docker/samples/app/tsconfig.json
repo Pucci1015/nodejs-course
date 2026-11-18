@@ -1,0 +1,18 @@
+{
+  // 第61章の小さな API の TypeScript の設定（部の tsconfig.base.json と同じ中身。コピーして別の場所でも動くように、extends を使わない）
+  "compilerOptions": {
+    "target": "es2024",
+    "lib": ["es2024"],
+    "module": "nodenext",
+    "types": ["node"],
+    "moduleDetection": "force",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "erasableSyntaxOnly": true,
+    "verbatimModuleSyntax": true,
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "skipLibCheck": true
+  },
+  "include": ["src"]
+}

@@ -1,0 +1,6 @@
+# 第61章 2.2節: 最初の Dockerfile（まだ直すところがある）
+FROM node:24-bookworm-slim
+WORKDIR /app
+COPY . .
+RUN npm ci
+CMD ["node", "src/server.ts"]

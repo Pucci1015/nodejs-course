@@ -1,0 +1,8 @@
+# 第61章 5.1節: シェルの形の CMD（sh が PID 1 になり、SIGTERM を子に伝えない）
+FROM node:24-bookworm-slim
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
+COPY src ./src
+ENV HOST=0.0.0.0
+CMD node src/server.ts

@@ -1,0 +1,130 @@
+# 追加（第11部）: push とプルリクエストのたびに、API・画面・E2E を確かめる（第59章 7節）
+# ジョブは3つ。api と web は同時に動き、両方が通ったら e2e が動く
+# 変更（第12部）: api と e2e に Redis を足した。e2e は、ビルドした画面を API が配る形で動く（playwright.config.ts）
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# GITHUB_TOKEN には、リポジトリを読むことだけを許す
+permissions:
+  contents: read
+
+# 同じブランチで新しく動いたら、古いほうを止める
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  api:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # テストが使う PostgreSQL（第6部の compose.yaml と同じ設定。ポートも 5433 にそろえる）
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: app
+          POSTGRES_PASSWORD: dev-only-password
+          POSTGRES_DB: taskapi
+        ports:
+          - '5433:5432'
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      # 追加（第12部）: 仕事の列と SSE の知らせに使う Redis（第6部の compose.yaml と同じ 6380）
+      redis:
+        image: redis:8
+        ports:
+          - '6380:6379'
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --ignore-scripts
+      # 型 → lint → 書き方 → テスト（単体・契約・HTTP。第12部で 113 個）
+      - run: npm run check
+      # 本番で使うパッケージに、重い（high 以上の）脆弱性が無いか（第10部 第55章）
+      - run: npm audit --omit=dev --audit-level=high
+
+  web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # このジョブの run は、web/ の中で動かす
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+          # キャッシュのキーにするロックファイル（web/ は、別の package-lock.json を持つ）
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci --ignore-scripts
+      - run: npm run check
+      - run: npm audit --omit=dev --audit-level=high
+
+  e2e:
+    needs: [api, web]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: app
+          POSTGRES_PASSWORD: dev-only-password
+          POSTGRES_DB: taskapi
+        ports:
+          - '5433:5432'
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      # 追加（第12部）: 仕事の列と SSE の知らせに使う Redis（第6部の compose.yaml と同じ 6380）
+      redis:
+        image: redis:8
+        ports:
+          - '6380:6379'
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            web/package-lock.json
+      - run: npm ci --ignore-scripts
+      - run: npm ci --ignore-scripts
+        working-directory: web
+      # ブラウザと、ブラウザが要る Linux のライブラリを入れる
+      - run: npx playwright install --with-deps chromium
+      # playwright.config.ts が、偽の SMTP サーバ・練習用の S3・API（画面のビルドを含む）を起動してから動かす
+      - run: npm run e2e
+      # 失敗したときだけ、トレースなどをダウンロードできるように残す
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-results
+          path: test-results
+          retention-days: 7

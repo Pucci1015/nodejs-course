@@ -1,0 +1,15 @@
+# 第61章 練習問題1の模範解答
+# Mac で入れた node_modules（イメージの中で npm ci する）
+node_modules
+# 秘密の値。例のファイルだけは送る
+.env
+.env.*
+!.env.example
+# Git の履歴、テストやビルドが作るもの、ログ
+.git
+coverage
+dist
+**/*.log
+# Dockerfile そのもの
+Dockerfile
+.dockerignore

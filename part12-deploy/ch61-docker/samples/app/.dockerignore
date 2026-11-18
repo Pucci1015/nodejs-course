@@ -1,0 +1,15 @@
+# 第61章 3.2節: docker build のときに、送らない（COPY されない）もの
+# Mac で入れた node_modules（CPU や OS が違う。イメージの中で npm ci する）
+node_modules
+# 秘密の値（イメージに入れない）
+.env
+.env.*
+!.env.example
+# Git の履歴、テストやビルドが作るもの
+.git
+coverage
+dist
+**/*.log
+# Dockerfile そのもの（変えても、アプリの層を作り直さないように）
+Dockerfile
+.dockerignore
