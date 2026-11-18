@@ -1,0 +1,12 @@
+// 第58章: 画面の入り口
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import { App } from './App.tsx';
+
+const root = document.getElementById('root');
+if (root === null) throw new Error('#root がありません');
+createRoot(root).render(
+  <StrictMode>
+    <App />
+  </StrictMode>,
+);

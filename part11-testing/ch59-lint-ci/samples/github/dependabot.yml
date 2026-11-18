@@ -1,0 +1,21 @@
+# 第59章 8節: Dependabot の設定
+# リポジトリの直下の .github/dependabot.yml に置く。依存パッケージと Actions の新しい版を、プルリクエストで知らせてくれる
+version: 2
+updates:
+  # package.json（npm）
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    # 出てから 7 日たっていない版は、まだ提案しない（出たばかりの版の事故を避ける）
+    cooldown:
+      default-days: 7
+    # 小さな更新はまとめて1つのプルリクエストに
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+  # .github/workflows の uses: actions/…@v5
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

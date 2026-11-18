@@ -1,0 +1,24 @@
+# 練習問題3の模範解答: GitHub Actions のワークフロー
+# 確かめ方（exercises で）: MODULE=../solutions/ci.yml node --test ci.test.ts
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run check

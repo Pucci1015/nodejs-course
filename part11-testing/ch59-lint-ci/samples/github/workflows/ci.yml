@@ -1,0 +1,41 @@
+# 第59章 7節: GitHub Actions のワークフロー
+# リポジトリの直下の .github/workflows/ci.yml に置くと、GitHub が読む（このフォルダに置いても動かない）
+# package.json と package-lock.json がリポジトリの直下にあり、npm run check がある、プロジェクトのためのもの
+# actions/… の版（@v5 など）は執筆時点のもの。使う前に、それぞれのリポジトリ（github.com/actions/…）で確かめる
+name: CI
+
+# いつ動かすか: main への push と、プルリクエスト（作った・push した）
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# このワークフローの中の GITHUB_TOKEN に許すこと: リポジトリを読むだけ
+permissions:
+  contents: read
+
+# 同じブランチで新しく動いたら、古いほうを止める
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    # GitHub が用意する Linux のマシンで動かす
+    runs-on: ubuntu-latest
+    # 止まったままにならないように、10 分で打ち切る
+    timeout-minutes: 10
+    steps:
+      # リポジトリの中身を取ってくる
+      - uses: actions/checkout@v5
+      # Node.js を入れ、npm のダウンロードを覚えておく（package-lock.json が変わらなければ使い回す）
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      # ロックファイルのとおりに入れる。install scripts は動かさない（第3部 第14章）
+      - run: npm ci --ignore-scripts
+      # 型 → lint → 書き方 → テスト
+      - run: npm run check
+      # 本番で使うパッケージに、high 以上の脆弱性が無いか（第10部 第55章）
+      - run: npm audit --omit=dev --audit-level=high

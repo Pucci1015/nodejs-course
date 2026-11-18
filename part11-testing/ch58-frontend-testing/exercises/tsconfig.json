@@ -1,0 +1,5 @@
+{
+  // 第58章 練習問題の TypeScript の設定（部の直下の、React 用の設定を読み込む）。npx tsc で型を確かめる
+  "extends": "../../tsconfig.react.json",
+  "include": ["*.ts", "*.tsx", "mutants", "e2e"]
+}

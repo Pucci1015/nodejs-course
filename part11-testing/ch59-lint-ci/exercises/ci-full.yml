@@ -1,0 +1,5 @@
+# 練習問題6: PostgreSQL と E2E のジョブを足したワークフロー
+# 問題3の ci.yml の中身をここにコピーしてから、足していく
+# 確かめ方（exercises で）: node --test ci-full.test.ts
+name: CI
+# ここを書く

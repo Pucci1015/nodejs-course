@@ -66,4 +66,4 @@ $ bash （ここに Finder から part10-auth-security フォルダの中の set
 
 ---
 
-教材全体の目次: [../README.md](../README.md) ／ 前: [第9部 Next.js](../part09-nextjs/README.md) ／ 次: 第11部 テストとコード品質（準備中）
+教材全体の目次: [../README.md](../README.md) ／ 前: [第9部 Next.js](../part09-nextjs/README.md) ／ 次: [第11部 テストとコード品質](../part11-testing/README.md)

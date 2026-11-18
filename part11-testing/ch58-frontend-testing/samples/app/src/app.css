@@ -1,0 +1,40 @@
+/* 第58章: 画面の見た目（最小限） */
+body {
+  font-family: system-ui, sans-serif;
+  margin: 2rem auto;
+  max-width: 32rem;
+  padding: 0 1rem;
+}
+ul {
+  list-style: none;
+  padding: 0;
+}
+.task {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.25rem 0;
+}
+.task.done label {
+  text-decoration: line-through;
+  color: #555;
+}
+.badge {
+  font-size: 0.8rem;
+  border: 1px solid currentColor;
+  border-radius: 0.25rem;
+  padding: 0 0.25rem;
+}
+[role='alert'] {
+  color: #b00020;
+}
+form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+form [role='alert'] {
+  flex-basis: 100%;
+  margin: 0;
+}

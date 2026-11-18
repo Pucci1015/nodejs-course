@@ -1,0 +1,71 @@
+# 練習問題6の模範解答: PostgreSQL と E2E のジョブを足したワークフロー
+# 確かめ方（exercises で）: MODULE=../solutions/ci-full.yml node --test ci-full.test.ts
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+# 追加: 同じブランチ（github.ref）で新しく動いたら、古いほうを止める
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # 追加: ジョブのそばで動かすコンテナ。第6部の compose.yaml と同じ設定にする
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: app
+          POSTGRES_PASSWORD: dev-only-password
+          POSTGRES_DB: taskapi
+        ports:
+          - '5433:5432'
+        # 起動しきるまで、手順を始めない
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    # 追加: このジョブのすべての手順で使える環境変数
+    env:
+      DATABASE_URL: postgres://app:dev-only-password@127.0.0.1:5433/taskapi
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run check
+
+  # 追加: E2E は遅いので別のジョブにし、check が通ってから動かす
+  e2e:
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --ignore-scripts
+      # ブラウザと、ブラウザが要る Linux のライブラリを入れる
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test
+      # 失敗したときだけ、トレースなどをダウンロードできるように残す
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-results
+          path: test-results
+          retention-days: 7
