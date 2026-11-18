@@ -1,0 +1,22 @@
+{
+  // 第58章の画面の TypeScript の設定（部の直下の tsconfig.react.json と同じ中身。
+  // このフォルダを web/ などにコピーしても動くように、extends を使わずに書いた）。npx tsc で型を確かめる
+  "compilerOptions": {
+    "target": "es2024",
+    "lib": ["es2024", "DOM", "DOM.Iterable"],
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "types": ["vite/client", "node"],
+    "moduleDetection": "force",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noFallthroughCasesInSwitch": true,
+    "erasableSyntaxOnly": true,
+    "verbatimModuleSyntax": true,
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "skipLibCheck": true
+  },
+  "include": ["src", "e2e", "*.ts"]
+}

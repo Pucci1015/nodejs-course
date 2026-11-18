@@ -1,0 +1,20 @@
+{
+  // 第59章 練習用の小さなプロジェクトの TypeScript の設定（部の直下の tsconfig.base.json と同じ中身。
+  // このフォルダを demo/ などにコピーしても動くように、extends を使わずに書いた）
+  "compilerOptions": {
+    "target": "es2024",
+    "lib": ["es2024"],
+    "module": "nodenext",
+    "types": ["node"],
+    "moduleDetection": "force",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noFallthroughCasesInSwitch": true,
+    "erasableSyntaxOnly": true,
+    "verbatimModuleSyntax": true,
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "skipLibCheck": true
+  },
+  "include": ["**/*.ts"]
+}

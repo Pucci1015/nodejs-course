@@ -1,0 +1,5 @@
+{
+  // 第59章 練習問題・模範解答の TypeScript の設定。npx tsc で型を確かめる（lint-me/ は、そのフォルダの tsconfig.json で）
+  "extends": "../../tsconfig.base.json",
+  "include": ["*.ts", "rules/*.ts"]
+}
