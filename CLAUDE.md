@@ -150,7 +150,7 @@ nodejs/                        ← 教材のルート（このファイルがあ
 | 9 Next.js | `part09-nextjs` ✅ | 47 Next.js 入門 / 48 Server Components と Client Components / 49 Server Actions と Route Handlers / 50 レンダリングとキャッシュの戦略 | App Router とファイルによるルーティング・Vite の React アプリとの違い、コードがサーバとブラウザのどちらで動くか・サーバ側のデータ取得、フォーム送信の受け方・Express API との役割分担、静的生成・動的レンダリング・再検証（デプロイは第12部）。第10部以降は Express + React 版を主に進め、Next.js での書き方を各章で補足する | タスク管理アプリを Next.js で作り直し、Express + React 版と比べる |
 | 10 認証とセキュリティ | `part10-auth-security` ✅ | 51 認証の基礎 / 52 セッションとトークン / 53 メール送信と本人確認 / 54 OAuth 2.0 と OpenID Connect / 55 Web セキュリティの総点検 | ハッシュ化（bcrypt / Argon2）・認証と認可、Cookie セッションと JWT・`HttpOnly`・`Secure`・`SameSite`、SMTP・SPF・DKIM・メール送信サービス・登録確認とパスワードリセット・Mailpit、GitHub ログイン、XSS・CSRF・SQL インジェクション・CSP・OWASP Top 10、依存パッケージの脆弱性とサプライチェーン。**攻撃の再現は自分のローカル環境に限る** | ユーザー登録・メール確認・ログイン |
 | 11 テストとコード品質 | `part11-testing` ✅ | 56 テストの考え方 / 57 API とデータベースのテスト / 58 フロントエンドのテスト / 59 静的解析と CI | 単体・結合・E2E、`node:test` と Vitest、HTTP レベルのテスト・テスト用 DB、Testing Library・Playwright、ESLint とフォーマッタ・GitHub Actions | テストと CI が整ったアプリ |
-| 12 デプロイと運用 | `part12-deploy` | 60 本番環境の考え方 / 61 Docker でコンテナ化 / 62 クラウドへのデプロイ / 63 ファイルの保存 / 64 バックグラウンドジョブ / 65 CDN とキャッシュ / 66 監視とパフォーマンス | 開発と本番・ビルド・プロセス管理・シークレット、Dockerfile・マルチステージ・Apple Silicon と CPU アーキテクチャ、PaaS（Render、Fly.io など）・マネージド DB・独自ドメインと HTTPS、オブジェクトストレージ（S3 互換）・署名付き URL・MinIO、キュー（BullMQ + Redis）・定期実行・再試行と冪等性、CDN の仕組み・`Cache-Control` の設計・キャッシュの消し方、ログとエラー監視・計測してから改善・複数プロセスとロードバランサ | 画像添付・メール通知つきで独自ドメインに公開 |
+| 12 デプロイと運用 | `part12-deploy` ✅ | 60 本番環境の考え方 / 61 Docker でコンテナ化 / 62 クラウドへのデプロイ / 63 ファイルの保存 / 64 バックグラウンドジョブ / 65 CDN とキャッシュ / 66 監視とパフォーマンス | 開発と本番・ビルド・プロセス管理・シークレット、Dockerfile・マルチステージ・Apple Silicon と CPU アーキテクチャ、PaaS（Render、Fly.io など）・マネージド DB・独自ドメインと HTTPS、オブジェクトストレージ（S3 互換）・署名付き URL・MinIO、キュー（BullMQ + Redis）・定期実行・再試行と冪等性、CDN の仕組み・`Cache-Control` の設計・キャッシュの消し方、ログとエラー監視・計測してから改善・複数プロセスとロードバランサ | 画像添付・メール通知つきで独自ドメインに公開 |
 | 13 総合演習 | `part13-capstone` | 67 要件と設計 / 68 実装（前半） / 69 実装（後半） / 70 公開と振り返り | 機能一覧・画面・API・テーブル設計・Express + React か Next.js かの選択、認証と中心機能、リアルタイム・ファイル保存・バックグラウンドジョブなど、デプロイ・README とポートフォリオ化・次に学ぶこと。教材の指示なしで進めることが目的 | 自分で決めた題材のアプリ |
 
 付録（予定）: A. Flask と Node.js の対応表 / B. Mac 開発環境のチェックリスト / C. 一次情報の読み方（MDN、Node.js 公式、RFC 9110）/ D. 次に学ぶこと（GraphQL、サーバーレス、モノレポ、Bun・Deno）
@@ -204,7 +204,7 @@ nodejs/                        ← 教材のルート（このファイルがあ
 | npm、semver、`sudo npm install -g` をしない理由 | 第1章8.3節、第2章6.6節 | 第3部 第14章 ✅ |
 | パストラバーサル対策、MIME タイプ | 第4章 `serve.mjs` | 第4部 第19章 ✅ |
 | `innerHTML` と XSS、`textContent` | 第4章 `demo.js` | 第4部 第21章 ✅、第10部 第55章 ✅ |
-| 秘密情報（`.env`）とローテーション | 第3章13.3節、練習問題5 | 第10部 ✅（鍵・`client_secret` は環境変数で、例は `dev-only-…`）、第12部 第60章（取り替え） |
+| 秘密情報（`.env`）とローテーション | 第3章13.3節、練習問題5 | 第10部 ✅（鍵・`client_secret` は環境変数で、例は `dev-only-…`）、第12部 第60章 6節 ✅（取り替え） |
 | ESLint の設定、CI | 第4章4節 | 第11部 第59章 ✅ |
 
 ### 第2部で予告した内容（後の部で回収する）
@@ -228,8 +228,8 @@ nodejs/                        ← 教材のルート（このファイルがあ
 | SSR とハイドレーション、ソフト 404 | 第10章4.2節・練習問題4 | 第8部 第46章 ✅ |
 | 例外でサーバが止まる（第2部は同期の例外。unhandled rejection は第3部）、待っている間の割り込み（第2部は `setTimeout`） | 第10章練習問題6・8 | 第3部 第12〜13章 ✅ |
 | `node:test` によるテスト | 第7〜9章の `*.test.mjs` | 第11部 第56章 ✅ |
-| 本番の HTTPS（リバースプロキシ、独自ドメインの証明書、HSTS の preload） | 第8章、第10章1節 | 第12部 第62章 |
-| 計測してから改善する（接続の時間、最初の1バイト） | 成果物 | 第12部 第66章 |
+| 本番の HTTPS（リバースプロキシ、独自ドメインの証明書、HSTS の preload） | 第8章、第10章1節 | 第12部 第62章 3・5節 ✅ |
+| 計測してから改善する（接続の時間、最初の1バイト） | 成果物 | 第12部 第66章 4・5節 ✅（負荷をかけて計る・プロファイル。curl の `-w` の時間の内訳は扱っていない） |
 
 ### 第3部（作成済み）で学習者が持っているもの
 
@@ -259,11 +259,11 @@ nodejs/                        ← 教材のルート（このファイルがあ
 | --- | --- | --- |
 | パストラバーサル（`path.join` は `..` を止めない、`path.relative` で外を指すか調べる） | 第15章 練習問題4、成果物 2.2節 | 第4部 第19章 ✅ |
 | ボディの大きさの上限、Stream で読むリクエストのボディ | 第15章7節 | 第4部 第20章 ✅ |
-| サーバを止めるとき（受け付けをやめ、処理中を終えてから終わる） | 第16章8.2節 | 第4部 第17章 ✅、第12部 第60章 |
+| サーバを止めるとき（受け付けをやめ、処理中を終えてから終わる） | 第16章8.2節 | 第4部 第17章 ✅、第12部 第60章 5節・第61章 5節 ✅ |
 | `crypto.timingSafeEqual`、パスワードのハッシュ化 | 第15章8.1節 | 第10部 第51・52章 ✅ |
 | コマンドインジェクション（`exec` と `execFile`）、エディタをシェルで起動しない | 第15章8.2節、成果物 3.4節 | 第10部 第55章 ✅ |
 | 依存パッケージの危険（install scripts、typosquatting、`npm audit`） | 第14章12節 | 第10部 第55章 ✅ |
-| Worker のプール、複数プロセス、イベントループの遅れの監視 | 第13章6〜7節 | 第12部 第66章 |
+| Worker のプール、複数プロセス、イベントループの遅れの監視 | 第13章6〜7節 | 第12部 第66章 ✅（複数プロセスとロードバランサ、イベントループの遅れのメトリクス。Worker のプールは表で触れただけ） |
 | ReDoS を静的解析で見つける（eslint-plugin-regexp など） | 第13章 練習問題6 | 第11部 第59章 ✅ |
 | 同時に書き直すと片方が消える（ロック、楽観的ロック、一意制約） | 第15章 練習問題5、成果物 5節 | 第6部 第30章 ✅ |
 | テストの考え方（関数のテストと外からのテストの分け方） | 第16章10節 | 第11部 第56章 ✅ |
@@ -301,7 +301,7 @@ nodejs/                        ← 教材のルート（このファイルがあ
 | パスワードのハッシュ（bcrypt・argon2 との比べ）、認証と認可 | 第22章 6.1節、成果物 3.5節 | 第10部 第51章 ✅ |
 | 署名付きトークン（JWT）と、Cookie のセッションとの比べ | 第22章 5.1節 | 第10部 第52章 ✅ |
 | XSS・CSRF・CSP の総点検、`Origin` ヘッダでの CSRF 対策、fetch で送る API の守り方 | 第21章 2.1・8節、第22章 8節 | 第10部 第55章 ✅ |
-| HTTPS での `Secure`・`__Host-` の Cookie | 第22章 2.1〜2.2節 | 第12部 第62章 |
+| HTTPS での `Secure`・`__Host-` の Cookie | 第22章 2.1〜2.2節 | 第12部 第60章 7節・第62章 3節 ✅ |
 | テンプレートエンジン（EJS・Nunjucks など）と React の JSX のエスケープ | 第21章 1・6節 | 第5部 第23章 ✅、第8部 第41章 2.3節 ✅ |
 | 外から HTTP で確かめるテスト、テスト用のデータ | 成果物 `test/bbs.test.mjs` | 第11部 第57章 ✅ |
 
@@ -332,16 +332,16 @@ nodejs/                        ← 教材のルート（このファイルがあ
 | カーソルの条件・`WHERE version = $2`・冪等キーをデータベースで（索引、トランザクション、一意制約） | 第25章 6.2・7.3・8.2節、成果物 3.3節 | 第6部 第30章 ✅、第6部 成果物 ✅ |
 | 並べ替えの項目を決めた表から選ぶ理由（SQL インジェクション）、プレースホルダ | 第25章 練習問題4の解答 | 第6部 第31章 ✅ |
 | メモリのデータの層を PostgreSQL のものに取り替える | 第26章 3・9節、成果物 7節 | 第6部 第31〜33章・成果物 ✅ |
-| 回数の制限・SSE のハブ・セッションを複数台で共有（Redis、Pub/Sub） | 第24章 5節、第27章 4.5節 | 第6部 第34章 ✅、第12部 第66章 |
+| 回数の制限・SSE のハブ・セッションを複数台で共有（Redis、Pub/Sub） | 第24章 5節、第27章 4.5節 | 第6部 第34章 ✅、第12部 第66章 7節・成果物 ✅（SSE のハブ。回数の制限は成果物の「もっとやるなら」） |
 | zod のスキーマから TypeScript の型を作る | 第25章 5.1節 | 第7部 第38章 ✅ |
 | SSE を画面から受け取る、CORS で Vite の画面から呼ぶ | 第27章 5節、成果物 2.8節 | 第8部 第39・43章 ✅ |
 | Next.js の Route Handlers を動かす | 第28章 5.2節 | 第9部 第49章 2節 ✅ |
 | 401・403、ログインしたユーザーごとの冪等キー・回数の制限、WebSocket・SSE の認証 | 第25章 3.2節、第27章 3.3節、成果物 5節 | 第10部 成果物 ✅（SSE は人ごとのハブ。WebSocket の認証は扱っていない） |
 | helmet・CSP などのヘッダの総点検 | 第24章 6節 | 第10部 第55章 ✅ |
-| `req.ip` とリバースプロキシ（`trust proxy`）、本番の `.env` の代わり、圧縮 | 第23章 4節、第24章 6節、第26章 5.3節 | 第12部 第60〜62章 |
-| ファイルのアップロード（multer、オブジェクトストレージ） | 第24章 6節 | 第12部 第63章 |
-| 二重に実行されても困らないジョブ（冪等キーの考え方） | 第25章 8.2節 | 第12部 第64章 |
-| 構造化ログを集めて探す・数える | 第26章 6.1節 | 第12部 第66章 |
+| `req.ip` とリバースプロキシ（`trust proxy`）、本番の `.env` の代わり、圧縮 | 第23章 4節、第24章 6節、第26章 5.3節 | 第12部 第60〜62章 ✅（圧縮は扱っていない。PaaS・CDN に任せる前提） |
+| ファイルのアップロード（multer、オブジェクトストレージ） | 第24章 6節 | 第12部 第63章 ✅（multer は名前だけ。`express.raw` でバイトのまま受け取る） |
+| 二重に実行されても困らないジョブ（冪等キーの考え方） | 第25章 8.2節 | 第12部 第64章 ✅ |
+| 構造化ログを集めて探す・数える | 第26章 6.1節 | 第12部 第66章 2節 ✅ |
 
 ### 第6部（作成済み）で学習者が持っているもの
 
@@ -376,10 +376,10 @@ nodejs/                        ← 教材のルート（このファイルがあ
 | express-session + connect-redis、ログインの回数の制限 | 第34章 5.2節 | 第10部 第51・52章 ✅（connect-redis は名前だけ。成果物は PostgreSQL に置いた） |
 | インジェクションをまとめて扱う | 第31章 1節 | 第10部 第55章 ✅ |
 | データベースを使うテスト、偽物のリポジトリに取り替える | 成果物 4節、第33章 7節 | 第11部 第57章 ✅ |
-| 自分のアプリをコンテナにする、マネージドの PostgreSQL、`/readyz` で DB を確かめる | 第32章 1節、成果物 5節 | 第12部 第60〜62章 |
-| `SKIP LOCKED` の仕事の列、BullMQ（Redis） | 第32章 6.2節、第34章 6.2節 | 第12部 第64章 |
-| キャッシュの置き場所（CDN と `Cache-Control`） | 第34章 3.2節 | 第12部 第65章 |
-| 複数台で SSE を配る（Pub/Sub）、計測してからキャッシュ | 第34章 3.2・6.2節 | 第12部 第66章 |
+| 自分のアプリをコンテナにする、マネージドの PostgreSQL、`/readyz` で DB を確かめる | 第32章 1節、成果物 5節 | 第12部 第60〜62章 ✅ |
+| `SKIP LOCKED` の仕事の列、BullMQ（Redis） | 第32章 6.2節、第34章 6.2節 | 第12部 第64章 3・5節 ✅ |
+| キャッシュの置き場所（CDN と `Cache-Control`） | 第34章 3.2節 | 第12部 第65章 ✅ |
+| 複数台で SSE を配る（Pub/Sub）、計測してからキャッシュ | 第34章 3.2・6.2節 | 第12部 第66章 5・7節・成果物 ✅ |
 
 ### 第7部（作成済み）で学習者が持っているもの
 
@@ -413,7 +413,7 @@ nodejs/                        ← 教材のルート（このファイルがあ
 | `req.user` を宣言のマージで、`UserId` のブランド型、トークンの中身を Zod で | 第37章 5.2節、第38章 7節 | 第10部 ✅（`req.user`・`session.d.ts`、ID トークンの中身は Zod。ブランド型は使わなかった） |
 | 偽物のリポジトリを `TaskRepo` に合わせる | 第37章 4節、成果物 5節 | 第11部 第57章 ✅ |
 | `npm run check` を GitHub Actions で | 第37章 7節 | 第11部 第59章 ✅ |
-| ビルドして動かす方法と比べる（本番の Docker のイメージ） | 第37章 1.4節 | 第12部 |
+| ビルドして動かす方法と比べる（本番の Docker のイメージ） | 第37章 1.4節 | 第12部 第61章 4節 ✅（イメージでも型の除去で動かし、`tsc` は確かめる段階で） |
 
 ### 第8部（作成済み）で学習者が持っているもの
 
@@ -450,7 +450,7 @@ nodejs/                        ← 教材のルート（このファイルがあ
 | 画面とサーバで同じスキーマのファイルを共有する、Next.js のファイルによるルーティング・SSR・`notFound()`・`metadata`・`loading.tsx`・Server Components | 第43章 5節、第44章 2節、第46章 5〜8節 | 第9部 第47〜49章・成果物 ✅ |
 | ログインのフォーム、ログインしている人を Context で、401 でログインのページへ | 第39章 5節、第44章 7節、第45章 6節、成果物 7節 | 第10部 成果物 ✅（ログインしている人は Context ではなく TanStack Query の `['me']` に置いた） |
 | `getByRole` で書くテスト、画面と API のテストを GitHub Actions で、Playwright の E2E | 第45章 5節、成果物 7節 | 第11部 第58・59章 ✅ |
-| `.env` を本番とステージングで変える、`dist` を配るサーバで `index.html` を返す、ハッシュ付きのファイルを CDN で長く覚えさせる、検索エンジン | 第40章 4・7節、第44章 2.4節、第46章 5節 | 第12部（第65章ほか） |
+| `.env` を本番とステージングで変える、`dist` を配るサーバで `index.html` を返す、ハッシュ付きのファイルを CDN で長く覚えさせる、検索エンジン | 第40章 4・7節、第44章 2.4節、第46章 5節 | 第12部 第60章・第65章 5・6節 ✅（検索エンジンはソフト 404 の注意だけ） |
 
 ### 第9部（作成済み）で学習者が持っているもの
 
@@ -480,7 +480,7 @@ nodejs/                        ← 教材のルート（このファイルがあ
 | --- | --- | --- |
 | ログインしていないときのページ、ログインのフォームを Server Action で、Route Handler でログインのコールバック、Server Action で「だれが呼んだか」を確かめる、人ごとのページは覚えない、合言葉は `crypto.timingSafeEqual` で比べる | 第47章 6節、第48章 4節、第49章 4節、第50章 8節・練習問題6の解答、成果物 8節 | 第10部 ✅（第52〜55章の「Next.js では」の節で考え方を表に。成果物は Express + React 版だけ） |
 | CI でビルドする、ページ・Server Action・API のテストを GitHub Actions で、Playwright の E2E | 第50章 7節、成果物 6・8節 | 第11部 ✅（GitHub Actions・Playwright・`npm run check` の書き方。Next.js 版の CI は作っていない） |
-| `next build` したアプリのデプロイ、本番の環境変数、ヘルスチェック、`metadata` と検索エンジン・SNS、静的なページの配信、ビルドする場所からデータに届くか | 第47章 8・9節、第48章 4節、第49章 2節、第50章 3・6・7節、成果物 8節 | 第12部 |
+| `next build` したアプリのデプロイ、本番の環境変数、ヘルスチェック、`metadata` と検索エンジン・SNS、静的なページの配信、ビルドする場所からデータに届くか | 第47章 8・9節、第48章 4節、第49章 2節、第50章 3・6・7節、成果物 8節 | 第12部 第62章 9節 ✅（考え方の表だけ。`metadata` と SNS は扱っていない。Next.js 版を実際にデプロイするのは第13部で選んだ人） |
 | Next.js で作るか、Express + React で作るか | 第47章 3節、成果物 5節 | 第13部 |
 
 ### 第10部（作成済み）で学習者が持っているもの
@@ -513,11 +513,11 @@ nodejs/                        ← 教材のルート（このファイルがあ
 | --- | --- | --- |
 | ログイン・API・画面のテストの層を分ける、本物の API まで通す E2E（成果物の 4.2節を自動に） | 成果物 7節 | 第11部 第56〜58章 ✅ |
 | `npm audit` を CI で毎回動かす | 第55章 9節 | 第11部 第59章 ✅ |
-| HTTPS の本番で `Secure`・`__Host-` の Cookie、`trust proxy`、HSTS | 第52章、第55章 2節、成果物 2.3節 | 第12部 第62章 |
-| メール送信サービス・本番の SMTP の設定、秘密の値を環境変数で・取り替え | 第53章 8節 | 第12部 第60章 |
-| メールを後ろで送る・送れなかったら送り直す（キュー・ワーカー） | 第53章 3.3・7節、練習問題7、成果物 5節 | 第12部 第64章 |
-| 画像の URL を取りに行くときの SSRF、署名付き URL | 第55章 8節 | 第12部 第63章 |
-| エラーとログの監視（`errorId` で探す） | 第55章 10節 | 第12部 第66章 |
+| HTTPS の本番で `Secure`・`__Host-` の Cookie、`trust proxy`、HSTS | 第52章、第55章 2節、成果物 2.3節 | 第12部 第60章 7節・第62章 3節・成果物 ✅ |
+| メール送信サービス・本番の SMTP の設定、秘密の値を環境変数で・取り替え | 第53章 8節 | 第12部 第60章 6節・成果物 ✅（`SMTP_USER`・`SMTP_PASS`・`SMTP_SECURE`） |
+| メールを後ろで送る・送れなかったら送り直す（キュー・ワーカー） | 第53章 3.3・7節、練習問題7、成果物 5節 | 第12部 第64章・成果物 ✅ |
+| 画像の URL を取りに行くときの SSRF、署名付き URL | 第55章 8節 | 第12部 第63章 ✅ |
+| エラーとログの監視（`errorId` で探す） | 第55章 10節 | 第12部 第66章 2節・成果物 ✅ |
 | 本物の IdP（Google・GitHub）でログイン、認可の漏れを自分の題材で点検 | 第54章 7節、第55章 7節 | 第13部 |
 
 ### 第11部（作成済み）で学習者が持っているもの
@@ -544,10 +544,45 @@ nodejs/                        ← 教材のルート（このファイルがあ
 
 | 予告した内容 | 予告した場所 | 回収する部・章 |
 | --- | --- | --- |
-| CI が通ったらデプロイする、秘密の値を GitHub の Secrets に | 第59章 7.3節、成果物 8節 | 第12部 第60・62章 |
-| オブジェクトストレージ・キューの偽物を、契約テストで本物とそろえる | 成果物「後でどこで使うか」 | 第12部 第63・64章 |
-| 本番に近い環境で E2E を動かす | 成果物「後でどこで使うか」 | 第12部 |
+| CI が通ったらデプロイする、秘密の値を GitHub の Secrets に | 第59章 7.3節、成果物 8節 | 第12部 第62章 7節・成果物 ✅（GitHub では動かしていない） |
+| オブジェクトストレージ・キューの偽物を、契約テストで本物とそろえる | 成果物「後でどこで使うか」 | 第12部 第63章 7節・成果物 ✅（`BlobStore`。キューは偽物を作らず、本物の Redis で確かめた） |
+| 本番に近い環境で E2E を動かす | 成果物「後でどこで使うか」 | 第12部 成果物 ✅（`STATIC_DIR` で API が画面も配り、1つのオリジンで E2E） |
 | 自分の題材のテストの層を決める | 第56章 7節、第58章 9節 | 第13部 |
+
+### 第12部（作成済み）で学習者が持っているもの
+
+第60章の最初に `setup-part12.sh` を1回だけ動かす（`~/dev/part12` にコピーして `npm ci --ignore-scripts`。どの深さの `node_modules`・`dist`・`coverage`・`test-results`・`playwright-report`・`.vite`・`.mini-s3` もコピーしない）。版: @aws-sdk/client-s3・@aws-sdk/s3-request-presigner 3.1161.0、bullmq 6.5.4、redis 6.3.1、express 5.3.0、pg 8.23.1、pino 10.4.0、nodemailer 10.3.1、zod 4.6.7、typescript 6.0.3、eslint 10.13.0、typescript-eslint 8.72.1。`tsconfig.base.json`・`eslint.config.js` は第7部・第11部と同じ形（`project-task-deploy/**` は見ない）。
+
+- 道具（`tools/`）: `mini-s3.ts`（`npm run s3`。127.0.0.1:9800、S3 の API の一部と SigV4 のヘッダ・署名付き URL を自作。鍵は `dev-only-access-key`・`dev-only-secret-key`、バケット `task-files`・`demo`。MinIO のイメージは公開が止まり、ほかのイメージは執筆の環境で動かせなかったため）、`fake-smtp.ts`（第53章のコピー）、`mini-cdn.ts`（`npm run cdn`。9858、オリジン 9857、`X-Cache`・`Age`、`POST /__purge`）。SDK は `forcePathStyle` と `requestChecksumCalculation: 'WHEN_REQUIRED'`
+- Docker: 執筆の環境の Docker（x86_64）で、公式のイメージ（node:24-bookworm-slim・postgres:18・redis:8）だけを使って確かめた。Apple Silicon では動かしていない
+- 第60章（9807・9808）: 開発と本番、`loadConfig`（本番で必須のものを全部、名前だけ）、落ちたら起こし直す（`supervise.ts`）、止めるとき、秘密の値と取り替え（鍵の配列）、`trust proxy` と `X-Forwarded-*`（`client-ip.ts`）、本番の Cookie（`cookie-rules.ts`）、`/healthz`・`/readyz`、点検表。練習問題8問（config・rotation・client-ip・predict・health・supervise・cookie-rules・check-env）
+- 第61章（9817）: `samples/app`（express・pg・redis の小さな API。tsconfig は単独）、Dockerfile を少しずつ（`steps/`）、レイヤーとキャッシュ、`.dockerignore`、マルチステージ（型を確かめる段階）、exec の形の `CMD` と `init`、`USER node`・`HEALTHCHECK`、秘密の値を入れない、CPU の種類、Compose。練習問題8問（`app-image.test.ts` は本当に `docker build` する）
+- 第62章（9820〜9829、手を動かすは 9827）: PaaS の流れ、HTTPS はプロキシで終わる（`tls-proxy.ts`、自己署名の証明書）、`DATABASE_URL` と接続の数の予算、独自ドメイン（CNAME・`dig`）、止めずに入れ替える（`switch.ts`・`poll.ts`）、GitHub Actions のデプロイ（デプロイフック・`wait-for-version.ts`）、Render の `render.yaml`（読むだけでもよい）、Next.js、お金と後片付け。Render・GitHub では動かしていない。練習問題8問（`migration-check.ts`・`switch-proxy.ts` など）
+- 第63章（9837、S3 9800）: オブジェクトストレージ、SDK、署名付き URL（`sign-by-hand.ts` で SigV4 を手で）、アップロード（中身で種類を決める `sniff`、上限、キーに利用者の名前を使わない）、`Content-Disposition`（`filename*`）、`BlobStore` と契約テスト、孤児の掃除、SSRF。練習問題8問（object-key・content-disposition・sniff-file・predict・presign・memory-blob-store・upload-router・sweep-orphans）
+- 第64章（ポートなし）: 何を後ろに回すか、PostgreSQL の列（`FOR UPDATE SKIP LOCKED`）、指数バックオフとあきらめ、2回動いても困らない仕事、BullMQ（node-redis の接続をそのまま渡せる、`UnrecoverableError`、`upsertJobScheduler`）、決まった時刻とタイムゾーン、止めるとき。練習問題8問（backoff・job-schema・next-run・predict・pg-jobs・mail-processor・run-worker・daily-digest）
+- 第65章（9856〜9858）: CDN、`s-maxage`・`stale-while-revalidate`・`private`・`Vary`、`mini-cdn.ts` で確かめる、ハッシュ付きのファイル名、ビルドした画面を配る（assets は immutable、HTML は no-cache、`/api` は SPA の戻り先にしない）、印で消す、人ごとの応答を覚えさせない。練習問題8問
+- 第66章（9860・9867・9868）: 何を見張るか、pino のログを集計（`log-query.ts`）、Prometheus の形（counter・gauge・histogram、ルートは形で）、負荷をかけて計る（`load.ts`、パーセンタイル）、`--cpu-prof` で計ってから直す、ロードバランサ（`balancer.ts`）と Redis の Pub/Sub で台をまたぐ知らせ。練習問題8問
+- 成果物 `project-task-deploy/solutions/`（学習者は `~/dev/task-api` でブランチ `part12-deploy` を `part11-testing` から作る）: 第11部の完成例に、添付ファイル（マイグレーション 005、`routes/attachments.ts`、`storage/` の `BlobStore`・`createS3BlobStore`（署名用に `S3_PUBLIC_ENDPOINT` の client を別に））、メールの仕事の列（`jobs/`、`deliver` は `enqueueMail`、5xx は `UnrecoverableError`、送ったことを Redis に）、毎朝のお知らせ（マイグレーション 006 の `digest_log`、`DIGEST_CRON`・`DIGEST_TZ`）、孤児の掃除（1時間ごと）、`WORKER_MODE`（inline / separate、`src/worker.ts`）、Redis の Pub/Sub の `event-bus.ts`（SSE の id に台ごとの頭）、`routes/ops.ts`（`/readyz` は DB・Redis・ストレージ、`/version`、`/metrics` は `METRICS_TOKEN`）、`lib/metrics.ts`、500 に `errorId`、`TRUST_PROXY`、`STATIC_DIR`（`routes/static-site.ts`）、CSP の `img-src` にストレージ。`Dockerfile`（4段階、`ARG APP_VERSION=` は空で `RENDER_GIT_COMMIT` に落ちる）・`compose.yaml`（`task-app`、9801〜9803、`NODE_ENV=development`）・`render.yaml`・`.github/workflows/deploy.yml`。画面に `Attachments.tsx`（「画像を添付」「…を消す」）。テストは API 113 個（単体 29・契約 25・HTTP 57、`deploy.test.ts` の 46〜57）、画面 37 個、E2E 4 個（`STATIC_DIR` で API が画面も配る）。`npm run coverage` は行 95%
+
+### 第12部で決めた書き方・作り方（第13部もそろえる）
+
+- ポート: 第60章 9807・9808 / 第61章 9817 / 第62章 9820〜9829 / 第63章 9837（練習用の S3 9800） / 第65章 9856〜9858 / 第66章 9860・9867・9868 / 成果物は開発の API 9490・画面 5173、テストは `freePort()`、E2E 9495〜9498、`docker compose` 9801〜9803
+- クラウドのサービス（Render・Cloudflare R2・メール送信サービス・ドメイン）と GitHub Actions は、執筆の環境から動かせなかった。「執筆時点では」「必ず公式で確認」と書き、動かしていないことを本文に書く。読むだけで進められるようにする
+- Docker のイメージは公式のもの（node・postgres・redis）だけを使う。S3 互換のサーバは自作の `mini-s3.ts` を node のイメージで動かす
+- 執筆の環境には `AWS_*` の環境変数があるので、S3 の client には鍵をいつも明示して渡す（SDK が環境変数の鍵を拾わないように）
+- Redis を使うテストは、キーの頭（`QUEUE_PREFIX`）をテストごとのスキーマの名前にして、終わったら消す
+- 部の直下で `npx eslint .` を動かすと、projectService が全部の章の tsconfig を読んで、Node.js の既定のメモリ（約 2GB）が足りなくなった。ESLint は章ごと（`npx eslint ch60-production` など）に確かめた
+- 第65章の `samples/dist` はビルドした画面の見本なので、`setup-part12.sh` は `dist` を除いてコピーした後で、これだけコピーする
+- `res.sendFile` には絶対パスを渡す。ヘッドレスの Chromium は、`filename*` が ASCII でないとダウンロードの名前が `download` になるので、E2E のファイル名は ASCII にした
+- 執筆時点では Node.js 24.22、PostgreSQL 16、Redis 7.0、Docker（x86_64）、Chromium（Playwright 1.63.0）で、すべての練習問題の模範解答と、成果物の API 113 個・画面 37 個・E2E 4 個が通ること、`docker compose up` で本番と同じ形が動くことを、`setup-part12.sh` で作った新しいコピーで確かめた
+
+### 第12部で予告した内容（後の部で回収する）
+
+| 予告した内容 | 予告した場所 | 回収する部・章 |
+| --- | --- | --- |
+| 自分の題材を公開する（Dockerfile・compose・render.yaml・デプロイのワークフローを出発点に） | 成果物 9節 | 第13部 第70章 |
+| ファイル・仕事の列・リアルタイムを自分の題材で使うか決める | 成果物「後でどこで使うか」 | 第13部 第67〜69章 |
+| 画像を縮める仕事、ブラウザから直接置く、回数の制限を Redis に、CDN を前に、ステージング | 成果物 7節 | 第13部（任意） |
 
 ## 7. 作業の手順（Claude 向け）
 

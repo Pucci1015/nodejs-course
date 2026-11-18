@@ -1,0 +1,39 @@
+# 第61章 練習問題7の模範解答（exercises/ に置いて使う。app は ./app の Dockerfile で build する）
+# パスワードは、この PC の中だけで使う開発用の仮のものです
+name: ch61-exercise
+services:
+  db:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: dev-only-password
+      POSTGRES_DB: app
+    volumes:
+      - pgdata:/var/lib/postgresql # コンテナを消しても、データは残る（docker compose down -v で消える）
+    healthcheck:
+      test: ['CMD', 'pg_isready', '-U', 'app', '-d', 'app']
+      interval: 2s
+      timeout: 3s
+      retries: 15
+  redis:
+    image: redis:8
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 2s
+      timeout: 3s
+      retries: 15
+  app:
+    build: ./app
+    environment:
+      DATABASE_URL: postgres://app:dev-only-password@db:5432/app
+      REDIS_URL: redis://redis:6379
+    ports:
+      - '127.0.0.1:9817:9817'
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+volumes:
+  pgdata:

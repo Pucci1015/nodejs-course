@@ -1,0 +1,114 @@
+# 追加（第12部）: 本番と同じ形（API と画面のコンテナ・ワーカーのコンテナ・PostgreSQL・Redis・S3・メール）を、手元で全部コンテナで動かす
+#   docker compose up -d --build --wait   → http://127.0.0.1:9803（メールは http://127.0.0.1:9802/api/messages）
+#   docker compose down                   → 止める（-v を付けると、データベースの中身も消える）
+# パスワードと鍵は、この PC の中だけで使う開発用の仮のもの（本物の値は、ここにも書かない）
+# 第6部の compose.yaml（5433・6380）とは別のプロジェクト。ポートを外に出すのは app・s3・mail だけ
+name: task-app
+
+x-app-env: &app-env
+  # 手元は http なので、本番（production）の __Host-sid（Secure の Cookie）は、ブラウザに送られずログインできない。
+  # そこで development で動かす。本番の設定の確かめ方は README の 5節（本番では HTTPS の後ろで production）
+  NODE_ENV: development
+  LOG_LEVEL: info
+  APP_URL: http://127.0.0.1:9803 # 本番では https://app.example.com のような独自ドメイン
+  DATABASE_URL: postgres://app:dev-only-password@db:5432/taskapi
+  REDIS_URL: redis://redis:6379
+  SESSION_SECRET: dev-only-session-secret-for-compose-0000
+  CURSOR_SECRET: dev-only-cursor-secret-for-compose-00000
+  METRICS_TOKEN: dev-only-metrics-token-for-compose-0000
+  # S3: アプリはコンテナの名前 s3 でつなぎ、ブラウザは 127.0.0.1:9801 でつなぐ（署名付き URL は、ブラウザが使う名前で作る）
+  S3_ENDPOINT: http://s3:9800
+  S3_PUBLIC_ENDPOINT: http://127.0.0.1:9801
+  S3_ACCESS_KEY_ID: dev-only-access-key
+  S3_SECRET_ACCESS_KEY: dev-only-secret-key
+  SMTP_HOST: mail
+  SMTP_PORT: '1025'
+  # 本番ではワーカーを別のコンテナにする（app は仕事を入れるだけ）
+  WORKER_MODE: separate
+
+services:
+  db:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: dev-only-password
+      POSTGRES_DB: taskapi
+    volumes:
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ['CMD', 'pg_isready', '-U', 'app', '-d', 'taskapi']
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+  redis:
+    image: redis:8
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+  # 練習用の S3（第63章の mini-s3）と、偽の SMTP サーバ（第53章）。どちらも node のイメージで、テストの道具のファイルを動かす
+  s3:
+    image: node:24-bookworm-slim
+    init: true # SIGTERM で、すぐ止まるように（node が PID 1 だと、合図を受け取らないことがある。第61章 7節）
+    command: ['node', '/tools/mini-s3.ts']
+    environment:
+      S3_HOST: 0.0.0.0
+      S3_BUCKETS: task-files
+    volumes:
+      - ./test/support/mini-s3.ts:/tools/mini-s3.ts:ro
+    ports:
+      - '127.0.0.1:9801:9800'
+
+  mail:
+    image: node:24-bookworm-slim
+    init: true
+    command: ['node', '/tools/fake-smtp.ts']
+    environment:
+      HOST: 0.0.0.0
+      QUIET: '1'
+    volumes:
+      - ./test/support/fake-smtp.ts:/tools/fake-smtp.ts:ro
+    ports:
+      - '127.0.0.1:9802:8025'
+
+  app:
+    build:
+      context: .
+      args:
+        APP_VERSION: compose
+    environment:
+      <<: *app-env
+      HOST: 0.0.0.0 # development の既定は 127.0.0.1。コンテナの外から届くように
+      TRUST_PROXY: '0' # 前にプロキシがいない（本番の PaaS では 1。第62章）
+    ports:
+      - '127.0.0.1:9803:9490'
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      s3:
+        condition: service_started
+      mail:
+        condition: service_started
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: .
+      args:
+        APP_VERSION: compose
+    command: ['node', 'src/worker.ts']
+    environment: *app-env
+    healthcheck:
+      disable: true # Dockerfile の HEALTHCHECK は API のもの。ワーカーは HTTP で待たない
+    depends_on:
+      app:
+        condition: service_healthy # app がマイグレーションを終えてから
+    restart: unless-stopped
+
+volumes:
+  pgdata:

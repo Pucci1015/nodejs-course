@@ -1,0 +1,23 @@
+# 追加（第12部）: イメージを作るときに、Docker に送らないもの（第61章 3節）
+# Mac で入れた node_modules（イメージの中で npm ci する）
+node_modules
+web/node_modules
+# 秘密の値。例のファイルだけは送る
+.env
+.env.*
+!.env.example
+# Git の履歴、テスト・ビルドが作るもの、ログ
+.git
+coverage
+test-results
+playwright-report
+web/dist
+web/node_modules/.vite
+**/*.log
+# イメージに要らないもの
+Dockerfile
+.dockerignore
+compose.yaml
+e2e
+test
+.github

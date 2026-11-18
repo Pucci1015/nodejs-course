@@ -1,0 +1,8 @@
+# 第61章 5.1節: npm start で起動する（npm が PID 1 になる）
+FROM node:24-bookworm-slim
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
+COPY src ./src
+ENV HOST=0.0.0.0
+CMD ["npm", "start"]

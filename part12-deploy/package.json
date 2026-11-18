@@ -1,0 +1,38 @@
+{
+  "name": "part12-deploy",
+  "version": "1.0.0",
+  "private": true,
+  "description": "第12部 デプロイと運用のサンプル・練習問題・模範解答を動かすためのフォルダ",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "s3": "node tools/mini-s3.ts",
+    "mail": "node tools/fake-smtp.ts",
+    "cdn": "node tools/mini-cdn.ts"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "3.1161.0",
+    "@aws-sdk/s3-request-presigner": "3.1161.0",
+    "bullmq": "6.5.4",
+    "express": "5.3.0",
+    "nodemailer": "10.3.1",
+    "pg": "8.23.1",
+    "pino": "10.4.0",
+    "redis": "6.3.1",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@types/express": "5.0.6",
+    "@types/node": "24.19.2",
+    "@types/nodemailer": "8.0.2",
+    "@types/pg": "8.23.1",
+    "eslint": "10.13.0",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.72.1",
+    "yaml": "2.9.1"
+  }
+}

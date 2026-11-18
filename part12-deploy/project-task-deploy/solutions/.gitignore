@@ -1,0 +1,6 @@
+node_modules/
+.env
+# 追加（第11部）: Playwright とカバレッジが作るもの
+test-results/
+playwright-report/
+coverage/

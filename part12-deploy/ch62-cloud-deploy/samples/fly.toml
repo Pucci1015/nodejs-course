@@ -1,0 +1,29 @@
+# 第62章 8節: Fly.io の設定の例（比べるため）
+# 執筆の環境からは Fly.io で動かしていません。必ず公式（https://fly.io/docs/reference/configuration/）で確認してください。
+app = "task-app-example"
+primary_region = "nrt"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[deploy]
+  release_command = "node src/db/migrate.ts"
+  strategy = "rolling"
+
+[env]
+  NODE_ENV = "production"
+  PORT = "8080"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    method = "GET"
+    path = "/readyz"
+    interval = "15s"
+    timeout = "3s"
+    grace_period = "10s"

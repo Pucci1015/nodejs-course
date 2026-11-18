@@ -66,4 +66,4 @@ $ bash （ここに Finder から part11-testing フォルダの中の setup-par
 
 ---
 
-教材全体の目次: [../README.md](../README.md) ／ 前: [第10部 認証とセキュリティ](../part10-auth-security/README.md) ／ 次: 第12部 デプロイと運用（準備中）
+教材全体の目次: [../README.md](../README.md) ／ 前: [第10部 認証とセキュリティ](../part10-auth-security/README.md) ／ 次: [第12部 デプロイと運用](../part12-deploy/README.md)

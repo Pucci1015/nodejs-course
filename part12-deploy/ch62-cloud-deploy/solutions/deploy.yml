@@ -1,0 +1,50 @@
+# 第62章 練習問題5: テストが通ったら Render にデプロイし、新しい版を待つ
+# 執筆の環境からは GitHub で動かしていません（YAML として読めることと、形だけを確かめた）
+name: deploy
+
+on:
+  push:
+    branches: [main]
+  # 追加: Actions の画面から、手でも動かせる（やり直したいとき）
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+
+  deploy:
+    needs: test
+    # 追加: 手で動かすときに別のブランチを選んでも、main 以外はデプロイしない
+    if: github.ref == 'refs/heads/main'
+    # 追加: 止まったままのジョブが、いつまでも残らないように
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://app.example.com
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - name: Render にデプロイを頼む
+        run: curl -fsS -X POST "$RENDER_DEPLOY_HOOK_URL" > /dev/null
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+      - name: 新しい版が動くまで待つ
+        run: node scripts/wait-for-version.ts https://app.example.com/version "$GITHUB_SHA" --timeout 600

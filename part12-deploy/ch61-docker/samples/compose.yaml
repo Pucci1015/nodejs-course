@@ -1,0 +1,29 @@
+# 第61章 9節: アプリ（app/ の Dockerfile）と PostgreSQL を一緒に動かす
+# 使い方（samples のフォルダで）: docker compose up -d --build --wait → curl http://127.0.0.1:9817/readyz → docker compose down
+# パスワードは、この PC の中だけで使う開発用の仮のものです
+name: ch61
+services:
+  db:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: dev-only-password
+      POSTGRES_DB: app
+    # ports を書かない: データベースは、同じ Compose の中（app）からだけ届く
+    healthcheck:
+      test: ['CMD', 'pg_isready', '-U', 'app', '-d', 'app']
+      interval: 2s
+      timeout: 3s
+      retries: 15
+  app:
+    build: ./app
+    environment:
+      # ホスト名 db は、上のサービスの名前。Compose が、同じ網の中で名前を引けるようにする
+      DATABASE_URL: postgres://app:dev-only-password@db:5432/app
+      APP_VERSION: compose
+    ports:
+      - '127.0.0.1:9817:9817'
+    depends_on:
+      db:
+        condition: service_healthy # db の healthcheck が通るまで、app を起動しない
+    restart: unless-stopped # 落ちたら起動し直す（docker compose stop で止めたときは、起動し直さない）
