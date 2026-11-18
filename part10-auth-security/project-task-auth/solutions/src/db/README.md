@@ -1,0 +1,8 @@
+# src/db — データベースの部品（第6部）
+
+第7部で `.ts` にしました。`pool.ts` の `Queryable` は、プールとトランザクションの client のどちらでも受け取れる形（`query` だけを持つ）です。
+
+| ファイル | 元 | 中身 |
+| --- | --- | --- |
+| [pool.ts](pool.ts) | 第32章 4・5節の `db.mjs` | `createPool({ url, schema, max })`（`date` を文字列で受け取る設定つき）と、ログ用にパスワードを隠す `redactUrl(url)` |
+| [migrate.ts](migrate.ts) | 第32章 練習問題8 | `migrate(pool, dir)`。[../../migrations/](../../migrations/) の SQL を、名前の順に、まだのものだけ動かす。アドバイザリロックとチェックサムつき。`npm run migrate` で、単独でも動く |

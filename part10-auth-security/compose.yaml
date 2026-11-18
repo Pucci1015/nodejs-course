@@ -1,0 +1,12 @@
+# 第10部の Docker Compose の設定（第6部 第32章で学んだもの）
+# 動かし方（~/dev/part10 で）: docker compose up -d mailpit   止める: docker compose down
+# 名前を決めて、第6部のコンテナとぶつからないようにする
+name: nodejs-course-part10
+
+services:
+  # 第53章: 開発用のメールの受け取り口。届いたメールを、ブラウザ（http://127.0.0.1:8025）で見られる。外へは送らない
+  mailpit:
+    image: axllent/mailpit:v1.33.0
+    ports:
+      - '127.0.0.1:1025:1025' # SMTP（アプリがメールを渡す所）
+      - '127.0.0.1:8025:8025' # 画面と API
