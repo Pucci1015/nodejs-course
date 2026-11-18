@@ -1,0 +1,92 @@
+# 第70章: Render の Blueprint（第12部の成果物の render.yaml から、S3 を外し、リマインドの時刻を足した）
+# 置き場所: リポジトリのいちばん上。Render のダッシュボードの「New → Blueprint」で、このリポジトリを選ぶ
+# 執筆の環境からは Render で動かしていません（YAML として読めることと、形だけを確かめた）。
+# 項目の名前・プラン・リージョン・版は変わることがあるので、必ず公式（https://render.com/docs/blueprint-spec）で確認してください
+# 秘密の値（sync: false）は、このファイルに書かず、ダッシュボードで入れる
+envVarGroups:
+  - name: room-booking-shared # API とワーカーで同じ値
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: APP_URL
+        value: https://rooms.example.com # 独自ドメイン（example.com は例。自分のドメインにする）
+      - key: SESSION_SECRET
+        generateValue: true # Render が乱数で作る
+      - key: METRICS_TOKEN
+        generateValue: true
+      - key: SMTP_HOST # メールの送信サービス（第53章 8節）
+        sync: false
+      - key: SMTP_PORT
+        value: '587'
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: MAIL_FROM
+        value: 'Room Booking <no-reply@rooms.example.com>'
+      - key: REMINDER_CRON # 前日のリマインドの時刻（日本の時刻。ワーカーが使う）
+        value: '0 18 * * *'
+
+services:
+  - type: web
+    name: room-booking
+    runtime: docker # リポジトリの Dockerfile で build する（画面のビルドも、その中で）
+    dockerfilePath: ./Dockerfile
+    region: singapore
+    plan: starter
+    autoDeployTrigger: 'off' # push しただけではデプロイしない。GitHub Actions がテストの後で頼む（.github/workflows/deploy.yml）
+    healthCheckPath: /readyz # これが 200 になってから、新しい版に客を回す
+    preDeployCommand: node src/db/migrate.ts # 新しい版に回す前に、マイグレーションを1回だけ
+    domains:
+      - rooms.example.com # DNS に CNAME を足すと、Render が証明書を取る（第62章 5節）
+    envVars:
+      - fromGroup: room-booking-shared
+      - key: WORKER_MODE
+        value: separate # 仕事（メール・リマインド）は、下のワーカーが処理する
+      - key: TRUST_PROXY
+        value: '1' # Render のロードバランサが前に 1 つ（第60章 7節）
+      - key: DATABASE_URL
+        fromDatabase:
+          name: room-booking-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: room-booking-redis
+          property: connectionString
+
+  - type: worker # HTTP を待たない、仕事を処理するだけのサービス
+    name: room-booking-worker
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerCommand: node src/worker.ts
+    region: singapore
+    plan: starter
+    autoDeployTrigger: 'off'
+    envVars:
+      - fromGroup: room-booking-shared
+      - key: DATABASE_URL # リマインドは、予約の表を読む
+        fromDatabase:
+          name: room-booking-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: room-booking-redis
+          property: connectionString
+
+  - type: keyvalue # Redis と同じ使い方ができる入れ物（仕事の列と、SSE の知らせ）
+    name: room-booking-redis
+    region: singapore
+    plan: starter
+    maxmemoryPolicy: noeviction # 仕事の列のキーを、メモリが足りないからと消されないように（BullMQ の求め）
+    ipAllowList: [] # Render の中からだけつなげる
+
+databases:
+  - name: room-booking-db
+    region: singapore
+    plan: basic-256mb
+    databaseName: roombooking
+    user: app
+    postgresMajorVersion: '18'
+    ipAllowList: []

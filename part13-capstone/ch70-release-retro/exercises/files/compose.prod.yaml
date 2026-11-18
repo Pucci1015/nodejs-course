@@ -1,0 +1,95 @@
+# 第70章: 本番と同じ形（API と画面のコンテナ・ワーカーのコンテナ・PostgreSQL・Redis・メール）を、手元で全部コンテナで動かす
+#   docker compose -f compose.prod.yaml up -d --build --wait   → http://127.0.0.1:9913（メールは http://127.0.0.1:9911/api/messages）
+#   docker compose -f compose.prod.yaml exec app node scripts/grant-admin.ts alice@example.com   → 管理者にする
+#   docker compose -f compose.prod.yaml down                   → 止める（-v を付けると、データベースの中身も消える）
+# 開発の compose.yaml（5434・6381）とは別のプロジェクト。ポートを外に出すのは app と mail だけ
+# パスワードと鍵は、この PC の中だけで使う開発用の仮のもの（本物の値は、ここにも書かない）
+name: room-booking-prod
+
+x-app-env: &app-env
+  # 手元は http なので、本番（production）の __Host-sid（Secure の Cookie）は、ブラウザに送られずログインできない。
+  # そこで development で動かす（第12部の成果物と同じ。本番では HTTPS の後ろで production）
+  NODE_ENV: development
+  LOG_LEVEL: info
+  APP_URL: http://127.0.0.1:9913 # 本番では https://rooms.example.com のような独自ドメイン
+  DATABASE_URL: postgres://app:dev-only-password@db:5432/roombooking
+  REDIS_URL: redis://redis:6379
+  SESSION_SECRET: dev-only-session-secret-for-compose-0000
+  METRICS_TOKEN: dev-only-metrics-token-for-compose-0000
+  SMTP_HOST: mail
+  SMTP_PORT: '1025'
+  # 本番ではワーカーを別のコンテナにする（app は仕事を入れるだけ。リマインドの決まった時刻もワーカーが持つ）
+  WORKER_MODE: separate
+
+services:
+  db:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: dev-only-password
+      POSTGRES_DB: roombooking
+    volumes:
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ['CMD', 'pg_isready', '-U', 'app', '-d', 'roombooking']
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+  redis:
+    image: redis:8
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+  # 偽の SMTP サーバ（第53章）。node のイメージで、テストの道具のファイルを動かす
+  mail:
+    image: node:24-bookworm-slim
+    init: true # SIGTERM で、すぐ止まるように（第61章 7節）
+    command: ['node', '/tools/fake-smtp.ts']
+    environment:
+      HOST: 0.0.0.0
+      QUIET: '1'
+    volumes:
+      - ./test/support/fake-smtp.ts:/tools/fake-smtp.ts:ro
+    ports:
+      - '127.0.0.1:9911:8025'
+
+  app:
+    build:
+      context: .
+      args:
+        APP_VERSION: compose
+    environment:
+      <<: *app-env
+      HOST: 0.0.0.0 # development の既定は 127.0.0.1。コンテナの外から届くように
+      TRUST_PROXY: '0' # 前にプロキシがいない（本番の PaaS では 1。第62章）
+    ports:
+      - '127.0.0.1:9913:9900'
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      mail:
+        condition: service_started
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: .
+      args:
+        APP_VERSION: compose
+    command: ['node', 'src/worker.ts']
+    environment: *app-env
+    healthcheck:
+      disable: true # Dockerfile の HEALTHCHECK は API のもの。ワーカーは HTTP で待たない
+    depends_on:
+      app:
+        condition: service_healthy # app がマイグレーションを終えてから
+    restart: unless-stopped
+
+volumes:
+  pgdata:

@@ -1,0 +1,53 @@
+{
+  "name": "room-booking",
+  "version": "1.0.0",
+  "description": "会議室の予約（第13部 総合演習）",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node --env-file-if-exists=.env src/server.ts",
+    "dev": "node --watch --env-file-if-exists=.env src/server.ts",
+    "worker": "node --env-file-if-exists=.env src/worker.ts",
+    "migrate": "node --env-file-if-exists=.env src/db/migrate.ts",
+    "typecheck": "tsc",
+    "lint": "eslint . --max-warnings 0",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "node --test \"test/**/*.test.ts\"",
+    "test:unit": "node --test \"test/unit/*.test.ts\"",
+    "coverage": "node --test --experimental-test-coverage --test-coverage-include=\"src/**\" --test-coverage-lines=85 \"test/**/*.test.ts\"",
+    "e2e": "playwright test",
+    "check": "npm run typecheck && npm run lint && npm run format:check && npm test",
+    "mail": "node test/support/fake-smtp.ts"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "dependencies": {
+    "bullmq": "6.5.4",
+    "express": "5.3.0",
+    "express-session": "1.19.0",
+    "helmet": "8.3.0",
+    "nodemailer": "10.3.1",
+    "pg": "8.23.1",
+    "pino": "10.4.0",
+    "redis": "6.3.1",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@playwright/test": "1.63.0",
+    "@types/express": "5.0.6",
+    "@types/express-session": "1.19.0",
+    "@types/node": "24.19.2",
+    "@types/nodemailer": "8.0.2",
+    "@types/pg": "8.23.1",
+    "eslint": "10.13.0",
+    "eslint-config-prettier": "10.1.8",
+    "eslint-plugin-regexp": "3.3.3",
+    "prettier": "3.9.10",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.72.1"
+  },
+  "license": "MIT"
+}

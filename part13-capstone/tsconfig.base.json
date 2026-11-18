@@ -1,0 +1,30 @@
+{
+  // 第13部の練習問題で共通の TypeScript の設定（Node.js で動くコード用。第7部と同じ。第7部 第35章 8節で1行ずつ説明しています）
+  // 各章の tsconfig.json が "extends" でこのファイルを読み込みます
+  "compilerOptions": {
+    // どの JavaScript の文法・標準の関数を使ってよいか（Node.js 24 で動くもの）
+    "target": "es2024",
+    "lib": ["es2024"],
+    // Node.js の ES Modules の決まりで import を解決する
+    "module": "nodenext",
+    // Node.js の型（process・Buffer・node:fs など）を使う（@types/node）
+    "types": ["node"],
+    // どのファイルも、それぞれ別のモジュールとして扱う
+    "moduleDetection": "force",
+
+    // 型の確かめを厳しくする（第35章 5節・8節）
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noFallthroughCasesInSwitch": true,
+
+    // Node.js がそのまま動かせる書き方だけにする（第35章 8節、第37章 1節）
+    "erasableSyntaxOnly": true,
+    "verbatimModuleSyntax": true,
+    "allowImportingTsExtensions": true,
+
+    // tsc は確かめるだけで、.js のファイルは作らない（作るときは第37章 1.3節）
+    "noEmit": true,
+    // node_modules の中の型定義（.d.ts）は確かめない（速くするため）
+    "skipLibCheck": true
+  }
+}

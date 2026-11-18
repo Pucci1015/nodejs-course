@@ -1,0 +1,17 @@
+# 練習問題6 のための compose.yaml の例（自分で作る次のアプリが、room-booking の compose.yaml を写して作ったとする）
+name: my-next-app
+
+services:
+  db:
+    image: postgres:18
+    ports:
+      - '127.0.0.1:5434:5432' # room-booking の compose.yaml と同じ番号のまま
+  redis:
+    image: redis:8
+    ports:
+      - '6382:6379' # IP を書かないと、0.0.0.0（すべての IP）で待つ
+  web:
+    image: node:24-bookworm-slim
+    ports:
+      - '9911:8080'
+      - 9229 # コンテナの番号だけ。Mac の番号は Docker が空いているものを選ぶ

@@ -71,4 +71,4 @@ $ bash （ここに Finder から part12-deploy フォルダの中の setup-part
 
 ---
 
-教材全体の目次: [../README.md](../README.md) ／ 前: [第11部 テストとコード品質](../part11-testing/README.md) ／ 次: 第13部 総合演習（準備中）
+教材全体の目次: [../README.md](../README.md) ／ 前: [第11部 テストとコード品質](../part11-testing/README.md) ／ 次: [第13部 総合演習](../part13-capstone/README.md)

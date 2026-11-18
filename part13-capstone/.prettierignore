@@ -1,0 +1,6 @@
+# Prettier で整えないもの。アプリ（base・solutions/app・成果物）は、アプリの中の設定で整える
+package-lock.json
+base
+**/solutions/app
+project-room-booking/solutions
+node_modules
