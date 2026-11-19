@@ -1,0 +1,37 @@
+# 第70章: 依存パッケージの新しい版を、プルリクエストで知らせる（第59章 8.1節。第12部の成果物と同じ）
+version: 2
+updates:
+  # API のパッケージ（リポジトリの直下の package.json）
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    # 出てから 7 日たった版だけを提案する（出たばかりの版に、悪いものが混ざっていることがあるため）
+    cooldown:
+      default-days: 7
+    # 小さな更新はまとめて1つのプルリクエストに
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+  # 画面のパッケージ（web/package.json）
+  - package-ecosystem: npm
+    directory: /web
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+  # ワークフローの中の actions/checkout などの版
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+  # Dockerfile の FROM（node:24-bookworm-slim）の新しい版
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7

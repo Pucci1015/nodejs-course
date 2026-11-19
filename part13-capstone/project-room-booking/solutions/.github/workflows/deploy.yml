@@ -1,0 +1,87 @@
+# 第70章: main に入ったら、CI と同じ確かめをしてから Render にデプロイし、新しい版が動くまで待つ（第62章 7節。第12部の成果物と同じ形）
+# 執筆の環境からは GitHub で動かしていません（YAML として読めることと、各コマンドが手元で通ることだけを確かめた）
+# 前もって: GitHub の Settings → Environments で production を作り、Secrets に RENDER_DEPLOY_HOOK_URL・RENDER_WORKER_DEPLOY_HOOK_URL を入れる
+name: deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: # Actions の画面から、手でも動かせる
+
+# デプロイは 1 つずつ。動いている途中のデプロイは止めない
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  # ci.yml の api・web と同じ確かめ（E2E は ci.yml に任せる）
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: app
+          POSTGRES_PASSWORD: dev-only-password
+          POSTGRES_DB: roombooking
+        ports:
+          - '5434:5432'
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:8
+        ports:
+          - '6381:6379'
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            web/package-lock.json
+      - run: npm ci --ignore-scripts
+      - run: npm run check
+      - run: npm ci --ignore-scripts
+        working-directory: web
+      - run: npm run check
+        working-directory: web
+      # イメージが作れることも確かめる（Render と同じ Dockerfile）
+      - run: docker build --build-arg APP_VERSION=${{ github.sha }} -t room-booking .
+
+  deploy:
+    needs: check
+    if: github.ref == 'refs/heads/main' # 手で動かすときに別のブランチを選んでも、main 以外はデプロイしない
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://rooms.example.com
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      # デプロイフックの URL は、それだけでデプロイを始められる秘密の値。Secrets に置き、ログに出さない
+      - name: Render にデプロイを頼む（API とワーカー）
+        run: |
+          curl -fsS -X POST "$RENDER_DEPLOY_HOOK_URL" > /dev/null
+          curl -fsS -X POST "$RENDER_WORKER_DEPLOY_HOOK_URL" > /dev/null
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+          RENDER_WORKER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_WORKER_DEPLOY_HOOK_URL }}
+      - name: 新しい版が動くまで待つ
+        run: node scripts/wait-for-version.ts https://rooms.example.com/version "$GITHUB_SHA" --timeout 900

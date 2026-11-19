@@ -1,0 +1,6 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "include": ["."],
+  // app-tests/ は ~/dev/room-booking の test/http/ にコピーして動かすテスト（ここでは import 先が無い）
+  "exclude": ["app-tests"]
+}

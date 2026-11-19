@@ -151,7 +151,7 @@ nodejs/                        ← 教材のルート（このファイルがあ
 | 10 認証とセキュリティ | `part10-auth-security` ✅ | 51 認証の基礎 / 52 セッションとトークン / 53 メール送信と本人確認 / 54 OAuth 2.0 と OpenID Connect / 55 Web セキュリティの総点検 | ハッシュ化（bcrypt / Argon2）・認証と認可、Cookie セッションと JWT・`HttpOnly`・`Secure`・`SameSite`、SMTP・SPF・DKIM・メール送信サービス・登録確認とパスワードリセット・Mailpit、GitHub ログイン、XSS・CSRF・SQL インジェクション・CSP・OWASP Top 10、依存パッケージの脆弱性とサプライチェーン。**攻撃の再現は自分のローカル環境に限る** | ユーザー登録・メール確認・ログイン |
 | 11 テストとコード品質 | `part11-testing` ✅ | 56 テストの考え方 / 57 API とデータベースのテスト / 58 フロントエンドのテスト / 59 静的解析と CI | 単体・結合・E2E、`node:test` と Vitest、HTTP レベルのテスト・テスト用 DB、Testing Library・Playwright、ESLint とフォーマッタ・GitHub Actions | テストと CI が整ったアプリ |
 | 12 デプロイと運用 | `part12-deploy` ✅ | 60 本番環境の考え方 / 61 Docker でコンテナ化 / 62 クラウドへのデプロイ / 63 ファイルの保存 / 64 バックグラウンドジョブ / 65 CDN とキャッシュ / 66 監視とパフォーマンス | 開発と本番・ビルド・プロセス管理・シークレット、Dockerfile・マルチステージ・Apple Silicon と CPU アーキテクチャ、PaaS（Render、Fly.io など）・マネージド DB・独自ドメインと HTTPS、オブジェクトストレージ（S3 互換）・署名付き URL・MinIO、キュー（BullMQ + Redis）・定期実行・再試行と冪等性、CDN の仕組み・`Cache-Control` の設計・キャッシュの消し方、ログとエラー監視・計測してから改善・複数プロセスとロードバランサ | 画像添付・メール通知つきで独自ドメインに公開 |
-| 13 総合演習 | `part13-capstone` | 67 要件と設計 / 68 実装（前半） / 69 実装（後半） / 70 公開と振り返り | 機能一覧・画面・API・テーブル設計・Express + React か Next.js かの選択、認証と中心機能、リアルタイム・ファイル保存・バックグラウンドジョブなど、デプロイ・README とポートフォリオ化・次に学ぶこと。教材の指示なしで進めることが目的 | 自分で決めた題材のアプリ |
+| 13 総合演習 | `part13-capstone` ✅ | 67 要件と設計 / 68 実装（前半） / 69 実装（後半） / 70 公開と振り返り | 題材は教材が決めた「会議室の予約」（学習者の指定、2026-11-18。模範解答つきで、実際の開発の流れを小さく1回通す）。要件定義（ユーザーストーリー・決まり R1〜R10）・画面・API・データの設計（EXCLUDE 制約）・ADR、決まりの純粋な関数、API（役割・会議室・予約）、画面（予約の表・SSE の知らせ・メールとリマインド）、Docker・CI・Render・運用の手順・README・振り返り、自分のアプリへ | 会議室の予約のアプリ（`project-room-booking`）。学習者が自分で決めた題材のアプリは、教材に入れない |
 
 付録（予定）: A. Flask と Node.js の対応表 / B. Mac 開発環境のチェックリスト / C. 一次情報の読み方（MDN、Node.js 公式、RFC 9110）/ D. 次に学ぶこと（GraphQL、サーバーレス、モノレポ、Bun・Deno）
 
@@ -580,9 +580,29 @@ nodejs/                        ← 教材のルート（このファイルがあ
 
 | 予告した内容 | 予告した場所 | 回収する部・章 |
 | --- | --- | --- |
-| 自分の題材を公開する（Dockerfile・compose・render.yaml・デプロイのワークフローを出発点に） | 成果物 9節 | 第13部 第70章 |
-| ファイル・仕事の列・リアルタイムを自分の題材で使うか決める | 成果物「後でどこで使うか」 | 第13部 第67〜69章 |
-| 画像を縮める仕事、ブラウザから直接置く、回数の制限を Redis に、CDN を前に、ステージング | 成果物 7節 | 第13部（任意） |
+| 自分の題材を公開する（Dockerfile・compose・render.yaml・デプロイのワークフローを出発点に） | 成果物 9節 | 第13部 第70章 ✅（題材は会議室の予約。Render・GitHub では動かしていない） |
+| ファイル・仕事の列・リアルタイムを自分の題材で使うか決める | 成果物「後でどこで使うか」 | 第13部 第67〜69章 ✅（ファイルは使わない、仕事の列はメールとリマインド、リアルタイムは SSE と決めた） |
+| 画像を縮める仕事、ブラウザから直接置く、回数の制限を Redis に、CDN を前に、ステージング | 成果物 7節 | 第13部（任意）。会議室の予約では扱わなかった |
+
+### 第13部（作成済み）で学習者が持っているもの
+
+第67章の最初に `setup-part13.sh` を1回だけ動かす（`~/dev/part13` にコピーして `npm ci --ignore-scripts`。どの深さの `node_modules`・`dist`・`coverage`・`test-results`・`playwright-report`・`.vite` もコピーしない）。部の直下の `package.json` は練習問題の分だけ（express 5.3.0、pg 8.23.1、yaml 2.9.1、zod 4.6.7、typescript 6.0.3、eslint 10.13.0、typescript-eslint 8.72.1）。アプリのパッケージは `base/`（第12部と同じ版。bullmq 6.5.4・redis 6.3.1・express-session 1.19.0・helmet 8.3.0・nodemailer 10.3.1・@playwright/test 1.63.0・prettier 3.9.10 など。画面は react 19.3.1・@tanstack/react-query 5.105.0・react-router 8.5.1・vite 8.3.5・vitest 4.1.12）。
+
+- 題材は「会議室の予約」。学習者は `~/dev/part13/base` を `~/dev/room-booking` にコピーして `git init` し、章ごとに `main` に1つコミットする（土台・第67〜70章の5つ）。第68・69章の練習問題7（`app-tests/`）は、ブランチ（`practice-edit-title`・`practice-mine-by-day`）でアプリに機能を足し、`main` に戻る
+- `base/`: 第12部の成果物から、タスク・添付ファイル・毎朝のお知らせ・冪等キー・SSE を取り除いたもの（ログイン・メール・仕事の列・設定・`/healthz`・`/readyz`・`/version`・`/metrics`）。API 25・画面 14・E2E 1
+- 各章の `solutions/app/` は、その章を終えたときのアプリ（第67章 57、第68章 82、第69章 API 90・画面 24・E2E 2）。完成形は `project-room-booking/solutions/`（第70章のファイルを足したもの。コードは第69章と同じ）。部の直下の `eslint.config.js` と `.prettierignore` は、これらのアプリ（自分の設定を持つ）を見ない
+- 第67章: 部の進め方、土台、要件定義（`docs/requirements.md`。決まり R1〜R10、作らないもの）、画面と API の設計（`screens.md`・`api.md`）、データの設計（`data.md`、`btree_gist` の EXCLUDE 制約 `bookings_no_overlap`、取り消しは `canceled_at`）、決まりの純粋な関数（`src/domain/time.ts` の `tokyoParts` など・`booking-rules.ts` の `checkBookingTime`・`slots.ts`）、ADR と `plan.md`。練習問題8問（slot-round・weekday・booking-length・predict・free-ranges・next-free・room-closures（SQL）・recurring）
+- 第68章: 役割（マイグレーション 003、`scripts/grant-admin.ts`、`requireAdmin`）、入力の形とエラー（`schemas.ts`・`domain-errors.ts`）、会議室と予約のリポジトリ・サービス・ルート、決まりを守る場所の表、HTTP のテスト 17 個。練習問題8問（to-booking・cancel-problem・day-query・predict・memory-bookings・require-role・PATCH で題名を変える（app-tests）・usage-report（LEFT JOIN））
+- 第69章: `web/src/domain/` に API の決まりをコピー、`useNow`、SSE（`booking.created` などは中身を入れず「変わった」だけ。Redis の Pub/Sub を通す）、`DayGrid`（rowSpan）・`DayPage`（`?date=`）・`BookingDialog`・`MyBookingsPage`・`RoomsAdminPage`、管理者の取り消しのメール、前日のリマインド（マイグレーション 004 の `reminder_log`、`ON CONFLICT DO NOTHING` で1通だけ、`REMINDER_CRON`）、画面のテスト（偽の API・`FakeEventSource`・`Date` だけ止める）、2つのブラウザの E2E。練習問題8問（lengths・when・day-nav・predict・grid-cells・group-by-day・自分の予約を日付ごとに（app-tests）・to-ics（RFC 5545））
+- 第70章: `.dockerignore`・4段階の `Dockerfile`（388MB）、`compose.prod.yaml`（`room-booking-prod`、app 9913・mail 9911、`NODE_ENV: development`、`WORKER_MODE: separate`、worker は app の healthy を待つ）、外から5つ確かめる、`ci.yml`（api・web → e2e）、`render.yaml`（envVarGroups・keyvalue・worker・`preDeployCommand`）、`deploy.yml` と `wait-for-version.ts`、`docs/runbook.md`、マイグレーションは「足すだけ」、README とスクリーンショット、`docs/retro.md`（KPT）、自分のアプリへの表、次に学ぶこと。`samples/`（show-jobs・show-env・list-links）。練習問題8問（app-version・ci.yml の穴埋め・missing-env・predict・smoke（CLI）・compose-ports・check-links（CLI）・additive-migration（状態機械））
+
+### 第13部で決めた書き方・作り方
+
+- ポート: 開発の API 9900・画面 5174・偽の SMTP 1025（HTTP 8025）、compose の PostgreSQL 5434・Redis 6381、E2E 9906〜9908、`compose.prod.yaml` 9911・9913。テストは `freePort()`
+- 本文の「手を動かす」は、ほとんどが `~/dev/room-booking` のファイルを書くこと。完成形（各章の `solutions/app/`）の同じファイルと見比べる。ファイルの先頭のコメントに、章と節の番号を書く
+- 練習問題は、アプリの部品を React や Express を使わない純粋な関数にして `node --test` で確かめるものが中心。`domain/` のコピーを `exercises/domain/` に置く
+- 部の直下に `.prettierrc.json`（singleQuote・printWidth 120）と `.prettierignore` を置き、練習問題と本文も Prettier で整えた（オブジェクトは `--object-wrap collapse`）
+- 執筆時点では Node.js 24.22、PostgreSQL 16（compose の postgres:18 も `compose.prod.yaml` で動かした）、Redis 7.0（同 redis:8）、Docker（x86_64）、Chromium（Playwright 1.63.0）で、すべての練習問題の模範解答と、各章のアプリ・完成形の `npm run check`・E2E が通ることを確かめた。Render と GitHub Actions では動かしていない
 
 ## 7. 作業の手順（Claude 向け）
 
