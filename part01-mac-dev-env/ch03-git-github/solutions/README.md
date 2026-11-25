@@ -13,9 +13,9 @@
 ## 問題1 最初のリポジトリと git status
 
 ```sh
-$ mkdir -p ~/dev/git-basic && cd ~/dev/git-basic
+$ mkdir -p ~/dev/ch03/git-basic && cd ~/dev/ch03/git-basic
 $ git init
-Initialized empty Git repository in /Users/alice/dev/git-basic/.git/
+Initialized empty Git repository in /Users/alice/dev/ch03/git-basic/.git/
 $ ls -a
 .	..	.git
 ```
@@ -176,7 +176,7 @@ $ git log --oneline -n 2
 f6ade0f パンと todo を追加
 ```
 
-3. メッセージが直り、**コミットIDも変わりました**（`6a0efd2` → `5bb70c7`）。`--amend` は、直前のコミットを直すのではなく、新しいコミットを作って置き換えるからです（本文6.2節）。
+3. メッセージが直り、**コミットIDも変わりました**（`6a0efd2` → `5bb70c7`）。`--amend` は、直前のコミットを直すのではなく、新しいコミットを作って置き換えるからです（本文6.1節・6.3節）。
 
 4. **取り戻せません。** `- まちがい` の行は、一度もコミットもステージ（`add`）もしていないので、Git には記録が残っていません（本文6.1節）。`git restore ファイル` は、捨てる前によく確かめてから使います。
 
@@ -283,7 +283,7 @@ xxxxxxx Revert "機能Aを追加"
 1121950 最初のコミット
 ```
 
-5. 共有したコミットには `git revert` を使います。「機能Aを追加」の変更を打ち消す（`src/feature-a.js` を消す）新しいコミットが足されるだけで、今までの履歴は書き換わりません。`git reset` で消すと、そのコミットを既に持っているほかの人の履歴と食い違ってしまいます（本文6.2節）。
+5. 共有したコミットには `git revert` を使います。「機能Aを追加」の変更を打ち消す（`src/feature-a.js` を消す）新しいコミットが足されるだけで、今までの履歴は書き換わりません。`git reset` で消すと、そのコミットを既に持っているほかの人の履歴と食い違ってしまいます（本文6.3節）。
 
 6. まだ安全とは言えない理由の例:
    - amend する前のコミット（`6624598`）が、まだリポジトリの中に残っている（reflog に記録が残っているので、少なくとも90日間は消えない）。
@@ -379,8 +379,9 @@ Unmerged paths:
 解答: [gitignore-answer](gitignore-answer)
 
 ```sh
-$ cp ../solutions/gitignore-answer ~/dev/git-ignore-practice/.gitignore
-$ bash check-gitignore.sh ~/dev/git-ignore-practice
+$ cd ~/dev/ch03
+$ cp （Finder から solutions/gitignore-answer をドラッグ） git-ignore-practice/.gitignore
+$ bash exercises/check-gitignore.sh git-ignore-practice
 ...
 NG の数: 0
 ```
@@ -413,10 +414,10 @@ NG の数: 0
 2. 手順の例:
 
    ```sh
-   $ mkdir -p ~/dev/git-practice && cd ~/dev/git-practice
+   $ mkdir -p ~/dev/ch03/git-practice && cd ~/dev/ch03/git-practice
    $ git init
    $ echo "# git-practice" > README.md
-   $ cp ~/dev/git-ignore-practice/.gitignore .
+   $ cp ~/dev/ch03/git-ignore-practice/.gitignore .
    $ git add -A && git commit -m "最初のコミット"
    $ gh repo create git-practice --private --source=. --push
    ```

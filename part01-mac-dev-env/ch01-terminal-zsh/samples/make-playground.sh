@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # 練習用のフォルダ一式を作るスクリプト（第1章で使用）
-# 使い方: bash make-playground.sh [作成先]   既定: ~/dev/playground
+# 使い方: bash make-playground.sh [作成先]   既定: ~/dev/ch01/playground
 set -euo pipefail
 
-dest="${1:-$HOME/dev/playground}"
+dest="${1:-$HOME/dev/ch01/playground}"
 
 if [[ -e "$dest" ]]; then
   echo "既に存在します: $dest" >&2

@@ -1,44 +1,19 @@
 # 第4章 模範解答
 
-[練習問題](../exercises/README.md) の解答と解説です。
+[練習問題](../exercises/README.md) の解答と解説です。動かすときは、`solutions` フォルダを `~/dev/ch04` にコピーしてから（`cp -R （Finder から solutions をドラッグ） ~/dev/ch04`）、`~/dev/ch04` で動かします。
 
 | ファイル | 内容 |
 | --- | --- |
-| [refactored.js](refactored.js) | 問題3 の書き換えた後のファイル |
-| [grades-fixed.mjs](grades-fixed.mjs) | 問題6 の直したもの |
-| [fixed-page.html](fixed-page.html)、[fixed-page.js](fixed-page.js)、[tasks.json](tasks.json) | 問題7 の直したもの（`node ../samples/serve.mjs .` で配信し、`/fixed-page.html` を開く） |
+| [refactored.js](refactored.js) | 問題2 の書き換えた後のファイル |
+| [launch.json](launch.json) | 問題4 の `.vscode/launch.json` |
+| [grades-fixed.mjs](grades-fixed.mjs) | 問題5 の直したもの |
+| [fixed-page.html](fixed-page.html)、[fixed-page.js](fixed-page.js)、[tasks.json](tasks.json) | 問題6 の直したもの（`node samples/serve.mjs solutions` で配信し、`/fixed-page.html` を開く） |
 
 直したファイルには、直した場所に「修正」というコメントを付けています。
 
 ---
 
-## 問題1 ターミナルから VS Code を使う
-
-```sh
-$ which code
-/usr/local/bin/code
-$ ls -l /usr/local/bin/code
-lrwxr-xr-x  1 alice  admin  68 11  4 10:00 /usr/local/bin/code -> /Applications/Visual Studio Code.app/Contents/Resources/app/bin/code
-```
-
-1〜2. `code` は `/usr/local/bin/code` にあり、`l` で始まるのでシンボリックリンクです。指している先は、VS Code.app の中の `bin/code` です（第2章4.3節の Homebrew と同じ仕組みです）。
-
-3〜4. 例:
-
-```sh
-$ code --list-extensions
-dbaeumer.vscode-eslint
-editorconfig.editorconfig
-esbenp.prettier-vscode
-$ code --list-extensions | wc -l
-       3
-```
-
-1行に1つの ID が表示されるので、`wc -l` で数えられます（第1章6.2節）。
-
-5. VS Code で開いているフォルダ（ここでは `ch04-editor-debugger`）が表示されます。統合ターミナルは、開いているフォルダを「今いる場所」にして zsh を起動するからです。
-
-## 問題2 設定の階層を使い分ける
+## 問題1 設定を書く場所を選んで書く
 
 | # | 書く場所 | 内容 | 理由 |
 | --- | --- | --- | --- |
@@ -47,7 +22,7 @@ $ code --list-extensions | wc -l
 | 3 | ワークスペース設定 | 下の例 | プロジェクトの決まりだが、VS Code だけの設定 |
 | 4 | ワークスペース設定 | `"search.exclude": { "node_modules": true }` | 同じ |
 
-`.editorconfig`（`~/dev/settings-practice/.editorconfig`）:
+`.editorconfig`（`~/dev/ch04/settings-practice/.editorconfig`）:
 
 ```ini
 root = true
@@ -71,9 +46,11 @@ indent_size = 2
 }
 ```
 
-`.vscode` フォルダは、`mkdir .vscode` で作るか、設定画面の「ワークスペース」のタブで何か1つ設定すると、自動で作られます。
+`.vscode` フォルダは、本文3.1節のように `mkdir -p .vscode` で作るか、設定画面の「ワークスペース」のタブで何か1つ設定すると、自動で作られます。
 
-## 問題3 エディタの機能で書き換える
+ユーザー設定に書く 1 は、ほかのプロジェクトにも効きます。プロジェクトの決まり（2〜4）をユーザー設定に書くと、自分の VS Code でだけ守られ、ほかの人には伝わりません。
+
+## 問題2 エディタの機能で書き換える
 
 解答: [refactored.js](refactored.js)
 
@@ -87,43 +64,18 @@ indent_size = 2
 | 6 | `⌥ + Shift + F` | 初めて使うときは、どの整形の道具を使うかを聞かれることがある。Prettier を選ぶ |
 
 ```sh
-$ node refactor-me.js > after.txt
+$ node exercises/refactor-me.js > after.txt
 $ diff before.txt after.txt && echo 同じです
 同じです
 ```
+
+追加の問い: `d` という1文字は、`done` や `undefined`、文字列の中の言葉など、ほかの所にも出てきます。「すべて置換」は文字の並びだけを見るので、それらも `tasks` に変わり、プログラムが壊れます（`done` が `tasksone` になる、など）。`F2` は JavaScript の変数としての `d` だけを変えます。
 
 名前を変えただけで、`d[i].f == false` が `tasks[i].done == false` になり、何をしているかが読めるようになりました。`n` や `h` のような1文字の名前は、書いた直後は分かっても、数週間後の自分には分かりません。
 
 `== false` や `var` の使い分けなど、JavaScript としてのよりよい書き方は、第3部 第11章で学びます。
 
-## 問題4 デバッガの基本の操作
-
-1. 行(A) で止まると、「変数」の `Local` などの下に `tasks` が表示されます。`▶` をクリックすると、4つのタスク（`id`、`title`、`priority`、`done`）が見られます。この時点では、行(A) はまだ実行されていないので、`summary` にはまだ値が入っていません（`undefined` などと表示されます。本文10.2節「その行を実行する直前で止まる」）。
-
-2. 1つ目のタスク（牛乳を買う。`priority: 1`、`done: true`）を処理した後は、次のとおりです。
-
-   | 名前 | 値 | 理由 |
-   | --- | --- | --- |
-   | `total` | 1 | 毎回1増える |
-   | `done` | 1 | 1つ目のタスクは `done: true` |
-   | `highPriority` | 0 | 1つ目のタスクは `priority: 1` で、3以上ではない |
-
-3. コールスタックには、上から `formatTask`、`main`、（ファイルそのもの）が並びます。いちばん上が今いる関数で、その下が「それを呼んだ関数」です。`main` をクリックすると、`main` の時点の変数（`summary` や `task`）が見られます。
-
-4. 行(B) はループの中にあるので、`F5` のたびにループの次の回で止まります。`summary.total` は、止まるたびに `1`、`2`、`3`、`4` と増えます。
-
-5. ターミナルに、次のように表示されます。
-
-   ```
-   [✓] 牛乳を買う ★
-   [ ] レポートを書く ★★★
-   [ ] 部屋を掃除する ★★
-   [ ] 発表の準備 ★★★★★
-   { total: 4, done: 1, highPriority: 2 }
-   選んだタスク: 部屋を掃除する
-   ```
-
-## 問題5 特別なブレークポイントを使う
+## 問題3 特別なブレークポイントで値を見る
 
 1. **2回**止まります。止まったときの `task.title` は「レポートを書く」（priority 3）と「発表の準備」（priority 5）です。条件付きブレークポイントは、条件が true のときだけ止まるので、ループの全部の回を見なくて済みます。
 
@@ -138,11 +90,23 @@ $ diff before.txt after.txt && echo 同じです
 
    コードに `console.log` を書き足さずに、値を出せます。ログポイントは「止まらない、消し忘れない `console.log`」です。
 
-3. `findTask` の中の `throw new Error(...)` の行で止まります。コールスタックは、上から `findTask`、`main`、（ファイルそのもの）です。「`main` から `findTask` を呼び、その中でエラーが起きた」ことが分かります。
+3. ループの3回目で止まります。`task.title` は「部屋を掃除する」、`summary.total` は **3** です。行(B) より前の `summary.total += 1;` は、3回目の分も既に実行されているからです。ヒットカウントは「何回目かでおかしくなる」ときに、そこまで `F5` を押し続けなくて済みます。
 
-4. `id` は `99`、`tasks.map((t) => t.id)` は `[1, 2, 3, 4]` です。`99` という `id` のタスクは無いので、`tasks.find(...)` が何も見つけられず（`undefined`）、`if (!task)` の中の `throw` に進みました。引数の `99` がそのまま `id` になっていることも、デバッガで確かめられます。
+4. **3** です。`done` が `false` のタスク（未完了のタスク）の数を表しています。`tasks` はループの中で変わらないので、何回目で止めても同じ値です。ウォッチ式には、変数だけでなく、このような式も書けます。
 
-## 問題6 ステップ実行でバグを探す
+## 問題4 launch.json に設定を足す
+
+解答: [launch.json](launch.json)
+
+`"configurations"` は配列なので、`{ ... }` の後に `,` を付けて、次の `{ ... }` を書きます。`,` を忘れると、VS Code が `launch.json` の文字に赤い波線を付け、「問題」パネルにエラーが表示されます。
+
+2. `findTask` の中の `throw new Error(...)` の行で止まります。コールスタックは、上から `findTask`、`main`、（ファイルそのもの）です。「`main` から `findTask` を呼び、その中でエラーが起きた」ことが分かります。
+
+3. `id` は `99`、`tasks.map((t) => t.id)` は `[1, 2, 3, 4]` です。`99` という `id` のタスクは無いので、`tasks.find(...)` が何も見つけられず（`undefined`）、`if (!task)` の中の `throw` に進みました。`"args": ["99"]` の `"99"` が、`Number(...)` で数の `99` になって `id` に入っていることも、デバッガで確かめられます。
+
+4. `"console"` を書かない launch の設定では、プログラムの出力はデバッグコンソールに表示されます。ターミナルに出したいときは、`"console": "integratedTerminal"` を足します（[../samples/launch.json](../samples/launch.json) にはありませんが、公式のドキュメントに説明があります）。
+
+## 問題5 ステップ実行でバグを直す
 
 解答: [grades-fixed.mjs](grades-fixed.mjs)
 
@@ -173,12 +137,12 @@ const passed = ranked.filter((r) => r.avg >= 70);  // 3: 「70点以上」は >=
 合格者（平均70点以上）: alice, bob, dave（3人）
 ```
 
-デバッグコンソールで `[3, 1, 2].sort((a, b) => a < b)` を実行すると、`[3, 1, 2]` のまま（並ばない）です。
+`node -p "[3, 1, 2].sort((a, b) => a < b)"` を実行すると、`[ 3, 1, 2 ]` のまま（並ばない）です。
 
 3つとも直すと、期待どおりの出力になります。
 
 ```sh
-$ node bug-grades.mjs
+$ node exercises/bug-grades.mjs
 1位 bob 94.3
 2位 dave 91.7
 3位 alice 82.3
@@ -187,7 +151,7 @@ $ node bug-grades.mjs
 合格者（平均70点以上）: bob, dave, alice, carol（4人）
 ```
 
-## 問題7 DevTools でブラウザ側のバグを探す
+## 問題6 DevTools でブラウザ側のバグを直す
 
 解答: [fixed-page.js](fixed-page.js)
 
@@ -199,9 +163,70 @@ $ node bug-grades.mjs
 
 3 で「空のタスク」が増えた理由: 1回の送信で、登録されたリスナーが全部呼ばれます（本文8.1節）。2つ目のリスナーが動くときには、1つ目のリスナーが既に入力欄を空にしているので、空の名前のタスクが追加されていました。リスナーが3つになれば、空のタスクは2件ずつ増えます。
 
-1 の補足: `/` で始まる URL は「サーバのいちばん上から」、`/` で始まらない URL は「今のページのある場所から」の位置になります（本文11.3節）。第2部で URL の形を、第4部でファイルの配信を詳しく学びます。
+1 の補足: `/` で始まる URL は「サーバのいちばん上から」、`/` で始まらない URL は「今のページのある場所から」の位置になります（本文11節）。第2部で URL の形を、第4部でファイルの配信を詳しく学びます。
 
 2 の補足: `<input type="checkbox">` の `value` は「チェックされているときに、フォームで送る値」で、チェックの状態ではありません。HTML の要素のプロパティは、種類によって意味が違うので、迷ったら Console で実際の値を確かめるのが確実です。
+
+## 問題7 新しいプロジェクトの設定を用意してコミットする
+
+```sh
+$ mkdir -p ~/dev/ch04/my-project && cd ~/dev/ch04/my-project
+$ git init
+$ mkdir -p .vscode
+$ code .editorconfig .vscode/settings.json .vscode/extensions.json .gitignore   # 4つのファイルをまとめて開く
+```
+
+`.editorconfig`:
+
+```ini
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 2
+insert_final_newline = true
+
+[*.md]
+trim_trailing_whitespace = false
+```
+
+`.vscode/settings.json`:
+
+```jsonc
+{
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "search.exclude": {
+    "node_modules": true
+  }
+}
+```
+
+`.vscode/extensions.json`:
+
+```jsonc
+{
+  "recommendations": ["dbaeumer.vscode-eslint", "esbenp.prettier-vscode", "editorconfig.editorconfig"]
+}
+```
+
+`.gitignore`:
+
+```
+node_modules/
+```
+
+```sh
+$ git add .
+$ git commit -m "書式の設定を追加"
+$ git status --short          # 何も出ない（node_modules/a.js は無視されている）
+```
+
+1. `.gitignore` の `node_modules/` に当てはまるファイルは、Git が「無いもの」として扱うからです。`git check-ignore -v` は、どのファイルの何行目で無視されたかを表示します（第3章13.2節）。`git add .` でも入りません。
+2. `.vscode/settings.json` と `extensions.json` に書いたのは「このプロジェクトの決まり」で、全員に同じものを使ってほしいからです。文字の大きさや色などの**個人の好み**は、ユーザー設定（`~/Library/Application Support/Code/User/settings.json`）に書き、プロジェクトには入れません。
+3. 入っていない拡張機能があると、右下に「このリポジトリにおすすめの拡張機能があります」のような知らせが表示されます。拡張機能の画面（`⌘ + Shift + X`）の「RECOMMENDED」（おすすめ）にも、3つが並びます。
 
 ## 問題8 設定がぶつかったとき、どれが使われるか
 

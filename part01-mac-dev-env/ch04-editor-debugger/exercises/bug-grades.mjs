@@ -1,5 +1,5 @@
-// 練習問題6: 成績の集計（バグが3つあります）
-// 使い方: node bug-grades.mjs
+// 練習問題5: 成績の集計（バグが3つあります）
+// 使い方（~/dev/ch04 で）: node exercises/bug-grades.mjs
 //
 // 期待する出力:
 //   1位 bob 94.3

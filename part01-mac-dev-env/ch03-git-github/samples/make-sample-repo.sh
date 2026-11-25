@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # Git の中身を観察するための小さなリポジトリを作る（第3章 5節・練習問題11）
-# 使い方: bash make-sample-repo.sh [作成先]   既定: ~/dev/git-sample
+# 使い方: bash samples/make-sample-repo.sh [作成先]   既定: ~/dev/ch03/git-sample
 #
 # 作者と日時を固定しているので、誰が作っても同じコミットID（ハッシュ）になる。
 set -euo pipefail
 
-dest="${1:-$HOME/dev/git-sample}"
+dest="${1:-$HOME/dev/ch03/git-sample}"
 if [[ -e "$dest" ]]; then
   echo "既に存在します: $dest（確認してから削除してください）" >&2
   exit 1

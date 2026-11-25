@@ -161,13 +161,17 @@ nodejs/                        ← 教材のルート（このファイルがあ
 
 後の部では、これらを前提にしてよい（参照するときは章と節を書く）。
 
-- `~/dev/` を作業用フォルダとして使う（教材フォルダは OneDrive 上にあるため、`npm install` するプロジェクトは `~/dev/` に作る）
+- `~/dev/` を作業用フォルダとして使う。第1部の各章も `~/dev/ch01`〜`~/dev/ch04` に `samples`・`exercises` をコピーして進めた（2026-11-25 に第1部を今の決まりに作り直した。第1章2.5節で `~/dev/ch01` を作る）
+- 第1章: 本文は「手を動かす」の繰り返し（`samples/make-playground.sh` で `~/dev/ch01/playground`、`count.sh`・`list.sh`・`greet.sh` を自分で書く）。`tr -d`、`cut`、`awk '{ print "IP:", $1 }'`、`[[ -n … ]]`、`( )` のサブシェル、`${VAR:-既定}`、11.4節で `~/.local/bin` を `.zprofile` の PATH に足した。練習問題は11問（8 `port.sh`、9 `bak`、10 `log-summary`）
+- 第2章: `samples/hello.mjs`（テンプレートリテラル、`process.version`・`process.arch`）、4.3節で自分で `ln -s` を作る、`node -p`、REPL。練習問題は11問（5 `me.mjs`、8 Brewfile、9 手で書く `mise.toml`、10 `env-check.sh`）
+- 第3章: 1つのリポジトリ `~/dev/ch03/hello-git` を4〜8節・13節で育てる。8.1節 fast-forward とマージコミット、8.2節 コンフリクト、10.1節 手元のベアリポジトリ `~/dev/ch03/shared.git` に push。練習用のリポジトリのスクリプトの作成先は `~/dev/ch03/git-…`（コミットID は変わらない）
+- 第4章: `~/dev/ch04` を VS Code で開き、`.vscode/settings.json`・`.editorconfig`・`.vscode/launch.json`（`${workspaceFolder}`・`args`）を自分で書いた。5.5節で `F2`・`⌘ + D`・`⌘ + .` と `diff`（`samples/practice-edit.js`）、8.2節で `node -p` で式を確かめる、9.1節で `--inspect-brk` と `chrome://inspect`、10.2〜10.3節で条件付きブレークポイント・ログポイント・ウォッチ式、11.1〜11.3節で Network・`$0`・Event Listeners・Sources のブレークポイント。練習問題は9問（7 は新しいプロジェクトに `.editorconfig`・`.vscode/`・`.gitignore` を用意してコミット）
 - zsh の設定は `~/.zprofile`（PATH）と `~/.zshrc`（対話用）に分け、dotfiles リポジトリで管理している
 - Homebrew は `/opt/homebrew`。Node.js は **mise** で管理し、プロジェクトごとに `mise.toml` でバージョンを固定する（Homebrew の node は使わない）
 - Git の設定: `init.defaultBranch main`、`pull.ff only`、`core.editor "code --wait"`、`core.quotepath false`、グローバル ignore は `~/.config/git/ignore`
 - GitHub には SSH（ed25519、キーチェーン連携）で接続。GitHub Flow（ブランチ → PR → マージ）で進める
 - VS Code（`code` コマンド、ESLint・Prettier・EditorConfig）。デバッグは JavaScript Debug Terminal と `launch.json`
-- 第4章の `samples/serve.mjs`（`node:http` だけの静的ファイルサーバ）は第4部の予告として使った
+- 第4章の `samples/serve.mjs`（`node:http` だけの静的ファイルサーバ。`node samples/serve.mjs フォルダ`、8000 番）は第4部の予告として使った
 
 ### 第2部（作成済み）で学習者が持っているもの
 

@@ -1,4 +1,4 @@
-// 練習問題7 の模範解答: 修正したタスク一覧のページ（fixed-page.html から読み込まれる）
+// 練習問題6 の模範解答: 修正したタスク一覧のページ（fixed-page.html から読み込まれる）
 let tasks = [];
 
 const form = document.getElementById('form');

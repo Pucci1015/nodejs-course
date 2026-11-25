@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # GitHub を使わずに、push / fetch / pull を練習する環境を作る（第3章 10節・練習問題10）
-# 使い方: bash make-remote-practice.sh [作成先]   既定: ~/dev/git-remote-practice
+# 使い方: bash samples/make-remote-practice.sh [作成先]   既定: ~/dev/ch03/git-remote-practice
 #
 # 作られるもの:
 #   origin.git/  … GitHub の代わりになる「ベアリポジトリ」（作業ツリーを持たない、共有専用のリポジトリ）
@@ -8,7 +8,7 @@
 #   bob/         … Bob さんの手元のリポジトリ（同上）
 set -euo pipefail
 
-dest="${1:-$HOME/dev/git-remote-practice}"
+dest="${1:-$HOME/dev/ch03/git-remote-practice}"
 if [[ -e "$dest" ]]; then
   echo "既に存在します: $dest（確認してから削除してください）" >&2
   exit 1

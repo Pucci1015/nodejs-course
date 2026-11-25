@@ -5,17 +5,17 @@
 
 問題は **基本 → 応用 → 発展** の順に並んでいます。基本は本文のコマンドをそのまま使えば解けます。発展は少し考える問題なので、できなくても次の章に進んでかまいません。
 
-問題用のリポジトリは、サンプルやこのフォルダのスクリプトで作ります。何度でも作り直せるので、壊すつもりで試してください（作り直すときは、作成先のフォルダの中身を確かめてから消します）。スクリプトは、このフォルダ（`exercises`）に `cd` してから動かします。
+問題用のリポジトリは、サンプルやこのフォルダのスクリプトで作ります。何度でも作り直せるので、壊すつもりで試してください（作り直すときは、作成先のフォルダの中身を確かめてから消します）。スクリプトは、作業フォルダ `~/dev/ch03`（本文の「読み方」）で `bash exercises/ex-….sh` や `bash samples/make-….sh` のように動かします。作成先は `~/dev/ch03/` の下です。
 
 | 問題 | 種類 | テーマ | 使うスクリプト | 本文の節 |
 | --- | --- | --- | --- | --- |
 | 1 | 基本 | 最初のリポジトリと `git status` | なし | 4.1〜4.3, 4.5 |
 | 2 | 基本 | 変更を見る | なし | 4.4 |
-| 3 | 基本 | 小さな取り消し | なし | 6 |
-| 4 | 基本 | ブランチを作ってマージする | なし | 7, 8 |
-| 5 | 応用 | やってしまったことを取り消す | [ex-undo-setup.sh](ex-undo-setup.sh) | 6, 13.3 |
-| 6 | 応用 | マージの結果を予想する | [ex-predict.sh](ex-predict.sh) | 8 |
-| 7 | 応用 | コンフリクトを解消する | [../samples/make-conflict-repo.sh](../samples/make-conflict-repo.sh) | 8.1 |
+| 3 | 基本 | 小さな取り消し | なし | 6.1, 6.2 |
+| 4 | 基本 | ブランチを作ってマージする | なし | 7.1, 8.1 |
+| 5 | 応用 | やってしまったことを取り消す | [ex-undo-setup.sh](ex-undo-setup.sh) | 6.1〜6.3, 13.3 |
+| 6 | 応用 | マージの結果を予想する | [ex-predict.sh](ex-predict.sh) | 8.1 |
+| 7 | 応用 | コンフリクトを解消する | [../samples/make-conflict-repo.sh](../samples/make-conflict-repo.sh) | 8.2 |
 | 8 | 応用 | 要件どおりの .gitignore を書く | [ex-gitignore-setup.sh](ex-gitignore-setup.sh)、[check-gitignore.sh](check-gitignore.sh) | 13 |
 | 9 | 応用 | GitHub で PR の流れを一通り行う | なし | 10〜12 |
 | 10 | 発展 | 2人で同じリポジトリに push する | [../samples/make-remote-practice.sh](../samples/make-remote-practice.sh) | 10 |
@@ -26,7 +26,7 @@
 
 ## 問題1 最初のリポジトリと git status（基本）
 
-1. `~/dev/git-basic` というフォルダを作って移動し、`git init` でリポジトリにしてください。`ls -a` で、何ができたかを確かめてください。
+1. `~/dev/ch03/git-basic` というフォルダを作って移動し、`git init` でリポジトリにしてください。`ls -a` で、何ができたかを確かめてください。
 2. `echo "# 買い物メモ" > memo.md` でファイルを作り、`git status` を実行してください。`memo.md` は、どの見出し（`Untracked files` など）の下に表示されましたか。それは何を意味しますか。
 3. `memo.md` を `git add` し、もう一度 `git status` を実行してください。見出しはどう変わりましたか。
 4. `"メモを作成"` というメッセージでコミットし、`git status` を実行してください。何と表示されましたか。
@@ -64,14 +64,15 @@
 1. `feature/fruits` というブランチを作って切り替え、`git branch` で、今どのブランチにいるかを確かめてください。
 2. `memo.md` に `- りんご` を足してコミットしてください。`git log --oneline --graph --all` で、`main` と `feature/fruits` がそれぞれどのコミットを指しているかを確かめてください（コミットIDの横の、かっこの中に表示されます）。
 3. `main` に切り替えて `cat memo.md` を実行してください。`- りんご` はありますか。理由も書いてください。
-4. `main` に `feature/fruits` をマージしてください。表示されたメッセージから、fast-forward だったかどうかを読み取ってください。fast-forward になった理由を、本文8節の言葉で説明してください。
+4. `main` に `feature/fruits` をマージしてください。表示されたメッセージから、fast-forward だったかどうかを読み取ってください。fast-forward になった理由を、本文8節の図の言葉で説明してください。
 5. マージが終わったブランチ `feature/fruits` を消してください。
 
 ## 問題5 やってしまったことを取り消す（応用）
 
 ```sh
-$ bash ex-undo-setup.sh ~/dev/git-undo
-$ cd ~/dev/git-undo
+$ cd ~/dev/ch03
+$ bash exercises/ex-undo-setup.sh      # 作成先は ~/dev/ch03/git-undo
+$ cd git-undo
 $ git log --oneline
 6624598 設定を追加
 0922511 機能Aを追加
@@ -90,7 +91,7 @@ A  notes.txt
    - 手元の `.env` ファイルは残す
    - これからも `.env` がコミットされないようにする
 
-   ヒント: 本文13.3節の手順の、最後の `git commit` を、6節の `--amend` に変えます。メッセージは `-m "設定を追加"` で、同じものを付けます。
+   ヒント: 本文13.3節の手順の、最後の `git commit` を、6.1節の `--amend` に変えます。メッセージは `-m "設定を追加"` で、同じものを付けます。
 4. 間違えて `git reset --hard HEAD~1` を実行してしまった。「設定を追加」のコミットを取り戻す（3 で作り直した方のコミットに戻すこと）。
 5. 「機能Aを追加」は、既にほかの人と共有している（push している）とする。この変更を、適切な方法で取り消す。
 6. 3 で `.env` をコミットから取り除いたが、この API キーはまだ安全とは言えない。理由を1つ挙げ、本来どうすべきかを答える。
@@ -117,15 +118,16 @@ git merge --no-ff feature-c         # (10)
 ```
 
 1. (3)、(7)、(10) のそれぞれで、fast-forward になるか、マージコミットが作られるか。理由も書く。
-2. 最後の `git log --oneline --graph` の形を、本文8節のような図で描く。
+2. 最後の `git log --oneline --graph` の形を、本文8節のような図（`○───○`）で描く。
 3. (10) で `--no-ff` を付けなかったら、履歴の形はどう変わるか。
-4. 予想を書いてから、`bash ex-predict.sh ~/dev/git-predict` を実行して確かめる（最後に履歴の図が表示されます）。
+4. 予想を書いてから、`bash exercises/ex-predict.sh`（作成先は `~/dev/ch03/git-predict`） を実行して確かめる（最後に履歴の図が表示されます）。
 
 ## 問題7 コンフリクトを解消する（応用）
 
 ```sh
-$ bash ../samples/make-conflict-repo.sh ~/dev/git-conflict
-$ cd ~/dev/git-conflict
+$ cd ~/dev/ch03
+$ bash samples/make-conflict-repo.sh   # 作成先は ~/dev/ch03/git-conflict
+$ cd git-conflict
 $ git log --oneline --graph --all
 ```
 
@@ -147,11 +149,12 @@ $ git log --oneline --graph --all
 ## 問題8 要件どおりの .gitignore を書く（応用）
 
 ```sh
-$ bash ex-gitignore-setup.sh ~/dev/git-ignore-practice
-$ cd ~/dev/git-ignore-practice
+$ cd ~/dev/ch03
+$ bash exercises/ex-gitignore-setup.sh   # 作成先は ~/dev/ch03/git-ignore-practice
+$ cd git-ignore-practice
 ```
 
-次の要件を満たす `.gitignore` を書いてください。書けたら、`exercises` フォルダに戻って `bash check-gitignore.sh ~/dev/git-ignore-practice` で確かめられます（すべて `[OK]` になれば正解）。
+次の要件を満たす `.gitignore` を書いてください。書けたら、`cd ~/dev/ch03` で作業フォルダに戻って `bash exercises/check-gitignore.sh git-ignore-practice` で確かめられます（すべて `[OK]` になれば正解）。
 
 | ファイル | 扱い | 理由 |
 | --- | --- | --- |
@@ -188,8 +191,9 @@ $ cd ~/dev/git-ignore-practice
 ## 問題10 2人で同じリポジトリに push する（発展）
 
 ```sh
-$ bash ../samples/make-remote-practice.sh ~/dev/git-remote-practice
-$ cd ~/dev/git-remote-practice
+$ cd ~/dev/ch03
+$ bash samples/make-remote-practice.sh   # 作成先は ~/dev/ch03/git-remote-practice
+$ cd git-remote-practice
 $ ls
 alice	bob	origin.git
 ```
@@ -205,8 +209,9 @@ alice	bob	origin.git
 ## 問題11 Git の中身をたどる（発展）
 
 ```sh
-$ bash ../samples/make-sample-repo.sh ~/dev/git-sample
-$ cd ~/dev/git-sample
+$ cd ~/dev/ch03
+$ bash samples/make-sample-repo.sh   # 本文5.1節で作っていれば「既に存在します」と出る。消さずにそのまま使う
+$ cd git-sample
 ```
 
 1. `git cat-file -p` だけを使って、HEAD のコミットから `src/app.js` の中身にたどり着いてください。途中で表示したオブジェクトの種類とハッシュ（最初の7文字）を、順に書いてください。
@@ -215,11 +220,11 @@ $ cd ~/dev/git-sample
 
 ## 問題12 リベースでコンフリクトを解消する（発展）
 
-問題7 のリポジトリとは別の場所に、もう一度作ります。
+問題7 のリポジトリとは別の場所に、もう一度作ります（`~/dev/ch03` で打ちます）。
 
 ```sh
-$ bash ../samples/make-conflict-repo.sh ~/dev/git-conflict2
-$ cd ~/dev/git-conflict2
+$ bash samples/make-conflict-repo.sh ~/dev/ch03/git-conflict2   # 作成先を引数で決める
+$ cd ~/dev/ch03/git-conflict2
 ```
 
 1. `feature/default-name` ブランチに切り替えて、`git log --oneline -n 1` でコミットIDをメモしてから、`git rebase main` を実行してください。

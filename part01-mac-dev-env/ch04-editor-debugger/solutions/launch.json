@@ -1,0 +1,32 @@
+// 練習問題4 の模範解答: ~/dev/ch04/.vscode/launch.json
+// 本文10.4節の設定に、2つの設定を足したもの。
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "デモを実行（3）",
+      "program": "${workspaceFolder}/samples/debug-demo.mjs",
+      "args": ["3"],
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      // 追加: 引数を 99 にして、エラーで止まるところを見る
+      "type": "node",
+      "request": "launch",
+      "name": "デモを実行（99）",
+      "program": "${workspaceFolder}/samples/debug-demo.mjs",
+      "args": ["99"],
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      // 追加: 引数が無いので "args" は書かない
+      "type": "node",
+      "request": "launch",
+      "name": "成績の集計",
+      "program": "${workspaceFolder}/exercises/bug-grades.mjs",
+      "skipFiles": ["<node_internals>/**"]
+    }
+  ]
+}

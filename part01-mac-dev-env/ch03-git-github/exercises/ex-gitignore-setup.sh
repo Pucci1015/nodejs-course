@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # 練習問題8 用: いろいろなファイルがあるプロジェクトを作る
-# 使い方: bash ex-gitignore-setup.sh [作成先]   既定: ~/dev/git-ignore-practice
+# 使い方: bash exercises/ex-gitignore-setup.sh [作成先]   既定: ~/dev/ch03/git-ignore-practice
 set -euo pipefail
 
-dest="${1:-$HOME/dev/git-ignore-practice}"
+dest="${1:-$HOME/dev/ch03/git-ignore-practice}"
 if [[ -e "$dest" ]]; then
   echo "既に存在します: $dest（確認してから削除してください）" >&2
   exit 1

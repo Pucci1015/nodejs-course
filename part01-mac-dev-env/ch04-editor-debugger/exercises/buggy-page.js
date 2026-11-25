@@ -1,4 +1,4 @@
-// 練習問題7: バグのあるタスク一覧のページ（buggy-page.html から読み込まれる）
+// 練習問題6: バグのあるタスク一覧のページ（buggy-page.html から読み込まれる）
 let tasks = [];
 
 const form = document.getElementById('form');
