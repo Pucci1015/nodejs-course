@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # 練習問題6 用: README の手順をまとめて実行し、最後に履歴のグラフを表示する
 # 先に README の問題で結果を予想してから実行すること。
-# 使い方: bash ex-predict.sh [作成先]   既定: ~/dev/git-predict
+# 使い方: bash exercises/ex-predict.sh [作成先]   既定: ~/dev/ch03/git-predict
 set -euo pipefail
 
-dest="${1:-$HOME/dev/git-predict}"
+dest="${1:-$HOME/dev/ch03/git-predict}"
 if [[ -e "$dest" ]]; then
   echo "既に存在します: $dest（確認してから削除してください）" >&2
   exit 1

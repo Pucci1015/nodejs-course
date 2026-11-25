@@ -1,13 +1,13 @@
 # 第3章 Git と GitHub
 
-この章では、ファイルの変更の履歴を記録する **Git** と、それをインターネット上で共有する **GitHub** を学びます。この教材の残りの部では、作るものをすべて Git で管理します。
-コマンドの使い方だけでなく、**Git が中で何を記録しているか**（コミットとブランチの正体）も見ていきます。中身を知っていると、困ったときに「何が起きて、どう戻せばよいか」を自分で判断できるようになります。
+この章では、ファイルの変更の履歴を記録する **Git** と、それをインターネット上で共有する **GitHub** を、小さなリポジトリを自分で育てながら学びます。この教材の残りの部では、作るものをすべて Git で管理します。
+コマンドの使い方だけでなく、**Git が中で何を記録しているか**（コミットとブランチの正体）ものぞきます。中身を知っていると、困ったときに「何が起きて、どう戻せばよいか」を自分で判断できます。
 
 | 項目 | 内容 |
 | --- | --- |
 | 所要時間の目安 | 4〜5時間 |
-| 前提 | 第1章（コマンドとオプションの形、リダイレクト、権限）、第2章（Homebrew） |
-| この章のゴール | 3つの領域（作業ツリー・ステージ・リポジトリ）を説明できる / コミット、ブランチ、マージができる / 失敗を安全に取り消せる / SSH で GitHub に接続し、プルリクエストで変更を取り込める |
+| 前提 | 第1章（コマンドとオプションの形、リダイレクト、権限、ヒアドキュメント）、第2章（Homebrew） |
+| この章のゴール | 3つの領域（作業ツリー・ステージ・リポジトリ）を説明できる / コミット、ブランチ、マージができる / コンフリクトを直せる / 失敗を安全に取り消せる / SSH で GitHub に接続し、プルリクエストで変更を取り込める |
 
 | フォルダ | 中身 |
 | --- | --- |
@@ -15,15 +15,28 @@
 | [exercises/](exercises/) | 練習問題と、問題用のリポジトリを作るスクリプト |
 | [solutions/](solutions/) | 模範解答 |
 
-> **読み方**: `$` で始まる行は、自分で打つコマンドです（`$` は打ちません）。`#` から後ろは説明のためのコメントです。`$` の付いていない行は、コマンドの結果の例です。コミットID（`4d9285f` のような英数字）は、打つ日時や人によって変わります。
+> **読み方**
+> - 「**手を動かす**」の所は、実際に打って動かしてください。4〜8節と13節では、`~/dev/ch03/hello-git` という1つのリポジトリを、少しずつ育てていきます。練習問題は、そこで打ったコマンドを広げていく問題です。
+> - 実習は `~/dev/ch03/` で行います（第1章2.5節）。最初に作業フォルダを作り、教材の `samples` と `exercises` をコピーします。
+>
+>   ```sh
+>   $ mkdir -p ~/dev/ch03 && cd ~/dev/ch03
+>   $ cp -R （ここに Finder から samples と exercises のフォルダをドラッグ） .
+>   $ ls
+>   exercises	samples
+>   ```
+>
+>   `cp -R ` まで打ってから、Finder で教材の `part01-mac-dev-env/ch03-git-github` を開き、`samples` と `exercises` の2つのフォルダをターミナルにドラッグし、最後に ` .` を打って Return を押します。
+> - 練習用のリポジトリを作るスクリプト（`samples/make-…`・`exercises/ex-…`）は、`~/dev/ch03` で `bash samples/make-….sh` のように動かします。作成先は `~/dev/ch03/` の下です。
+> - コミットID（`4d9285f` のような英数字）は、打つ日時や人によって変わります。スクリプトで作るリポジトリだけは、日時を固定しているので、本文と同じ ID になります。
 
 ## この章で学ぶことを、後でどこで使うか
 
 | この章で学ぶこと | 後で使う場所 |
 | --- | --- |
-| `git init`・`add`・`commit`・`status`・`log`・`diff`（3節、4節） | 第3部・第4部・第5部の成果物は、どれも `git init` から始めます。動くところまで作るたびにコミットし、壊したら戻れるようにします |
+| `git init`・`add`・`commit`・`status`・`log`・`diff`（3〜4節） | 第3部以降の成果物は、どれも `git init` から始めます。動くところまで作るたびにコミットし、壊したら戻れるようにします |
 | 取り消し（6節） | 練習で「動かなくなった」ときに、動いていた時点に戻すのに使います |
-| ブランチとマージ（7節、8節） | 第5部以降のタスク管理アプリは、機能を足すたびにブランチを作って進めます |
+| ブランチとマージ（7〜8節） | 第5部以降のタスク管理アプリは、部ごとにブランチを作って進めます |
 | プルリクエスト（12節） | 第11部で、プルリクエストを出すたびにテストが自動で動く仕組み（CI）を作ります |
 | `.gitignore`（13節） | 第3部 第14章の `node_modules/`、第5部 第26章の `.env`（秘密の設定）を、コミットしないために使います |
 | SSH の公開鍵と秘密鍵（11節） | 第2部 第8章（HTTPS）で、同じ「公開鍵で確かめる」仕組みを詳しく学びます |
@@ -40,58 +53,47 @@
 | ネットワーク | 要らない（オフラインですべての機能が使える） | 要る |
 | 主な機能 | コミット、ブランチ、マージ | リポジトリの公開、プルリクエスト、レビュー、Issue |
 
-**リポジトリ**は、Git が履歴を記録しているフォルダのことです。Git は**分散型**と呼ばれ、GitHub の上のリポジトリも、自分の Mac の中のリポジトリも、同じ履歴を丸ごと持った対等なコピーです。GitHub は「みんなが、共有の場所として使うことにした1つのコピー」です。
+**リポジトリ**は、Git が履歴を記録しているフォルダのことです。Git は**分散型**と呼ばれ、GitHub の上のリポジトリも、自分の Mac の中のリポジトリも、同じ履歴を丸ごと持った対等なコピーです。GitHub は「みんなが共有の場所として使うことにした1つのコピー」です。
 
-### 1.1 インストールの確認
-
-第2章のとおり、Xcode Command Line Tools に git が入っています。新しい版を使うときは Homebrew で入れます。
+### 1.1 手を動かす: git が入っているか確かめる
 
 ```sh
 $ git --version           # --version: バージョンを表示する
 git version 2.51.0
 $ which -a git            # /opt/homebrew/bin/git が先なら Homebrew の版が使われる（第2章4.4節）
-$ brew install git        # Homebrew の版を入れるとき
+/opt/homebrew/bin/git
+/usr/bin/git
 ```
+
+Homebrew の版が無ければ、`brew install git` で入れます。
 
 ## 2. 最初の設定
 
-Git の設定は `git config 名前 値` の形で書きます。`--global` を付けると、自分のすべてのリポジトリに効く設定になり、`~/.gitconfig` というファイルに保存されます。
+Git の設定は `git config 名前 値` の形で書きます。`--global` を付けると、自分のすべてのリポジトリに効く設定になり、`~/.gitconfig` に保存されます。
+
+### 2.1 手を動かす: 設定して確かめる
 
 ```sh
-# コミットに記録される名前とメールアドレス（必ず設定する）
-$ git config --global user.name "Alice Example"
-$ git config --global user.email "あなたのGitHubのnoreplyアドレス"
-
-# 新しく作るリポジトリの、最初のブランチの名前を main にする（ブランチは7節）
-$ git config --global init.defaultBranch main
-
-# コミットのメッセージなどを書くエディタを VS Code にする（第4章で code コマンドを使えるようにします）
-$ git config --global core.editor "code --wait"
-
-# git pull で、知らないうちにマージのコミットを作らない（10.3節で説明）
-$ git config --global pull.ff only
-
-# 日本語のファイル名を "\346\227\245..." ではなく、そのまま表示する
-$ git config --global core.quotepath false
-```
-
-設定を確かめるコマンドです。
-
-```sh
-$ git config user.name                    # 1つの設定の値を表示する
+$ git config --global user.name "Alice Example"                       # コミットに記録される名前
+$ git config --global user.email "あなたのGitHubのnoreplyアドレス"      # コミットに記録されるメール
+$ git config --global init.defaultBranch main      # 最初のブランチの名前を main にする（7節）
+$ git config --global core.editor "code --wait"    # メッセージを書くエディタを VS Code に（第4章）
+$ git config --global pull.ff only                 # pull で、知らないうちにマージのコミットを作らない（10.3節）
+$ git config --global core.quotepath false         # 日本語のファイル名を "\346\227\245..." でなくそのまま表示
+$ git config user.name                             # 1つの値を表示する
 Alice Example
-$ git config --list --show-origin         # --list: すべての設定 / --show-origin: どのファイルに書かれているかも表示
+$ git config --list --show-origin | grep user      # すべての設定と、どのファイルに書かれているか
 file:/Users/alice/.gitconfig    user.name=Alice Example
-...
-$ cat ~/.gitconfig                        # 設定ファイルの中身
+file:/Users/alice/.gitconfig    user.email=...
+$ cat ~/.gitconfig
 [user]
 	name = Alice Example
 	email = ...
 ```
 
-`user.name` は、本名でなくてもかまいません。GitHub のユーザー名などでもよいです。
-
-**メールアドレスについて**: コミットに記録したメールアドレスは、リポジトリを公開すると誰でも見られます。個人のアドレスを公開したくない場合は、GitHub の Settings → Emails にある `12345678+username@users.noreply.github.com` という形のアドレスを使います（同じ画面の「Keep my email addresses private」もオンにします）。
+- `user.name` は本名でなくてかまいません。GitHub のユーザー名などでもよいです。
+- **メールアドレス**: コミットに記録したメールアドレスは、リポジトリを公開すると誰でも見られます。個人のアドレスを公開したくないときは、GitHub の Settings → Emails にある `12345678+username@users.noreply.github.com` という形のアドレスを使います（同じ画面の「Keep my email addresses private」もオンにします）。
+- 第1部の成果物（dotfiles）を作った後は、`~/.gitconfig` はリポジトリのファイルを指すリンクになっています。`git config --global` で書き換えると、リポジトリのファイルが変わります。
 
 [samples/gitconfig.sample](samples/gitconfig.sample) に、コメント付きの `~/.gitconfig` の例があります。
 
@@ -110,24 +112,24 @@ Git を理解するうえで、いちばん大切な図です。
 ```
 
 - **作業ツリー**: Finder やエディタで見えている、ふつうのファイル。
-- **ステージ**（インデックスとも呼びます）: 「次のコミットに入れるもの」を並べておく場所。`git add` で、作業ツリーからここにコピーします。
-- **リポジトリ**: `.git` という隠しフォルダ（第1章3.1節）の中にある、コミットの履歴。`git commit` で、ステージの内容をそのまま1つの**コミット**（その時点の記録）として残します。
+- **ステージ**（インデックスとも呼ぶ）: 「次のコミットに入れるもの」を並べておく場所。`git add` で、作業ツリーからここにコピーする。
+- **リポジトリ**: `.git` という隠しフォルダの中にある、コミットの履歴。`git commit` で、ステージの内容をそのまま1つの**コミット**（その時点の記録）として残す。
 
 ステージがあるので、「たくさん変えたうちの一部だけをコミットする」ことができます。
 
 ## 4. 基本の操作
 
-### 4.1 リポジトリを作る: git init
+### 4.1 手を動かす: git init でリポジトリを作る
 
 ```sh
-$ mkdir -p ~/dev/hello-git && cd ~/dev/hello-git
+$ mkdir -p ~/dev/ch03/hello-git && cd ~/dev/ch03/hello-git
 $ git init                       # 今いるフォルダに .git を作り、リポジトリにする
-Initialized empty Git repository in /Users/alice/dev/hello-git/.git/
-$ ls -a                          # -a: 隠しファイルも表示（第1章3.1節）
+Initialized empty Git repository in /Users/alice/dev/ch03/hello-git/.git/
+$ ls -a                          # -a: 隠しファイルも表示（第1章3.2節）
 .	..	.git
 ```
 
-### 4.2 状態を見る: git status
+### 4.2 手を動かす: git status で状態を見る
 
 `git status` は、3つの領域の違いを表示します。**迷ったら、まずこれを打ちます。**
 
@@ -145,8 +147,6 @@ Untracked files:
 nothing added to commit but untracked files present (use "git add" to track)
 ```
 
-英語のメッセージを読む練習をしましょう。
-
 | 表示 | 意味 |
 | --- | --- |
 | `On branch main` | 今 `main` というブランチにいる（7節） |
@@ -154,7 +154,7 @@ nothing added to commit but untracked files present (use "git add" to track)
 | `Untracked files` | Git がまだ記録していない（追跡していない）ファイル |
 | `(use "git add <file>..." ...)` | 次に何をすればよいかのヒント。`<file>` はファイル名に置き換える |
 
-### 4.3 記録する: git add と git commit
+### 4.3 手を動かす: git add と git commit で記録する
 
 ```sh
 $ git add README.md              # README.md をステージに入れる
@@ -173,10 +173,8 @@ $ git commit -m "README を追加"   # -m: コミットのメッセージを、�
 ```
 
 - `Changes to be committed` は「ステージに入っていて、次のコミットに入るもの」です。
-- `git commit` の結果の `4d9285f` が、このコミットの**コミットID**（コミットの名前）です。
+- `4d9285f` が、このコミットの**コミットID**（コミットの名前）です。
 - `-m` を付けないと、メッセージを書くためのエディタが開きます（2節の `core.editor`）。
-
-`git add` には、ファイル名の代わりに次の書き方もできます。
 
 | 書き方 | 意味 |
 | --- | --- |
@@ -184,23 +182,28 @@ $ git commit -m "README を追加"   # -m: コミットのメッセージを、�
 | `git add .` | 今いるフォルダの中の、変更したファイルすべて（`.` は今いるフォルダ。第1章2.2節） |
 | `git add -A` | リポジトリ全体の、変更したファイルすべて（all） |
 
-### 4.4 変更を見る: git diff
-
-ファイルを変えると、`git status` は `modified` と表示します。
+### 4.4 手を動かす: git diff で変更を見る
 
 ```sh
 $ echo "練習用のリポジトリです" >> README.md    # 最後に1行足す
-$ git status
-On branch main
-Changes not staged for commit:
-  (use "git add <file>..." to update what will be committed)
-  (use "git restore <file>..." to discard changes in working directory)
-	modified:   README.md
 $ git status --short             # --short: 1ファイル1行の短い表示
  M README.md
+$ git diff                       # まだ add していない変更
+diff --git a/README.md b/README.md
+index 8954bb9..dcb6241 100644
+--- a/README.md
++++ b/README.md
+@@ -1 +1,2 @@
+ # hello
++練習用のリポジトリです
+$ git add README.md
+$ git diff                       # add した後は、何も出ない
+$ git diff --staged              # add した変更（次のコミットに入る変更）
+...
++練習用のリポジトリです
 ```
 
-`--short` の左の2文字は、「ステージ」と「作業ツリー」の状態です。
+`+` で始まる行が足した行、`-` で始まる行が消した行です。`--short` の左の2文字は、「ステージ」と「作業ツリー」の状態です。
 
 | 表示 | 意味 |
 | --- | --- |
@@ -209,30 +212,15 @@ $ git status --short             # --short: 1ファイル1行の短い表示
 | `A ` | 新しいファイルを `add` した |
 | `??` | Git がまだ追跡していないファイル |
 
-何を変えたかは `git diff` で見ます。
-
-```sh
-$ git diff                       # 作業ツリーとステージの違い（まだ add していない変更）
-diff --git a/README.md b/README.md
-index 8954bb9..dcb6241 100644
---- a/README.md
-+++ b/README.md
-@@ -1 +1,2 @@
- # hello
-+練習用のリポジトリです
-```
-
-`+` で始まる行が足した行、`-` で始まる行が消した行です。`add` した後は `git diff` には何も出なくなり、代わりに `git diff --staged` で見られます。
-
 | 見たいもの | コマンド |
 | --- | --- |
 | まだ `add` していない変更 | `git diff` |
-| `add` した変更（次のコミットに入る変更） | `git diff --staged` |
+| `add` した変更 | `git diff --staged` |
 
-### 4.5 履歴を見る: git log
+### 4.5 手を動かす: git log で履歴を見る
 
 ```sh
-$ git add README.md && git commit -m "説明を追加"
+$ git commit -m "説明を追加"
 $ git log                        # 新しい順に、すべてのコミットを詳しく表示（q で終わる）
 commit 19f366bfb81ddc8c2fcb195314a12b1c99cfd3c1
 Author: Alice Example <alice@example.com>
@@ -241,24 +229,20 @@ Date:   Sat Nov 7 15:15:28 2026 +0900
     説明を追加
 
 commit 4d9285f61cb688befeff7726cfab4a698d64a7ab
-Author: Alice Example <alice@example.com>
-Date:   Sat Nov 7 15:15:28 2026 +0900
-
-    README を追加
-$ git log --oneline              # --oneline: 1つのコミットを1行で
+...
+$ git log --oneline              # 1つのコミットを1行で
 19f366b 説明を追加
 4d9285f README を追加
+$ git log -n 1 -p                # いちばん新しい1つと、その差分
 ```
 
-コミットIDは40文字ありますが、ふつうは最初の7文字くらいで指定できます。`git log` は、長いときは `less` と同じ画面（第1章3.5節）で表示されるので、`q` で終わります。
-
-よく使うオプション:
+コミットIDは40文字ありますが、ふつうは最初の7文字くらいで指定できます。長い出力は `less` と同じ画面（第1章3.6節）で表示されるので、`q` で終わります。
 
 | オプション | 意味 |
 | --- | --- |
 | `--oneline` | 1つのコミットを1行で表示する |
-| `--graph` | ブランチの枝分かれを、線の図で表示する（7節、8節で使います） |
-| `--all` | 今いるブランチだけでなく、すべてのブランチのコミットを表示する |
+| `--graph` | ブランチの枝分かれを、線の図で表示する（7〜8節） |
+| `--all` | すべてのブランチのコミットを表示する |
 | `-n 3` | 新しい方から3つだけ |
 | `-p` | 各コミットで何を変えたか（差分）も表示する（patch） |
 
@@ -275,9 +259,9 @@ $ git log --oneline              # --oneline: 1つのコミットを1行で
 
 ### 4.7 コミットの単位とメッセージ
 
-**コミットの単位**: 1つのコミットには「1つの意味のある変更」だけを入れます。「ログイン機能の追加」と「関係ないタイプミスの修正」は、別々のコミットにします。後で問題が見つかったとき、そのコミットだけを取り消せるからです。
+1つのコミットには「1つの意味のある変更」だけを入れます。「ログイン機能の追加」と「関係ないタイプミスの修正」は別々のコミットにします。後で問題が見つかったとき、そのコミットだけを取り消せるからです。
 
-**コミットのメッセージ**: 1行目に「何をしたか」を短く書きます。必要なら1行空けて「なぜそうしたか」を書きます。
+メッセージは、1行目に「何をしたか」を短く書き、必要なら1行空けて「なぜそうしたか」を書きます。
 
 ```
 タスクの期限切れを赤く表示する
@@ -288,9 +272,7 @@ $ git log --oneline              # --oneline: 1つのコミットを1行で
 
 ## 5. Git の中身をのぞく
 
-この節は、Git が中でどう記録しているかを見ます。使い方を覚えるだけなら読み飛ばしてもかまいませんが、6節以降の「なぜそうなるか」が分かりやすくなります。
-
-`.git` フォルダの中には、すべての履歴が**オブジェクト**として保存されています。まず3種類を押さえます。
+使い方を覚えるだけなら読み飛ばしてもかまいませんが、6節以降の「なぜそうなるか」が分かりやすくなります。`.git` フォルダの中には、すべての履歴が**オブジェクト**として保存されています。
 
 | 種類 | 中身 | たとえると |
 | --- | --- | --- |
@@ -300,15 +282,15 @@ $ git log --oneline              # --oneline: 1つのコミットを1行で
 
 それぞれのオブジェクトには、中身から計算した40文字の英数字（**ハッシュ**）が名前として付きます。コミットIDは、このハッシュです。中身が1文字でも変わればハッシュも変わるので、**過去の履歴をこっそり書き換えることはできません**。
 
-[samples/make-sample-repo.sh](samples/make-sample-repo.sh) で作る小さなリポジトリで確かめてみましょう。作者と日時を決めて作っているので、誰が作っても同じハッシュになります。
+### 5.1 手を動かす: オブジェクトをたどる
 
-`git cat-file` は、オブジェクトを表示するコマンドです。`-t` で種類（type）を、`-p` で中身を読みやすく（pretty print）表示します。
+[samples/make-sample-repo.sh](samples/make-sample-repo.sh) で作るリポジトリは、作者と日時を固定しているので、誰が作っても同じハッシュになります。`git cat-file` はオブジェクトを表示するコマンドで、`-t` で種類（type）、`-p` で中身を読みやすく（pretty print）表示します。
 
 ```sh
-$ cd このフォルダ
-$ bash samples/make-sample-repo.sh ~/dev/git-sample
-$ cd ~/dev/git-sample
-$ git cat-file -t HEAD          # HEAD（今いるコミット。5.1節）の種類
+$ cd ~/dev/ch03
+$ bash samples/make-sample-repo.sh             # ~/dev/ch03/git-sample を作る
+$ cd git-sample
+$ git cat-file -t HEAD          # HEAD（今いるコミット。5.2節）の種類
 commit
 $ git cat-file -p HEAD          # HEAD の中身
 tree 32fdb513c2182a0859eb24e110aed83af8eceda1
@@ -320,23 +302,27 @@ committer Sample Author <sample@example.com> 1793494980 +0900
 $ git cat-file -p 32fdb51       # 上の tree の中身（ハッシュは最初の数文字で指定できる）
 100644 blob 6d86216eef055f3d37a175d22c7ec1a0e971ed95	README.md
 040000 tree e453543522c469981c2ae4c4ead9047ad20d3820	src
+$ git cat-file -p 6d86216       # blob の中身 = README.md の中身
 ```
 
-- コミットの中身の `tree` が、そのコミットの時点の、いちばん上のフォルダです。`parent` が1つ前のコミットです。
-- tree の中身の1行が、1つのファイルかフォルダです。`100644` はふつうのファイル、`040000` はフォルダの印です。
+- コミットの `tree` が、その時点のいちばん上のフォルダ、`parent` が1つ前のコミットです。
+- tree の1行が1つのファイルかフォルダで、`100644` はふつうのファイル、`040000` はフォルダの印です。
 
-コミットは「前のコミットからの差分」ではなく、**その時点のすべてのファイルの記録**を指しています。ただし、変えていないファイルやフォルダは、前と同じハッシュのオブジェクトを指すだけなので、容量はほとんど増えません。
+コミットは「前からの差分」ではなく、**その時点のすべてのファイルの記録**を指しています。ただし、変えていないファイルは前と同じハッシュのオブジェクトを指すだけなので、容量はほとんど増えません。
 
-### 5.1 ブランチと HEAD の正体
+### 5.2 手を動かす: ブランチと HEAD の正体を見る
 
 ```sh
+$ cd ~/dev/ch03/hello-git
 $ cat .git/HEAD
 ref: refs/heads/main
 $ cat .git/refs/heads/main
-4c2032f...（コミットID）
+19f366bfb81ddc8c2fcb195314a12b1c99cfd3c1
+$ git log --oneline -n 1
+19f366b 説明を追加
 ```
 
-- **ブランチ**は「あるコミットIDを書いた、小さなファイル」です。コミットするたびに、今のブランチのファイルが、新しいコミットIDに書き換わります。
+- **ブランチ**は「あるコミットIDを書いた、小さなファイル」です。コミットするたびに、今のブランチのファイルが新しいコミットIDに書き換わります。
 - **HEAD** は「今どのブランチにいるか」を指す印です。
 
 ブランチを作るのが一瞬で終わり、いくつ作っても容量を使わないのはこのためです。
@@ -351,14 +337,28 @@ $ cat .git/refs/heads/main
 | コミットを打ち消す、新しいコミットを作る | `git revert コミットID` | 履歴は残る。共有したコミットにはこれを使う |
 | ブランチを、前のコミットに戻す | `git reset コミットID` | 共有したコミットには使わない |
 
-**`--amend`** の使い方の例です。コミットした後に、ファイルの入れ忘れに気づいたとき:
+**コミットの指定**: `HEAD` は今いるコミット、`HEAD~1` は1つ前（親）、`HEAD~2` は2つ前です。コミットIDの代わりに使えます。
+
+### 6.1 手を動かす: restore で戻し、--amend で直す
 
 ```sh
-$ git add 入れ忘れたファイル
-$ git commit --amend -m "README を追加"   # 直前のコミットを、今のステージの内容で作り直す
+$ cd ~/dev/ch03/hello-git
+$ echo "まちがい" >> README.md
+$ git restore README.md                  # 作業ツリーの変更を捨てる
+$ git status --short                     # 何も出ない＝きれいな状態
+$ echo "メモ" > memo.txt
+$ git add memo.txt
+$ git restore --staged memo.txt          # ステージから外す（ファイルは残る）
+$ git status --short
+?? memo.txt
+$ git add memo.txt && git commit -m "メモをついか"
+$ git commit --amend -m "メモを追加"      # 直前のコミットのメッセージを直す
+$ git log --oneline -n 2
+8c1e5a2 メモを追加                         # ID も変わる
+19f366b 説明を追加
 ```
 
-**コミットの指定**: `HEAD` は今いるコミット、`HEAD~1` は「HEAD の1つ前（親）のコミット」、`HEAD~2` は2つ前です。コミットIDの代わりに使えます。
+`--amend` は、直前のコミットを「今のステージの内容」で作り直します。入れ忘れたファイルがあれば、先に `git add` してから `--amend` すれば、同じコミットに入ります。
 
 `git reset` には、どこまで戻すかを決める3つのオプションがあります。
 
@@ -368,61 +368,76 @@ $ git commit --amend -m "README を追加"   # 直前のコミットを、今の
 | `--mixed`（何も付けないとき） | 戻す | 戻す | そのまま | コミットを取り消して、変更は手元に残したい |
 | `--hard` | 戻す | 戻す | **戻す** | すべてを捨てて、その時点に戻したい |
 
-```sh
-$ git reset HEAD~1               # 直前のコミットを取り消す。変更は作業ツリーに残る
-$ git reset --hard HEAD~1        # 直前のコミットを取り消し、変更も捨てる（注意）
-```
+### 6.2 手を動かす: reflog で取り戻す
 
-### 6.1 reflog: 最後の命綱
-
-`git reset --hard` で消してしまったコミットも、すぐには消えていません。**reflog** には、HEAD がこれまでに指したコミットの記録が残っています（既定で90日間）。
+`git reset --hard` で消したコミットも、すぐには消えていません。**reflog** には、HEAD がこれまでに指したコミットの記録が残っています（既定で90日間）。
 
 ```sh
+$ git reset --hard HEAD~1                # わざと「メモを追加」を消す
+HEAD is now at 19f366b 説明を追加
+$ ls
+README.md                                # memo.txt も消えた
 $ git reflog
-0922511 HEAD@{0}: reset: moving to HEAD~1
-6624598 HEAD@{1}: commit: 設定を追加
+19f366b HEAD@{0}: reset: moving to HEAD~1
+8c1e5a2 HEAD@{1}: commit (amend): メモを追加
 ...
-$ git reset --hard 6624598       # 消したコミットに戻る
+$ git reset --hard 8c1e5a2               # 消したコミットに戻る（HEAD@{1} と書いてもよい）
+$ ls
+README.md	memo.txt
 ```
 
-いちばん上が最新です。`HEAD@{1}` は「1つ前に HEAD が指していたもの」です。
+いちばん上が最新で、`HEAD@{1}` は「1つ前に HEAD が指していたもの」です。コミットさえしておけば、Git はほとんどのことから元に戻せます。逆に、**一度もコミットもステージもしていない変更**は Git にも記録が無いので、`git restore` や `git reset --hard` で消すと戻せません。
 
-コミットさえしておけば、Git はほとんどのことから元に戻せます。逆に、**一度もコミットもステージもしていない変更**は Git にも記録が無いので、`git restore` や `git reset --hard` で消すと戻せません。
+### 6.3 共有したコミットは書き換えない
 
-### 6.2 共有したコミットは書き換えない
-
-`--amend` や `reset` は、コミットを**作り直す**（ID が変わる）操作です。GitHub に送って（push。10節）ほかの人が取り込んだ後に作り直すと、相手の履歴と食い違って混乱します。**push したコミットを取り消すときは `git revert`** を使いましょう。
+`--amend` や `reset` は、コミットを**作り直す**（ID が変わる）操作です。GitHub に送って（push。10節）ほかの人が取り込んだ後に作り直すと、相手の履歴と食い違って混乱します。**push したコミットを取り消すときは `git revert`** を使います。
 
 ```sh
-$ git revert 0922511             # 0922511 の変更を打ち消す、新しいコミットを作る（メッセージのエディタが開く）
-$ git revert --no-edit 0922511   # --no-edit: メッセージを自動のまま使い、エディタを開かない
+$ git revert 8c1e5a2             # 8c1e5a2 の変更を打ち消す、新しいコミットを作る（メッセージのエディタが開く）
+$ git revert --no-edit 8c1e5a2   # --no-edit: メッセージを自動のまま使い、エディタを開かない
 ```
 
 ## 7. ブランチ
 
-ブランチを使うと、main を壊さずに、新しい機能を試せます。
+ブランチを使うと、main を壊さずに、新しいことを試せます。
+
+### 7.1 手を動かす: ブランチを作って切り替える
 
 ```sh
-$ git switch -c feature/login     # ブランチを作って、そこに切り替える（-c: create）
-Switched to a new branch 'feature/login'
-$ git branch                      # ブランチの一覧（* が今いるブランチ）
-* feature/login
+$ cd ~/dev/ch03/hello-git
+$ git switch -c feature/greeting       # ブランチを作って切り替える（-c: create）
+Switched to a new branch 'feature/greeting'
+$ echo "console.log('こんにちは');" > hello.js
+$ git add hello.js && git commit -m "あいさつのプログラムを追加"
+$ git branch                           # ブランチの一覧（* が今いるブランチ）
+* feature/greeting
   main
-$ git switch main                 # main に切り替える
-$ git branch -d feature/login     # ブランチを消す（-d: delete。マージ済みのものだけ。-D で強制的に）
+$ git switch main                      # main に戻る
+$ ls                                   # hello.js は無い（main にはまだ無いコミットだから）
+README.md	memo.txt
+$ git log --oneline --graph --all      # すべてのブランチの履歴
+* 5b0c7d1 (feature/greeting) あいさつのプログラムを追加
+* 8c1e5a2 (HEAD -> main) メモを追加
+* 19f366b 説明を追加
+* 4d9285f README を追加
 ```
 
-ブランチの名前の `/` は、ただの文字です。`feature/〇〇`（機能の追加）、`fix/〇〇`（直す）のように、種類が分かる名前を付けるとよく使われます。
+| コマンド | 意味 |
+| --- | --- |
+| `git switch -c 名前` | ブランチを作って、そこに切り替える |
+| `git switch 名前` | 切り替える |
+| `git branch` | 一覧。`*` が今いるブランチ |
+| `git branch -d 名前` | 消す（マージ済みのものだけ。`-D` で強制的に） |
 
-`git checkout` でもブランチを切り替えられますが、`checkout` はファイルを元に戻す働きなども持っていて紛らわしいので、この教材では新しい `switch`（ブランチの切り替え）と `restore`（ファイルを元に戻す）を使います。
-
-切り替える前に、作業中の変更はコミットしておきましょう。一時的に変更をよけておきたいときは、`git stash`（よけておく）と `git stash pop`（戻す）が使えます。
+- ブランチの名前の `/` はただの文字です。`feature/〇〇`（機能の追加）、`fix/〇〇`（直す）のように、種類が分かる名前を付けるとよく使われます。
+- `git checkout` でも切り替えられますが、ファイルを元に戻す働きなども持っていて紛らわしいので、この教材では `switch`（切り替え）と `restore`（ファイルを戻す）を使います。
+- 切り替える前に、作業中の変更はコミットしておきます。一時的によけておきたいときは、`git stash`（よけておく）と `git stash pop`（戻す）が使えます。
 
 ## 8. マージ
 
 `git merge ブランチ` は、指定したブランチの変更を、今いるブランチに取り込みます。状況によって2通りの結果になります。
 
-**fast-forward（早送り）**: main が、ブランチを作った後に進んでいないなら、main の印を、ブランチの先まで動かすだけで済みます。新しいコミットは作られません。
+**fast-forward（早送り）**: main が、ブランチを作った後に進んでいないなら、main の印をブランチの先まで動かすだけで済みます。新しいコミットは作られません。
 
 ```
 前:  main                 後:              main
@@ -432,7 +447,7 @@ $ git branch -d feature/login     # ブランチを消す（-d: delete。マー�
          feature                      feature
 ```
 
-**3-way マージ**: main も feature も進んでいる場合は、2つの親を持つ**マージコミット**が作られます。
+**3-way マージ**: main も feature も進んでいるときは、2つの親を持つ**マージコミット**が作られます。
 
 ```
           ○───○  feature                       ○───○
@@ -440,52 +455,97 @@ $ git branch -d feature/login     # ブランチを消す（-d: delete。マー�
   ○───○───○───○  main                 ○───○───○───○───◎  main（マージコミット）
 ```
 
-`git log --oneline --graph` で、この形を確かめられます。
+### 8.1 手を動かす: fast-forward とマージコミットを作る
 
 ```sh
+$ cd ~/dev/ch03/hello-git
+$ git merge feature/greeting           # main は進んでいないので、早送り
+Updating 8c1e5a2..5b0c7d1
+Fast-forward
+ hello.js | 1 +
+ 1 file changed, 1 insertion(+)
+$ git branch -d feature/greeting       # マージが終わったブランチを消す
+$ git switch -c feature/bye
+$ echo "console.log('さようなら');" >> hello.js
+$ git commit -am "お別れのあいさつを追加"    # -a: 追跡しているファイルの変更を add してからコミット
+$ git switch main
+$ echo "## 使い方" >> README.md
+$ git commit -am "使い方の見出しを追加"     # main も進めた
+$ git merge --no-edit feature/bye      # 両方進んでいるので、マージコミットになる
+Merge made by the 'ort' strategy.
+ hello.js | 1 +
+ 1 file changed, 1 insertion(+)
 $ git log --oneline --graph
-*   a1b2c3d Merge branch 'feature'
+*   e7f1a90 Merge branch 'feature/bye'
 |\
-| * 1111111 feature の2つ目
-| * 2222222 feature の1つ目
-* | 3333333 main の変更
+| * 3a6d2c4 お別れのあいさつを追加
+* | 91b0e5f 使い方の見出しを追加
 |/
-* 4444444 最初のコミット
+* 5b0c7d1 あいさつのプログラムを追加
+...
+$ git branch -d feature/bye
 ```
 
-`*` が1つのコミット、`|`・`\`・`/` が枝の線です。
+- `git commit -a` は「追跡しているファイルの変更を、まとめて add してからコミットする」オプションです（新しいファイルは入りません）。`-am` は `-a -m` をまとめたものです。
+- `--no-edit` は、マージコミットのメッセージを自動のまま使い、エディタを開かないオプションです。
+- グラフの `*` が1つのコミット、`|`・`\`・`/` が枝の線です。
 
-`git merge --no-ff ブランチ` とすると、fast-forward できる場合でも、マージコミットを作ります（no fast-forward）。「この機能は、ここでまとめて取り込んだ」という区切りを履歴に残したいときに使います。GitHub のプルリクエストの「Merge pull request」ボタンも、ふつうはこの形になります。
+`git merge --no-ff ブランチ` とすると、fast-forward できる場合でも、マージコミットを作ります（no fast-forward）。「この機能は、ここでまとめて取り込んだ」という区切りを履歴に残したいときに使います。GitHub のプルリクエストの「Merge pull request」ボタンも、ふつうはこの形です。
 
-### 8.1 コンフリクト（衝突）
+### 8.2 手を動かす: コンフリクトを起こして直す
 
-2つのブランチが**同じファイルの同じ場所**を別々に変えていると、Git はどちらを使えばよいか決められず、マージを途中で止めます。
+2つのブランチが**同じファイルの同じ場所**を別々に変えていると、Git はどちらを使えばよいか決められず、マージを途中で止めます（**コンフリクト**。衝突）。わざと起こしてみます。
 
 ```sh
-$ git merge feature/default-name
-Auto-merging src/greet.js
-CONFLICT (content): Merge conflict in src/greet.js
-Automatic merge failed; fix conflicts and then commit the result.
-$ cat src/greet.js
-<<<<<<< HEAD
-export function greet(name) {
-  return 'こんにちは、' + name + 'さん！';
-=======
-export function greet(name = 'ゲスト') {
-  return `Hello, ${name}!`;
->>>>>>> feature/default-name
-}
+$ git switch -c fix/title
+$ sed -n 1p README.md                  # sed -n 1p: 1行目だけを表示する
+# hello
 ```
 
-`<<<<<<< HEAD` から `=======` までが今いるブランチ（main）の内容、`=======` から `>>>>>>>` までが取り込もうとしているブランチの内容です。解消の手順は次のとおりです。
+1行目はエディタで書き換えます。 `README.md` を開いて（`open -e README.md` か `code README.md`）、1行目を次のように変えて保存してください。
 
-1. ファイルを開き、**最終的にあるべき内容**に書き直す（片方を選ぶとは限りません。両方の意図を活かすことが多いです）。`<<<<<<<`・`=======`・`>>>>>>>` の行は、すべて消す。
-2. `git add ファイル` で「解消した」と Git に伝える。
-3. `git commit`（メッセージは自動で入っているので、エディタを閉じるだけでよい。`git commit --no-edit` ならエディタも開かない）。
+| ブランチ | README.md の1行目 |
+| --- | --- |
+| `fix/title` | `# hello git` |
+| `main` | `# こんにちは` |
 
-途中でやめたいときは `git merge --abort` で、マージを始める前の状態に戻せます。VS Code では、コンフリクトのあるファイルを開くと「Accept Current / Accept Incoming / Accept Both」のボタンが使えます（第4章）。
+```sh
+$ git commit -am "題名を変える"         # fix/title で1行目を「# hello git」にしてコミット
+$ git switch main                      # main に戻り、エディタで1行目を「# こんにちは」にして保存
+$ git commit -am "題名を日本語に"
+$ git merge fix/title
+Auto-merging README.md
+CONFLICT (content): Merge conflict in README.md
+Automatic merge failed; fix conflicts and then commit the result.
+$ git status
+...
+Unmerged paths:
+  (use "git add <file>..." to mark resolution)
+	both modified:   README.md
+$ head -n 5 README.md
+<<<<<<< HEAD
+# こんにちは
+=======
+# hello git
+>>>>>>> fix/title
+```
 
-[samples/make-conflict-repo.sh](samples/make-conflict-repo.sh) で、このコンフリクトを作れます（練習問題で使います）。
+`<<<<<<< HEAD` から `=======` までが今いるブランチ（main）の内容、`=======` から `>>>>>>>` までが取り込もうとしているブランチの内容です。直し方は次のとおりです。
+
+1. エディタでファイルを開き、**最終的にあるべき内容**に書き直す（片方を選ぶとは限りません。両方の意図を活かすことが多いです）。ここでは1行目を `# こんにちは git` にし、`<<<<<<<`・`=======`・`>>>>>>>` の行はすべて消します。
+2. `git add README.md` で「解消した」と Git に伝える。
+3. `git commit --no-edit` でマージを終える（メッセージは自動で入っています）。
+
+```sh
+$ git add README.md
+$ git commit --no-edit
+$ git log --oneline --graph -n 4
+$ git branch -d fix/title
+```
+
+途中でやめたいときは、`git merge --abort` で、マージを始める前の状態に戻せます。VS Code では、コンフリクトのあるファイルを開くと「Accept Current / Accept Incoming / Accept Both」のボタンが使えます（第4章6節）。
+
+[samples/make-conflict-repo.sh](samples/make-conflict-repo.sh) は、少し大きなコンフリクトのあるリポジトリを作ります（練習問題7・12で使います）。
 
 ## 9. リベース
 
@@ -497,47 +557,58 @@ export function greet(name = 'ゲスト') {
   ○───○───○───○  main                  ○───○───○───○  main
 ```
 
-マージコミットができないので、履歴が1本の線になり、読みやすくなります。一方で、コミットを作り直す（ID が変わる）ので、6.2節と同じ注意が要ります。
+マージコミットができないので、履歴が1本の線になり、読みやすくなります。一方で、コミットを作り直す（ID が変わる）ので、6.3節と同じ注意が要ります。
 
 > **リベースの決まり**: 自分しか使っていないブランチにだけ使う。他の人と共有しているブランチ（特に main）をリベースしない。
 
-リベースの途中でコンフリクトが起きたら、8.1節と同じように直して `git add` した後、`git commit` ではなく `git rebase --continue` を打ちます。やめたいときは `git rebase --abort` です。
-
-この教材では、ふだんはマージを使い、自分の作業ブランチを最新の main に追いつかせたいときにだけリベースを使います。
+リベースの途中でコンフリクトが起きたら、8.2節と同じように直して `git add` した後、`git commit` ではなく `git rebase --continue` を打ちます。やめたいときは `git rebase --abort` です。この教材では、ふだんはマージを使い、自分の作業ブランチを最新の main に追いつかせたいときにだけリベースを使います（練習問題12）。
 
 ## 10. リモートと GitHub
 
-### 10.1 リモートの基本
+### 10.1 手を動かす: 手元に「共有の場所」を作って push する
 
-**リモート**は、別の場所にある、同じプロジェクトのリポジトリです。GitHub の上のリポジトリが代表です。
+**リモート**は、別の場所にある、同じプロジェクトのリポジトリです。GitHub の上のリポジトリが代表ですが、まずは手元のフォルダをリモートにして、仕組みを確かめます。
 
 ```sh
-$ git clone git@github.com:ユーザー名/リポジトリ.git    # GitHub のリポジトリの複製を、手元に作る
-$ git remote -v                                       # 登録されているリモートの一覧（-v: URL も表示）
-origin  git@github.com:ユーザー名/リポジトリ.git (fetch)
-origin  git@github.com:ユーザー名/リポジトリ.git (push)
-$ git remote add origin git@github.com:ユーザー名/リポジトリ.git   # 手元で作ったリポジトリに、後から登録する
+$ cd ~/dev/ch03
+$ git init --bare shared.git           # --bare: 作業ツリーを持たない、共有専用のリポジトリ（GitHub の上もこの形）
+$ cd hello-git
+$ git remote add origin ~/dev/ch03/shared.git    # リモートを origin という名前で登録する
+$ git remote -v                        # 登録されているリモート（-v: URL も表示）
+origin	/Users/alice/dev/ch03/shared.git (fetch)
+origin	/Users/alice/dev/ch03/shared.git (push)
+$ git push -u origin main              # 自分のコミットをリモートに送る
+To /Users/alice/dev/ch03/shared.git
+ * [new branch]      main -> main
+branch 'main' set up to track 'origin/main'.
+$ cd ~/dev/ch03
+$ git clone shared.git hello-copy      # リモートの複製を、別のフォルダに作る（もう1人の人の手元のつもり）
+$ cd hello-copy && git log --oneline -n 2
 ```
-
-`git clone` すると、複製の元が `origin` という名前で登録されます。
 
 | コマンド | 働き |
 | --- | --- |
+| `git clone URL [フォルダ]` | リモートの複製を手元に作る。複製の元は `origin` という名前で登録される |
+| `git remote add 名前 URL` | 手元で作ったリポジトリに、後からリモートを登録する |
 | `git fetch` | リモートの新しいコミットを取ってくる。**自分のブランチは動かさない** |
 | `git pull` | `fetch` した後、今のブランチに取り込む（`fetch` と `merge` を続けて行う） |
 | `git push` | 自分のコミットを、リモートに送る |
 | `git push -u origin ブランチ` | 初めて push するとき。`-u` で「このブランチは、リモートの同じ名前のブランチと対応する」と記録し、次からは `git push` だけで済む |
 
-`fetch` すると、リモートのブランチの位置は、`origin/main` のような名前（**リモート追跡ブランチ**）で手元に記録されます。
+`hello-copy` でコミットして push し、`hello-git` で取り込んでみます。
 
 ```sh
+$ cd ~/dev/ch03/hello-copy
+$ echo "コピーから足した行" >> README.md && git commit -am "コピーから追記" && git push
+$ cd ~/dev/ch03/hello-git
 $ git fetch
 $ git status
-Your branch is behind 'origin/main' by 2 commits, and can be fast-forwarded.
+Your branch is behind 'origin/main' by 1 commit, and can be fast-forwarded.
 $ git log --oneline main..origin/main     # origin/main にあって、main に無いコミット
+$ git pull
 ```
 
-`Your branch is behind ... by 2 commits` は「手元の main は、origin/main より2つ遅れている」という意味です。`A..B` は「B にあって A に無いコミット」を表す書き方です。
+`fetch` すると、リモートのブランチの位置は `origin/main` のような名前（**リモート追跡ブランチ**）で手元に記録されます。`Your branch is behind ... by 1 commit` は「手元の main は origin/main より1つ遅れている」、`A..B` は「B にあって A に無いコミット」という意味です。
 
 ### 10.2 push が断られるとき
 
@@ -549,11 +620,11 @@ error: failed to push some refs to '...'
 hint: Updates were rejected because the remote contains work that you do not have locally.
 ```
 
-リモートの履歴を上書きしてしまわないための安全装置です。先にリモートの変更を取り込んでから、もう一度 push します。
+リモートの履歴を上書きしないための安全装置です。先にリモートの変更を取り込んでから、もう一度 push します。
 
 ### 10.3 pull の設定
 
-`pull.ff only`（2節で設定）にしておくと、`git pull` は fast-forward できるときだけ取り込み、手元とリモートの両方に新しいコミットがある（枝分かれしている）ときは止まります。止まったら、状況を見て選びます。
+`pull.ff only`（2節）にしておくと、`git pull` は fast-forward できるときだけ取り込み、手元とリモートの両方に新しいコミットがある（枝分かれしている）ときは止まります。止まったら、状況を見て選びます。
 
 ```sh
 $ git pull --rebase     # 自分のコミットを、リモートの先の上に作り直す（履歴が1本になる）
@@ -562,15 +633,13 @@ $ git pull --no-rebase  # マージコミットを作って取り込む
 
 設定しないと、気づかないうちに `Merge branch 'main' of github.com:...` という、意味の薄いマージコミットが増えていきます。
 
-[samples/make-remote-practice.sh](samples/make-remote-practice.sh) を使うと、GitHub を使わずに、手元のフォルダだけで「2人が同じリポジトリに push する」状況を作れます（練習問題で使います）。
+[samples/make-remote-practice.sh](samples/make-remote-practice.sh) は、共有の場所と2人分の手元のリポジトリをまとめて作ります。練習問題10で、2人が同じリポジトリに push する状況を試します。
 
 ## 11. SSH で GitHub に接続する
 
 GitHub に push するには、本人であることを示す必要があります。方法は **SSH 鍵**と **HTTPS + トークン**の2つがあり、この教材では SSH 鍵を使います。
 
 ### 11.1 公開鍵と秘密鍵
-
-SSH 鍵は、2つのファイルの組です。
 
 | ファイル | 名前 | 扱い |
 | --- | --- | --- |
@@ -579,54 +648,58 @@ SSH 鍵は、2つのファイルの組です。
 
 秘密鍵で作った「署名」は、組になっている公開鍵でだけ確かめられます。GitHub は、登録された公開鍵で署名を確かめ、「この秘密鍵を持っている人＝本人」と判断します。秘密鍵そのものはネットワークに流れません。仕組みは第2部 第8章（HTTPS と TLS）で詳しく学びます。
 
-### 11.2 鍵を作る
+### 11.2 手を動かす: 鍵を作る
 
 ```sh
-$ ls -la ~/.ssh                         # 既に鍵があるか確かめる（id_ed25519 があれば作らなくてよい）
+$ ls -la ~/.ssh                         # 既に鍵があるか（id_ed25519 があれば作らなくてよい）
 $ ssh-keygen -t ed25519 -C "GitHubのメールアドレス"
 Enter file in which to save the key (/Users/alice/.ssh/id_ed25519):   ← そのまま Return
 Enter passphrase (empty for no passphrase):                            ← パスフレーズを打つ（おすすめ）
 Enter same passphrase again:                                           ← もう一度
+$ ls -l ~/.ssh
+-rw-------  1 alice  staff  411 11  7 10:00 id_ed25519
+-rw-r--r--  1 alice  staff  103 11  7 10:00 id_ed25519.pub
 ```
 
-- `ssh-keygen` は、SSH の鍵を作るコマンドです（key generate）。
-- `-t ed25519` は鍵の種類（type）です。今のおすすめで、短く安全です。
-- `-C` はコメント（comment）で、どの鍵かを見分けるためのラベルです。
-- **パスフレーズ**は、秘密鍵を守るパスワードです。Mac を盗まれても、パスフレーズが無ければ鍵は使えません。打っても画面には表示されません。毎回打つ手間は、次の 11.3節の設定で省けます。
+| 部分 | 意味 |
+| --- | --- |
+| `ssh-keygen` | SSH の鍵を作るコマンド（key generate） |
+| `-t ed25519` | 鍵の種類（type）。今のおすすめで、短く安全 |
+| `-C "…"` | コメント（comment）。どの鍵かを見分けるためのラベル |
+| パスフレーズ | 秘密鍵を守るパスワード。Mac を盗まれても、これが無ければ鍵は使えない。打っても表示されない |
 
-`ls -l ~/.ssh` で、秘密鍵の権限が `-rw-------`（`600`）になっていることを確かめましょう。秘密鍵が他人にも読める権限になっていると、`ssh` は「危ない」と判断して、その鍵を使いません。
+秘密鍵が `-rw-------`（`600`）になっていることを確かめます。他人にも読める権限だと、`ssh` は「危ない」と判断して、その鍵を使いません。
 
-### 11.3 キーチェーンに覚えさせる（Mac だけの設定）
+### 11.3 手を動かす: キーチェーンに覚えさせる（Mac だけの設定）
 
-`~/.ssh/config` に次の内容を書きます（ファイルが無ければ作ります。`code ~/.ssh/config` などで開けます）。
+`~/.ssh/config` に次の内容を足します（ファイルが無ければ作ります）。
 
-```
+```sh
+$ cat >> ~/.ssh/config <<'EOF'
 Host github.com
   AddKeysToAgent yes
   UseKeychain yes
   IdentityFile ~/.ssh/id_ed25519
-```
-
-- `Host github.com` は「github.com に接続するときの設定」という意味です。
-- `UseKeychain yes` は macOS だけの設定で、パスフレーズを macOS のキーチェーン（パスワードを保存する仕組み）に保存します。
-- `AddKeysToAgent yes` は、鍵を ssh-agent（鍵を覚えておくプログラム）に自動で登録します。
-- `IdentityFile` は、使う秘密鍵の場所です。
-
-```sh
+EOF
 $ ssh-add --apple-use-keychain ~/.ssh/id_ed25519   # 一度パスフレーズを打てば、次からは聞かれない
 ```
 
+| 行 | 意味 |
+| --- | --- |
+| `Host github.com` | github.com に接続するときの設定 |
+| `AddKeysToAgent yes` | 鍵を ssh-agent（鍵を覚えておくプログラム）に自動で登録する |
+| `UseKeychain yes` | パスフレーズを macOS のキーチェーンに保存する（macOS だけの設定） |
+| `IdentityFile` | 使う秘密鍵の場所 |
+
 [samples/ssh-config.sample](samples/ssh-config.sample) に例があります。
 
-### 11.4 GitHub に公開鍵を登録する
+### 11.4 手を動かす: GitHub に公開鍵を登録して接続する
 
 ```sh
 $ pbcopy < ~/.ssh/id_ed25519.pub     # 公開鍵（.pub の方）を、クリップボードにコピーする（第1章12節）
 ```
 
-GitHub の Settings → SSH and GPG keys → New SSH key で、Title に「MacBook Air 2026」など分かりやすい名前を付け、Key に貼り付けて保存します。
-
-接続を確かめます。`ssh -T` は、ログインはせずに、接続と本人の確認だけをするオプションです。
+GitHub の Settings → SSH and GPG keys → New SSH key で、Title に「MacBook Air 2026」など分かりやすい名前を付け、Key に貼り付けて保存します。接続を確かめます（`ssh -T` は、ログインはせずに、接続と本人の確認だけをするオプション）。
 
 ```sh
 $ ssh -T git@github.com
@@ -635,7 +708,7 @@ ED25519 key fingerprint is SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU.
 Are you sure you want to continue connecting (yes/no/[fingerprint])?
 ```
 
-初めて接続するときは、**接続先が本物の GitHub か**を確かめるように求められます。表示された fingerprint（接続先の鍵の指紋）が、GitHub の公式ドキュメント「GitHub's SSH key fingerprints」（参考資料のリンク）に書かれた値と同じことを確かめてから `yes` と打ちます。確かめた相手は `~/.ssh/known_hosts` に記録され、次からは聞かれません。
+初めて接続するときは、**接続先が本物の GitHub か**を確かめるよう求められます。表示された fingerprint（接続先の鍵の指紋）が、GitHub の公式ドキュメント「GitHub's SSH key fingerprints」（参考資料）に書かれた値と同じことを確かめてから `yes` と打ちます。確かめた相手は `~/.ssh/known_hosts` に記録され、次からは聞かれません。
 
 ```
 Hi ユーザー名! You've successfully authenticated, but GitHub does not provide shell access.
@@ -658,9 +731,7 @@ $ gh pr view --web              # プルリクエストを、ブラウザで開�
 
 ## 12. プルリクエストで変更を取り込む
 
-**プルリクエスト**（PR）は、「このブランチの変更を main に取り込んでください」という依頼です。変更の中身（差分）、話し合い（コメント）、自動のテストの結果（第11部）を、GitHub の1つの画面にまとめられます。
-
-一人で開発するときも PR を使うと、変更の単位がはっきりし、後から「なぜこの変更をしたか」を振り返りやすくなります。この教材では、次の流れ（**GitHub Flow**）で進めます。
+**プルリクエスト**（PR）は、「このブランチの変更を main に取り込んでください」という依頼です。変更の中身（差分）、話し合い（コメント）、自動のテストの結果（第11部）を、GitHub の1つの画面にまとめられます。一人で開発するときも PR を使うと、変更の単位がはっきりし、後から「なぜこの変更をしたか」を振り返りやすくなります。この教材では次の流れ（**GitHub Flow**）で進めます。
 
 ```sh
 # 1. main を最新にする
@@ -687,11 +758,11 @@ $ git switch main && git pull
 $ git branch -d feature/task-due-date
 ```
 
-PR の説明に書くことを、あらかじめ用意しておく **PR テンプレート**も使えます。リポジトリに `.github/pull_request_template.md` を置くと、PR を作るときに自動で入力されます。例は [samples/pull_request_template.md](samples/pull_request_template.md) です。
+PR の説明に書くことを、あらかじめ用意しておく **PR テンプレート**も使えます。リポジトリに `.github/pull_request_template.md` を置くと、PR を作るときに自動で入力されます。例は [samples/pull_request_template.md](samples/pull_request_template.md) です。実際の流れは、練習問題9で GitHub を使って一通り行います。
 
 ## 13. .gitignore: コミットしないファイル
 
-`.gitignore` というファイルに書いたパターンに当てはまるファイルは、`git status` に表示されず、`git add .` でもステージに入りません。リポジトリのいちばん上のフォルダに置きます。
+`.gitignore` というファイルに書いたパターンにあてはまるファイルは、`git status` に表示されず、`git add .` でもステージに入りません。リポジトリのいちばん上のフォルダに置きます。
 
 | 書き方 | 意味 |
 | --- | --- |
@@ -716,20 +787,36 @@ Node.js のプロジェクトで無視するものの代表は次のとおりで
 Finder は、開いたフォルダに `.DS_Store`（表示の設定を覚えておくファイル）を勝手に作ります。これはプロジェクトではなく**自分の Mac** の都合なので、プロジェクトの `.gitignore` ではなく、自分のすべてのリポジトリに効く**グローバルな ignore** に書きます。
 
 ```sh
-$ mkdir -p ~/.config/git                         # -p: 途中のフォルダもまとめて作る（第1章3.2節）
+$ mkdir -p ~/.config/git
 $ echo ".DS_Store" >> ~/.config/git/ignore       # Git が、設定しなくても読む場所
 ```
 
 例: [samples/global-gitignore.sample](samples/global-gitignore.sample)
 
-### 13.2 無視されているか確かめる
+### 13.2 手を動かす: .gitignore を書いて確かめる
+
+`hello-git` に、無視したいファイルを作ってみます。
 
 ```sh
-$ git check-ignore -v logs/app.log      # -v: どのファイルの何行目のパターンで無視されたかも表示（verbose）
-.gitignore:12:*.log	logs/app.log
+$ cd ~/dev/ch03/hello-git
+$ mkdir -p logs node_modules/x && touch logs/app.log debug.log node_modules/x/index.js .env
+$ git status --short
+?? .env
+?? debug.log
+?? logs/
+?? node_modules/
+$ cat > .gitignore <<'EOF'
+node_modules/
+.env
+*.log
+EOF
+$ git status --short                     # 無視したものは出なくなる
+?? .gitignore
+$ git check-ignore -v logs/app.log       # どのファイルの何行目のパターンで無視されたか（-v: verbose）
+.gitignore:3:*.log	logs/app.log
+$ git check-ignore -v hello.js           # 無視されていなければ、何も出ない
+$ git add .gitignore && git commit -m ".gitignore を追加"
 ```
-
-無視されていなければ、何も表示されません。
 
 ### 13.3 既にコミットしてしまったファイル
 
@@ -765,7 +852,7 @@ $ git add .gitignore && git commit -m ".env を追跡しないようにする"
 
 ## 練習問題
 
-[exercises/README.md](exercises/README.md) にあります。解答は [solutions/README.md](solutions/README.md) です。
+[exercises/README.md](exercises/README.md) に12問あります（基本・応用・発展の順）。解答は [solutions/README.md](solutions/README.md) です。
 
 ## 参考資料
 

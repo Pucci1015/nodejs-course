@@ -1,0 +1,6 @@
+# 練習問題9 の模範解答: ~/dev/ch02/share-app/mise.toml
+[tools]
+node = "22"
+
+[env]
+PORT = "4000"

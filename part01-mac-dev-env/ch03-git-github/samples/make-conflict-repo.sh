@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# マージのコンフリクトを練習するためのリポジトリを作る（第3章 8節・練習問題7・12）
-# 使い方: bash make-conflict-repo.sh [作成先]   既定: ~/dev/git-conflict
+# マージのコンフリクトを練習するためのリポジトリを作る（第3章 8.2節・練習問題7・12）
+# 使い方: bash samples/make-conflict-repo.sh [作成先]   既定: ~/dev/ch03/git-conflict
 #
 # main と feature/default-name の2つのブランチが、src/greet.js の同じ行を別々に変更している。
 set -euo pipefail
 
-dest="${1:-$HOME/dev/git-conflict}"
+dest="${1:-$HOME/dev/ch03/git-conflict}"
 if [[ -e "$dest" ]]; then
   echo "既に存在します: $dest（確認してから削除してください）" >&2
   exit 1

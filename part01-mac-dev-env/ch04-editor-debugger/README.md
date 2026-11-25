@@ -1,21 +1,35 @@
 # 第4章 エディタとデバッガ
 
-この章では、コードを書く道具（VS Code）と、動かないコードの原因を突き止める道具（デバッガ）を整えます。
+この章では、コードを書く道具（VS Code）と、動かないコードの原因を突き止める道具（デバッガ）を、実際に使いながら整えます。
 デバッガは「上級者の道具」と思われがちですが、実は初めて学ぶ人ほど役に立ちます。**プログラムを途中で止めて、変数の中身を自分の目で見る**ことができれば、「たぶんこうなっているはず」という思い込みを、その場で確かめられるからです。
 
 | 項目 | 内容 |
 | --- | --- |
 | 所要時間の目安 | 3〜4時間 |
 | 前提 | 第1〜3章（`code` コマンドの設定に PATH の知識を、変更の確認に Git を使います） |
-| この章のゴール | VS Code の設定の階層を理解し、プロジェクトの設定を共有できる / ブレークポイントとステップ実行で Node.js のバグを見つけられる / Chrome DevTools でブラウザ側の問題を調べられる |
+| この章のゴール | VS Code の設定の階層を理解し、プロジェクトの設定を書いて共有できる / エディタの機能で安全に書き換えられる / ブレークポイントとステップ実行で Node.js のバグを見つけられる / Chrome DevTools でブラウザ側の問題を調べられる |
 
 | フォルダ | 中身 |
 | --- | --- |
-| [samples/](samples/) | VS Code の設定の例、デバッガの練習用のプログラム、ファイルを配信する小さな Web サーバ |
-| [exercises/](exercises/) | 練習問題（バグの入ったプログラムとページ） |
+| [samples/](samples/) | VS Code の設定の例、編集とデバッガの練習用のプログラム、ファイルを配信する小さな Web サーバ |
+| [exercises/](exercises/) | 練習問題（書き換えるプログラム、バグの入ったプログラムとページ） |
 | [solutions/](solutions/) | 模範解答（直したプログラムと解説） |
 
-> **読み方**: `$` で始まる行は、自分で打つコマンドです（`$` は打ちません）。`⌘` は Command キー、`⌥` は Option キーです。`⌘ + P` は「⌘ を押したまま P を押す」という意味です。
+> **読み方**
+> - 「**手を動かす**」の所は、実際に打って動かしてください。練習問題は、そこで書いた設定や、そこで使ったデバッガの操作を広げていく問題です。
+> - 実習は `~/dev/ch04/` で行います（第1章2.5節）。最初に作業フォルダを作り、教材の `samples` と `exercises` をコピーします。
+>
+>   ```sh
+>   $ mkdir -p ~/dev/ch04 && cd ~/dev/ch04
+>   $ cp -R （ここに Finder から samples と exercises のフォルダをドラッグ） .
+>   $ ls
+>   exercises	samples
+>   ```
+>
+>   `cp -R ` まで打ってから、Finder で教材の `part01-mac-dev-env/ch04-editor-debugger` を開き、`samples` と `exercises` の2つのフォルダをターミナルにドラッグし、最後に ` .` を打って Return を押します。
+> - この章では、VS Code で `~/dev/ch04` を開いて作業します（1.1節）。コマンドは、ターミナルでも VS Code の統合ターミナル（2節）でも、`~/dev/ch04` で打ちます。
+> - `⌘` は Command キー、`⌥` は Option キーです。`⌘ + P` は「⌘ を押したまま P を押す」という意味です。
+> - 既に VS Code を使っている人へ: 1節のインストールは飛ばしてかまいません。3節以降の「手を動かす」は、すべて打ちながら読んでください。
 
 ## この章で学ぶことを、後でどこで使うか
 
@@ -40,22 +54,32 @@ $ brew install --cask visual-studio-code     # --cask: GUI アプリを入れる
 
 日本語で使いたいときは、拡張機能「Japanese Language Pack for Visual Studio Code」を入れます（4節）。この教材では、メニューの名前を英語と日本語の両方で書きます。
 
-### 1.1 code コマンド
+### 1.1 手を動かす: code コマンドを入れて、作業フォルダを開く
 
 ターミナルから VS Code を開けるようにします。
 
 1. VS Code を開き、`⌘ + Shift + P` でコマンドパレット（2節）を開く
 2. `shell command` と打ち、「Shell Command: Install 'code' command in PATH」を選ぶ
 
-これで、PATH の通ったフォルダ（第1章10.2節）に `code` というコマンドが置かれます。
+これで、PATH の通ったフォルダ（第1章10.2節）に `code` というコマンドが置かれます。ターミナルを開き直してから、確かめます。
 
 ```sh
 $ which code
-/usr/local/bin/code         # VS Code.app の中のプログラムを指すシンボリックリンク（第2章4.3節）
-$ code .                    # 今いるフォルダ（.）を VS Code で開く
-$ code README.md            # ファイルを開く
-$ code --wait memo.txt      # --wait: VS Code でそのファイルのタブを閉じるまで、コマンドを終わらせない
+/usr/local/bin/code
+$ ls -l /usr/local/bin/code             # l で始まる = シンボリックリンク（第2章4.3節）
+lrwxr-xr-x  1 alice  admin  68 11  4 10:00 /usr/local/bin/code -> /Applications/Visual Studio Code.app/Contents/Resources/app/bin/code
+$ cd ~/dev/ch04
+$ code .                                # 今いるフォルダ（.）を VS Code で開く
 ```
+
+VS Code の左側に、`exercises` と `samples` のフォルダが表示されれば成功です。`code` の使い方は次のとおりです。
+
+| コマンド | 働き |
+| --- | --- |
+| `code .` | 今いるフォルダを開く |
+| `code ~/dev/ch04` | 指定したフォルダを開く |
+| `code ファイル` | ファイルを開く（無ければ新しく作る） |
+| `code --wait ファイル` | `--wait`: VS Code でそのファイルのタブを閉じるまで、コマンドを終わらせない |
 
 `--wait` は、第3章で `git config --global core.editor "code --wait"` に使いました。Git は「エディタのコマンドが終わった＝編集が終わった」と判断するので、`--wait` が無いと、すぐに空のメッセージでコミットしようとしてしまいます。
 
@@ -67,11 +91,20 @@ $ code --wait memo.txt      # --wait: VS Code でそのファイルのタブを�
 | 左側 | サイドバー | 選んだ機能の画面（ファイルの一覧など） |
 | 中央 | エディタ | ファイルを書く場所。タブで複数開ける。`⌘ + \` で左右に分ける |
 | 下 | パネル | ターミナル、問題（エラーの一覧）、出力、デバッグコンソール |
-| いちばん下 | ステータスバー | ブランチの名前、エラーの数、改行コード（LF/CRLF）、文字コード、言語 |
+| いちばん下 | ステータスバー | ブランチの名前、エラーの数、インデント（`Spaces: 2` など）、改行コード（LF/CRLF）、文字コード、言語 |
 
-**コマンドパレット**（`⌘ + Shift + P`）は、VS Code のすべての機能を、名前で探して実行できる入口です。キーの組み合わせ（ショートカット）を忘れたら、ここで機能の名前を打ちましょう。表示されるショートカットで覚えることもできます。
+**コマンドパレット**（`⌘ + Shift + P`）は、VS Code のすべての機能を、名前で探して実行できる入口です。キーの組み合わせ（ショートカット）を忘れたら、ここで機能の名前を打ちましょう。
 
-**統合ターミナル**は `` Ctrl + ` `` で開いたり閉じたりします（`` ` `` は、Shift + @ のキーです）。ここで動くのは第1章の zsh そのもので、`.zshrc` も読まれます。
+### 2.1 手を動かす: 統合ターミナルを開く
+
+**統合ターミナル**は `` Ctrl + ` `` で開いたり閉じたりします（`` ` `` は、Shift + @ のキーです）。開いたら、次を打ちます。
+
+```sh
+$ pwd
+/Users/alice/dev/ch04
+```
+
+統合ターミナルは、VS Code で開いているフォルダを「今いる場所」にして zsh を起動します。動いているのは第1章の zsh そのもので、`.zshrc` も読まれます。この章のコマンドは、ここで打つと便利です。
 
 ## 3. 設定の階層
 
@@ -84,24 +117,7 @@ VS Code の設定は、次の順に**後のものが前のものを上書き**�
 | 3 | ワークスペース設定 | プロジェクトの `.vscode/settings.json` | **そのプロジェクトの決まり**（インデントの幅、整形の道具など）。Git でコミットして共有する |
 | 4 | 言語ごとの設定 | 上の2つの中の `"[javascript]": { ... }` | 特定の言語だけに効かせたい設定 |
 
-**ワークスペース**は、VS Code で開いているフォルダのことです。
-
-設定画面は `⌘ + ,` で開きます。画面の上の「ユーザー / ワークスペース」のタブで、どちらに保存するかを選べます。右上のアイコン（Open Settings (JSON)）を押すと `settings.json` を直接書けます。この教材では、**何を設定したかが後から分かるように、`settings.json` を直接書く**ことをおすすめします。
-
-```jsonc
-// ユーザー設定の例（~/Library/Application Support/Code/User/settings.json）
-{
-  "editor.fontSize": 14,
-  "editor.renderWhitespace": "boundary",   // 単語の間以外の空白を、点で表示する
-  "files.eol": "\n",                        // 新しいファイルの改行コードを LF にする
-  "files.trimTrailingWhitespace": true,     // 保存するとき、行の最後の空白を消す
-  "files.insertFinalNewline": true,         // 保存するとき、ファイルの最後に改行を入れる
-  "editor.formatOnSave": true,              // 保存するとき、整形する
-  "[markdown]": {
-    "files.trimTrailingWhitespace": false   // Markdown は行の最後の空白2つが改行の意味になるので消さない
-  }
-}
-```
+**ワークスペース**は、VS Code で開いているフォルダのことです。この章では `~/dev/ch04` です。
 
 `settings.json` は、`"名前": 値` を `,` で区切って並べ、全体を `{ }` で囲む **JSON** という形式です。VS Code の設定ファイルは、JSON にコメント（`//`）を書ける **JSONC** という形式で読まれます。ふつうの JSON（`package.json` など）にはコメントを書けないので注意してください。
 
@@ -113,11 +129,41 @@ VS Code の設定は、次の順に**後のものが前のものを上書き**�
 | `editor.tabSize` | インデント1段の幅（空白の数） |
 | `editor.formatOnSave` | 保存するときに整形するか |
 | `editor.defaultFormatter` | 整形に使う拡張機能の ID（4節） |
+| `files.trimTrailingWhitespace` | 保存するとき、行の最後の空白を消すか |
 | `search.exclude` | 全体の検索（`⌘ + Shift + F`）で探さないフォルダ。例: `{ "node_modules": true }` |
 
-[samples/vscode-user-settings.json](samples/vscode-user-settings.json) と [samples/vscode-workspace-settings.json](samples/vscode-workspace-settings.json) に、コメント付きの例があります。
+### 3.1 手を動かす: ワークスペース設定を書く
 
-**Settings Sync**（設定の同期）を使うと、GitHub のアカウントなどで、設定や拡張機能を複数の Mac で同期できます。この教材では、第1部の成果物で、`settings.json` を dotfiles として Git で管理する方法を扱います。
+`~/dev/ch04` の決まりとして、「インデントは空白2つ」「Markdown 以外は、行の最後の空白を消す」を書きます。
+
+```sh
+$ mkdir -p .vscode                      # ~/dev/ch04 の中に .vscode フォルダを作る
+$ code .vscode/settings.json            # 無いファイルは、新しく作って開かれる
+```
+
+開いたファイルに、次のように書いて保存します（`⌘ + S`）。
+
+```jsonc
+{
+  "editor.tabSize": 2,
+  "files.trimTrailingWhitespace": true,
+  "[markdown]": {
+    "files.trimTrailingWhitespace": false   // Markdown は行の最後の空白2つが改行の意味になるので消さない
+  }
+}
+```
+
+| 行 | 意味 |
+| --- | --- |
+| `"editor.tabSize": 2` | このフォルダでは、インデント1段を空白2つにする |
+| `"files.trimTrailingWhitespace": true` | 保存するとき、行の最後の空白を消す |
+| `"[markdown]": { ... }` | 言語ごとの設定。`.md` のファイルだけ、上の設定を打ち消す |
+
+`⌘ + ,` で設定の画面を開き、上のタブを「ワークスペース」に切り替えると、今書いた値が表示されます。右上のアイコン（Open Settings (JSON)）を押すと、`settings.json` を直接開けます。この教材では、**何を設定したかが後から分かるように、`settings.json` を直接書く**ことをおすすめします。
+
+ユーザー設定も、同じ形で書きます。コマンドパレットで「Preferences: Open User Settings (JSON)」を選ぶと開きます。[samples/vscode-user-settings.json](samples/vscode-user-settings.json) と [samples/vscode-workspace-settings.json](samples/vscode-workspace-settings.json) に、コメント付きの例があります。
+
+**Settings Sync**（設定の同期）を使うと、GitHub のアカウントなどで、設定や拡張機能を複数の Mac で同期できます。この教材では、第1部の成果物で、ユーザー設定の `settings.json` を dotfiles として Git で管理する方法を扱います。
 
 ## 4. 拡張機能
 
@@ -130,16 +176,28 @@ VS Code の設定は、次の順に**後のものが前のものを上書き**�
 | EditorConfig | `editorconfig.editorconfig` | インデントなどの基本の書式を、エディタの種類に関係なく共有する | 第1部（この章の7節） |
 | Japanese Language Pack | `ms-ceintl.vscode-language-pack-ja` | 表示を日本語にする（好みで） | |
 
-ターミナルからも操作できます。
+**拡張機能は、あなたの Mac の上で、あなたの権限で動くプログラム**です。ファイルを読んだり、ネットワークに接続したりもできます。発行元（Publisher）が確かなもの、使っている人の多いものを選び、むやみに増やさないようにしましょう。同じ理由で、VS Code は、ダウンロードしたフォルダを初めて開くときに「このフォルダの作成者を信頼しますか？」（Workspace Trust）と確かめます。知らない人のリポジトリは、まず「制限モード」で開いて中身を確かめます。
+
+### 4.1 手を動かす: ターミナルから拡張機能を入れる
 
 ```sh
-$ code --list-extensions                            # --list-extensions: 入っている拡張機能の ID の一覧
-$ code --install-extension esbenp.prettier-vscode   # --install-extension ID: その拡張機能を入れる
+$ code --list-extensions                              # --list-extensions: 入っている拡張機能の ID の一覧
+$ code --install-extension dbaeumer.vscode-eslint     # --install-extension ID: その拡張機能を入れる
+$ code --install-extension esbenp.prettier-vscode
+$ code --install-extension editorconfig.editorconfig
+$ code --list-extensions | wc -l                      # 1行に1つなので、行の数 = 拡張機能の数（第1章6節）
+       3
 ```
 
-プロジェクトの `.vscode/extensions.json` におすすめの拡張機能を書いておくと、そのフォルダを開いた人に「おすすめの拡張機能があります」と表示されます（例: [samples/extensions.json](samples/extensions.json)）。
+数は、ほかに入れている拡張機能の分だけ多くなります。
 
-**拡張機能は、あなたの Mac の上で、あなたの権限で動くプログラム**です。ファイルを読んだり、ネットワークに接続したりもできます。発行元（Publisher）が確かなもの、使っている人の多いものを選び、むやみに増やさないようにしましょう。同じ理由で、VS Code は、ダウンロードしたフォルダを初めて開くときに「このフォルダの作成者を信頼しますか？」（Workspace Trust）と確かめます。知らない人のリポジトリは、まず「制限モード」で開いて中身を確かめます。
+プロジェクトの `.vscode/extensions.json` におすすめの拡張機能を書いておくと、そのフォルダを開いた人に「おすすめの拡張機能があります」と表示されます。`"recommendations"` に、ID の文字列の配列を書きます（例: [samples/extensions.json](samples/extensions.json)）。
+
+```jsonc
+{
+  "recommendations": ["dbaeumer.vscode-eslint", "esbenp.prettier-vscode"]
+}
+```
 
 ## 5. 覚えておきたい操作（Mac）
 
@@ -168,7 +226,7 @@ $ code --install-extension esbenp.prettier-vscode   # --install-extension ID: �
 | `⌥ + Shift + F` | ファイル全体を整形する |
 | `⌘ + Z` / `⌘ + Shift + Z` | 元に戻す / やり直す |
 
-**複数カーソル**は、同じ書き換えを何か所にもまとめて行う機能です。たとえば `var` を1つダブルクリックで選び、`⌘ + D` を押すたびに次の `var` も選ばれていきます。そのまま `let` と打つと、選んだものがすべて `let` に変わります。`Esc` で、カーソルを1つに戻します。
+**複数カーソル**は、同じ書き換えを何か所にもまとめて行う機能です。`Esc` で、カーソルを1つに戻します。
 
 ### 5.3 コードを理解する・直す
 
@@ -190,18 +248,43 @@ $ code --install-extension esbenp.prettier-vscode   # --install-extension ID: �
 
 ### 5.4 書き換える前後の出力を比べる: diff
 
-コードを書き換えたとき、「動きが変わっていないこと」を確かめるには、書き換える前と後の出力をファイルに保存して比べます。`diff` は、2つのファイルの違いを表示するコマンドです。**同じなら何も表示しません。**
+コードを書き換えたとき、「動きが変わっていないこと」を確かめるには、書き換える前と後の出力をファイルに保存して比べます。`diff` は、2つのファイルの違いを表示するコマンドです。**同じなら何も表示せず、終了ステータスは 0** です。
+
+違いがあると、`<` の付いた行（1つ目のファイルにだけある行）と、`>` の付いた行（2つ目のファイルにだけある行）が表示され、終了ステータスは 1 になります。
+
+### 5.5 手を動かす: 名前の変更・複数カーソル・書き換えの候補
+
+[samples/practice-edit.js](samples/practice-edit.js) を、手で打ち直さずに読みやすく書き換えます。まず、書き換える前の出力を保存します。
 
 ```sh
-$ node refactor-me.js > before.txt     # 書き換える前の出力を保存する（第1章5.2節）
-（ここでファイルを書き換える）
-$ node refactor-me.js > after.txt      # 書き換えた後の出力を保存する
-$ diff before.txt after.txt            # 違いを表示する。何も出なければ同じ
+$ node samples/practice-edit.js
+1個 120円 × 3個
+合計: 360円
+$ node samples/practice-edit.js > before.txt   # 書き換える前の出力を保存する（第1章5.2節）
+$ code samples/practice-edit.js
+```
+
+次の順に書き換えて、最後に `⌘ + S` で保存します。
+
+| 手順 | 操作 | 何が起きるか |
+| --- | --- | --- |
+| 1 | `var p` の `p` にカーソルを置いて `F2` → `price` と打って Return | `p` を使っている所が、すべて `price` に変わる。`'円 × '` の中の文字などは変わらない |
+| 2 | 同じように `q` を `count`、`t` を `total` に変える | |
+| 3 | `var` をダブルクリックで選び、`⌘ + D` を2回押して3つとも選んでから、`const` と打つ。`Esc` | 3か所が一度に `const` に変わる |
+| 4 | `'1個 ' + ...` の行にカーソルを置いて `⌘ + .` →「Convert to template string」。次の行も同じ | `` `1個 ${price}円 × ${count}個` `` の形になる |
+| 5 | `price * count` を選んで `⌘ + .` →「Extract to function in module scope」→ `calcTotal` と打って Return | `function calcTotal() { return price * count; }` が作られ、元の場所は `calcTotal()` になる |
+| 6 | `⌥ + Shift + F` | ファイル全体を整形する（どの整形の道具を使うか聞かれたら、Prettier を選ぶ） |
+
+書き換えたら、出力が変わっていないことを確かめます。
+
+```sh
+$ node samples/practice-edit.js > after.txt
+$ diff before.txt after.txt                    # 何も出なければ同じ
 $ diff before.txt after.txt && echo 同じです   # 同じなら終了ステータスが 0 なので、echo が動く（第1章7.2節）
 同じです
 ```
 
-違いがあると、`<` の付いた行（1つ目のファイルにだけある行）と、`>` の付いた行（2つ目のファイルにだけある行）が表示されます。
+書き換えた後の形は [samples/practice-edit-done.js](samples/practice-edit-done.js) です。うまくいかないときは見比べてください（5 の関数の位置や形は、少し違ってもかまいません）。
 
 ## 6. VS Code と Git
 
@@ -212,11 +295,21 @@ $ diff before.txt after.txt && echo 同じです   # 同じなら終了ステー
 - エディタの行番号の横に、変えた行の印（緑: 足した、青: 変えた、赤い三角: 消した）が表示される
 - コンフリクトのあるファイルを開くと、「Accept Current Change（今のブランチの方を使う）」「Accept Incoming Change（取り込む方を使う）」「Accept Both Changes（両方）」のボタンが使える
 
-画面での操作は便利ですが、**裏で動いているのは第3章の git コマンド**です。うまくいかないときは、統合ターミナルで `git status` を見ましょう。
+画面での操作は便利ですが、**裏で動いているのは第3章の git コマンド**です。うまくいかないときは、統合ターミナルで `git status` を見ましょう。第3章の `~/dev/ch03/hello-git` を `code ~/dev/ch03/hello-git` で開き、README.md を1行変えて、ソース管理の画面に表示されることを確かめてみてください。
 
 ## 7. EditorConfig
 
-`.editorconfig` は「インデントは空白2つ」「改行コードは LF」のような基本の書式を、エディタの種類に関係なく共有するためのファイルです。VS Code では、EditorConfig の拡張機能を入れると読まれます。
+`.editorconfig` は「インデントは空白2つ」「改行コードは LF」のような基本の書式を、エディタの種類に関係なく共有するためのファイルです。VS Code では、EditorConfig の拡張機能（4.1節で入れました）が読みます。
+
+VS Code の設定（`.vscode/settings.json`）は VS Code を使う人にしか効きませんが、`.editorconfig` はほかのエディタでも読まれます。**チームで共有する基本の書式は `.editorconfig`、VS Code だけの設定は `.vscode/settings.json`** と使い分けます（例: [samples/editorconfig.sample](samples/editorconfig.sample)）。
+
+### 7.1 手を動かす: .editorconfig を書いて確かめる
+
+```sh
+$ code .editorconfig                    # ~/dev/ch04/.editorconfig を作って開く
+```
+
+次のように書いて保存します。
 
 ```ini
 # プロジェクトのいちばん上のフォルダに置く .editorconfig
@@ -239,10 +332,12 @@ trim_trailing_whitespace = false
 | `root = true` | ここより上のフォルダの `.editorconfig` は探さない |
 | `[*]` | すべてのファイルに効く設定（`*` はグロブ。第1章4.1節） |
 | `[*.md]` | `.md` のファイルだけに効く設定 |
-| `indent_style = space` / `indent_size = 2` | インデントは空白で、2つ分 |
+| `charset = utf-8` | 文字コードは UTF-8 |
 | `end_of_line = lf` | 改行コードは LF（第1章9.5節） |
+| `indent_style = space` / `indent_size = 2` | インデントは空白で、2つ分 |
+| `insert_final_newline = true` | 保存するとき、ファイルの最後に改行を入れる |
 
-VS Code の設定（`.vscode/settings.json`）は VS Code を使う人にしか効きませんが、`.editorconfig` はほかのエディタでも読まれます。**チームで共有する基本の書式は `.editorconfig`、VS Code だけの設定は `.vscode/settings.json`** と使い分けます（例: [samples/editorconfig.sample](samples/editorconfig.sample)）。
+確かめます。`code test.js` で新しいファイルを作り、`Tab` を押してみてください。空白が2つ入り、ステータスバーに `Spaces: 2` と `LF` が表示されます。確かめ終わったら、`rm test.js` で消しておきます。
 
 ## 8. デバッグの考え方
 
@@ -253,13 +348,7 @@ VS Code の設定（`.vscode/settings.json`）は VS Code を使う人にしか�
 3. **確かめる**: 実際の値を見る
 4. **直して、もう一度確かめる**: 1 の手順で、直ったことを確かめる
 
-3 で `console.log` を使う方法は手軽ですが、
-
-- 見たい変数を前もって決めて書く必要があり、外れたら書き足して動かし直す
-- 見終わったら消す必要がある（消し忘れが残る）
-- 「この時点で、ほかの変数はどうなっているか」を後から見られない
-
-という弱点があります。**デバッガ**を使うと、プログラムを好きな行で一時停止し、その瞬間のすべての変数を見て、1行ずつ進めながら値の変化を追えます。
+3 で `console.log` を使う方法は手軽ですが、見たい変数を前もって決めて書く必要があり、見終わったら消す必要があり、「この時点で、ほかの変数はどうなっているか」を後から見られません。**デバッガ**を使うと、プログラムを好きな行で一時停止し、その瞬間のすべての変数を見て、1行ずつ進めながら値の変化を追えます。
 
 ### 8.1 この章の練習で読む JavaScript
 
@@ -286,60 +375,73 @@ VS Code の設定（`.vscode/settings.json`）は VS Code を使う人にしか�
 | 正の数 | `y` を前にする |
 | 0 | そのまま |
 
-```js
-[3, 1, 2].sort((x, y) => x - y);   // [1, 2, 3]（小さい順）
-[3, 1, 2].sort((x, y) => y - x);   // [3, 2, 1]（大きい順）
-```
-
 ブラウザの JavaScript では、次の書き方も使います。
 
 | 書き方 | 意味 |
 | --- | --- |
 | `document.getElementById('list')` | `id="list"` の要素を取り出す |
 | `el.addEventListener('submit', 関数)` | `el` で `submit`（フォームの送信）が起きたら、関数を呼ぶように登録する。登録した回数だけ、関数が呼ばれる |
+| `input.value` / `checkbox.checked` | 入力欄に打たれた文字列 / チェックボックスにチェックが付いているか（`true` か `false`） |
 | `event.preventDefault()` | ブラウザがふつうに行う動き（フォームを送信してページを読み直す）を止める |
 | `await fetch('tasks.json')` | サーバにファイルを取りに行く（第2部、第3部で詳しく学びます） |
+
+### 8.2 手を動かす: node -p で式の値を確かめる
+
+デバッガを使う前に、「この式は、どんな値になるか」を1行ずつ確かめる方法です。`node -p "式"` は、式の値を表示します（第2章7.1節）。
+
+```sh
+$ node -p "[3, 1, 2].sort((x, y) => x - y)"     # x - y: x が小さいと負の数 → x が前（小さい順）
+[ 1, 2, 3 ]
+$ node -p "[3, 1, 2].sort((x, y) => y - x)"     # 大きい順
+[ 3, 2, 1 ]
+$ node -p "[80, 92, 75].filter((x) => x >= 80)"
+[ 80, 92 ]
+$ node -p "(247 / 3).toFixed(1)"
+82.3
+```
+
+「思ったとおりの値になるか」を小さく確かめる習慣は、デバッガと同じくらい役に立ちます。練習問題6 のヒントにも使います。
 
 ## 9. Node.js のインスペクタ
 
 Node.js には、デバッガとつなぐための**インスペクタ**が入っています。
 
-```sh
-$ node --inspect app.js         # --inspect: インスペクタを有効にして起動する（すぐに実行が始まる）
-$ node --inspect-brk app.js     # --inspect-brk: 有効にして、最初の行で一時停止して待つ（break）
-Debugger listening on ws://127.0.0.1:9229/0f2c...
-```
+| オプション | 働き |
+| --- | --- |
+| `--inspect` | インスペクタを有効にして起動する（すぐに実行が始まる） |
+| `--inspect-brk` | 有効にして、最初の行で一時停止して待つ（break） |
 
-Node.js は、`127.0.0.1`（自分の Mac）の **9229番ポート**で、デバッガからの接続を待ちます（ポートについては第2部で学びます）。Chrome のアドレスバーに `chrome://inspect` と打ち、「Remote Target」に表示された `inspect` をクリックすると、Chrome DevTools で Node.js のプログラムをデバッグできます。操作は11.2節の Sources パネルと同じで、続行は `F8`、ステップオーバーは `F10`、ステップインは `F11` です。止まっている間の変数は、右側の「Scope」に表示されます。終わるときは、ターミナルで `Ctrl + C` を押します。
+Node.js は、`127.0.0.1`（自分の Mac）の **9229番ポート**で、デバッガからの接続を待ちます（ポートについては第2部で学びます）。
 
 > **注意**: インスペクタにつなげる人は、そのプログラムの中で、どんなコードでも実行できます。`--inspect=0.0.0.0:9229` のように、ほかの機器からつなげる形で起動したり、本番のサーバで有効にしたりしてはいけません。既定の `127.0.0.1`（自分の Mac の中からだけつなげる）のまま使います。
 
-ふだんは、次の VS Code のデバッガを使う方が便利です。仕組みは同じで、VS Code がこのインスペクタにつないでいます。
+### 9.1 手を動かす: Chrome DevTools でつなぐ
+
+```sh
+$ node --inspect-brk samples/debug-demo.mjs 3
+Debugger listening on ws://127.0.0.1:9229/0f2c...
+```
+
+Chrome のアドレスバーに `chrome://inspect` と打ち、「Remote Target」に表示された `inspect` をクリックすると、Chrome DevTools が開き、プログラムの最初で止まっています。`F8`（続行）を押すと最後まで動き、ターミナルに結果が表示されます。終わったら、ターミナルで `Ctrl + C` を押します。
+
+操作は11.2節の Sources パネルと同じで、続行は `F8`、ステップオーバーは `F10`、ステップインは `F11` です。止まっている間の変数は、右側の「Scope」に表示されます。ふだんは、次の VS Code のデバッガを使う方が便利です。仕組みは同じで、VS Code がこのインスペクタにつないでいます。
 
 ## 10. VS Code で Node.js をデバッグする
 
 ### 10.1 いちばん簡単な方法: JavaScript Debug Terminal
 
 1. コマンドパレットで「Debug: JavaScript Debug Terminal」を選ぶ（ターミナルの「+」の横の「∨」からも開ける）
-2. 開いたターミナルで、いつもどおり `node app.js` を実行する
+2. 開いたターミナルで、いつもどおり `node ファイル` を実行する
 
-このターミナルから起動した Node.js には、VS Code のデバッガが自動でつながります。
+このターミナルから起動した Node.js には、VS Code のデバッガが自動でつながります。プログラムを書き換えたり、起動の設定を書いたりする必要はありません。
 
-### 10.2 ブレークポイント
+### 10.2 手を動かす: ブレークポイントで止めて、1行ずつ進める
 
-エディタの行番号の左をクリックすると、赤い丸（**ブレークポイント**）が付きます。プログラムは、その行を**実行する直前**で一時停止します。もう一度クリックすると外れます。
+[samples/debug-demo.mjs](samples/debug-demo.mjs) を使います。4つのタスクを表示して、数を数えるだけのプログラムです。`// 行(A)` のような印が付いた行を使います。
 
-ブレークポイントを右クリックすると、特別なブレークポイントにできます（「Edit Breakpoint」）。
-
-| 種類 | 働き | 使いどころ |
-| --- | --- | --- |
-| 条件付き（Conditional Breakpoint） | 式が true のときだけ止まる。例: `i === 99` | ループの100回目だけを見たい |
-| ヒットカウント（Hit Count） | 指定した回数目に止まる | 何回目かでおかしくなるとき |
-| ログポイント（Logpoint） | 止まらずに、メッセージを出す。`{ }` の中に変数を書くと、値が入る。例: `合計={total}` | コードを書き換えずに `console.log` したい |
-
-コードの中に `debugger;` と書いても、デバッガがつながっているときは、そこで止まります。
-
-### 10.3 止まったときにできること
+1. `code samples/debug-demo.mjs` で開き、行(A)（`const summary = ...` の行）の行番号の左をクリックします。赤い丸（**ブレークポイント**）が付きます。
+2. JavaScript Debug Terminal（10.1節）で、`node samples/debug-demo.mjs 3` を実行します。
+3. 行(A) で止まり、その行が黄色く表示されます。ブレークポイントは、その行を**実行する直前**で止まります。
 
 止まると、画面の上に、次のボタンの並んだ小さなバーが表示されます。
 
@@ -353,22 +455,51 @@ Node.js は、`127.0.0.1`（自分の Mac）の **9229番ポート**で、デバ
 
 Mac では `F5` などのキーが、画面の明るさなどの別の機能になっていることがあります。そのときは `fn` キーを押しながら押すか、バーのボタンをクリックします。
 
-止まっている間、左の「実行とデバッグ」の画面で、次のものが見られます。
+続けて、次を試します。
+
+4. 左の「実行とデバッグ」の画面の「変数」（Variables）で、`tasks` の `▶` をクリックし、4つのタスクを見ます。
+5. `F10` を何回か押し、`summary` の `total`・`done` がいつ増えるかを見ます。
+6. 行(B)（`console.log(formatTask(task))` の行）まで来たら、`F11` で `formatTask` の中に入ります。「コールスタック」（Call Stack）に `formatTask` と `main` が並びます。`Shift + F11` で戻ります。
+7. 「ウォッチ式」（Watch）の `+` を押して `summary.total` を登録します。`F10` で進むたびに、値が計算し直されます。
+8. 下のパネルの「デバッグコンソール」に `tasks.filter((t) => t.done)` と打ちます。止まっている時点の変数を使って、式を実行できます。
+9. ブレークポイントをクリックして外し、`F5` で最後まで動かします。
 
 | 表示 | 中身 |
 | --- | --- |
 | 変数（Variables） | その時点の変数の値。`▶` をクリックすると、配列やオブジェクトの中身も見られる |
-| ウォッチ式（Watch） | 自分で登録した式の値。例: `tasks.length`、`sum / count`。1行進むたびに計算し直される |
+| ウォッチ式（Watch） | 自分で登録した式の値。1行進むたびに計算し直される |
 | コールスタック（Call Stack） | 今の関数が、どの関数から呼ばれたか。クリックすると、呼んだ側の時点の変数も見られる |
 | ブレークポイント（Breakpoints） | 一覧と、有効・無効の切り替え。「Uncaught Exceptions」にチェックすると、処理されなかったエラーが起きた瞬間に止まる |
+| デバッグコンソール | 止まっている時点の変数を使って、JavaScript の式を実行できる |
 
-下のパネルの**デバッグコンソール**では、止まっている時点の変数を使って、JavaScript の式を実行できます（例: `tasks.filter(t => t.done)`）。
+コードの中に `debugger;` と書いても、デバッガがつながっているときは、そこで止まります。
 
-[samples/debug-demo.mjs](samples/debug-demo.mjs) は、これらの操作を順に練習するための小さなプログラムです。ファイルの先頭のコメントに手順があります。
+### 10.3 手を動かす: 条件付きブレークポイントとログポイント
 
-### 10.4 launch.json
+ブレークポイントを右クリックして「Edit Breakpoint」を選ぶと、特別なブレークポイントにできます（ブレークポイントの無い行番号の左を右クリックすると、最初から選べます）。
 
-毎回同じ方法で起動したい場合は、`.vscode/launch.json` に起動の設定を書きます。「実行とデバッグ」の画面の「create a launch.json file」から作れます。
+| 種類 | 働き | 使いどころ |
+| --- | --- | --- |
+| 条件付き（Conditional Breakpoint） | 式が true のときだけ止まる。例: `i === 99` | ループの100回目だけを見たい |
+| ヒットカウント（Hit Count） | 指定した回数目に止まる | 何回目かでおかしくなるとき |
+| ログポイント（Logpoint） | 止まらずに、メッセージを出す。`{ }` の中に変数を書くと、値が入る。例: `合計={total}` | コードを書き換えずに `console.log` したい |
+
+試します。
+
+1. 行(C)（`if (task.priority >= 3) ...` の行）の行番号の左を右クリック →「Add Conditional Breakpoint」→ `task.done === false` と打って Return。
+2. JavaScript Debug Terminal で `node samples/debug-demo.mjs 3` を実行します。止まるたびに「変数」で `task.title` を見て、`F5` で続けます。`done: true` の「牛乳を買う」では止まりません。
+3. そのブレークポイントを右クリック →「Edit Breakpoint」→ 種類を「Log Message」に変えて `{task.title} は未完了` と打って Return。もう一度実行すると、止まらずに、デバッグコンソールに3行表示されます。
+4. 終わったらブレークポイントを外しておきます。
+
+### 10.4 手を動かす: launch.json を書く
+
+毎回同じ方法で起動したい場合は、`.vscode/launch.json` に起動の設定を書きます。`F5` を押すだけで、ターミナルで打たずにデバッグを始められます。
+
+```sh
+$ code .vscode/launch.json              # ~/dev/ch04/.vscode/launch.json を作って開く
+```
+
+次のように書いて保存します。
 
 ```jsonc
 {
@@ -377,16 +508,25 @@ Mac では `F5` などのキーが、画面の明るさなどの別の機能に�
     {
       "type": "node",
       "request": "launch",
-      "name": "今開いているファイルを実行",
-      "program": "${file}",              // ${file} は、今エディタで開いているファイル
-      "args": ["3"],                     // コマンドライン引数（node ファイル 3 と同じ）
-      "skipFiles": ["<node_internals>/**"] // Node.js の中のコードにはステップインしない
+      "name": "デモを実行（3）",
+      "program": "${workspaceFolder}/samples/debug-demo.mjs",
+      "args": ["3"],
+      "skipFiles": ["<node_internals>/**"]
     }
   ]
 }
 ```
 
-`F5` で、選んだ設定でデバッグを始めます。例は [samples/launch.json](samples/launch.json) です。`skipFiles` を指定しておくと、ステップインしたときに、Node.js 自身のコードの中に迷い込まずに済みます。
+| 項目 | 意味 |
+| --- | --- |
+| `"type": "node"` / `"request": "launch"` | Node.js のプログラムを、VS Code が起動する |
+| `"name"` | 「実行とデバッグ」の画面の、設定を選ぶ欄に表示される名前 |
+| `"program"` | 動かすファイル。`${workspaceFolder}` は開いているフォルダ（ここでは `~/dev/ch04`）。`${file}` と書くと、今エディタで開いているファイル |
+| `"args"` | コマンドライン引数（`node ファイル 3` の `3`）。文字列の配列で書く |
+| `"skipFiles"` | ステップインしたときに、入らないファイル。`<node_internals>/**` は Node.js 自身のコード |
+| `"configurations"` | 設定の配列。`{ ... }` を `,` で区切って、いくつも並べられる |
+
+行(A) にブレークポイントを置いて、「実行とデバッグ」の画面（`⌘ + Shift + D`）の上の欄で「デモを実行（3）」を選び、`F5` を押します。行(A) で止まれば成功です。ほかの例は [samples/launch.json](samples/launch.json) にあります。
 
 ## 11. Chrome DevTools でブラウザ側を調べる
 
@@ -400,40 +540,45 @@ Web アプリのバグは、サーバ（Node.js）側とブラウザ側のどち
 | Network | ブラウザが送ったすべてのリクエストと、その結果を見る（第2部で毎回使います） |
 | Application | Cookie などの、ブラウザに保存されたデータを見る・消す |
 
-### 11.1 Network パネル
+HTML のファイルをダブルクリックして開く（アドレスが `file:///...` になる）と、`fetch` が使えないなど、Web サーバから配信したときと動きが違うことがあります。練習用に、指定したフォルダのファイルを配信するだけの小さなサーバ [samples/serve.mjs](samples/serve.mjs) を用意しました（中身は読まなくてかまいません。第4部で、同じようなものを一から作ります）。
 
-ページを開いた後に Network パネルを開いたときは、`⌘ + R` で読み直すと記録されます。1行が、1回のリクエスト（ファイルを1つ取りに行くこと）です。
+URL の `/` から後ろの部分も、ファイルのパス（第1章2.2節）と同じ考え方です。ページの中で `fetch('/data.json')` のように **`/` で始まる**書き方をすると「サーバのいちばん上から」、`fetch('data.json')` のように **`/` で始まらない**書き方をすると「今のページのある場所から」の位置になります。
 
+### 11.1 手を動かす: ページを配信して、Network パネルを見る
+
+```sh
+$ node samples/serve.mjs samples        # samples フォルダを配信する
+配信中: http://localhost:8000/  （Ctrl + C で終了）
+```
+
+Chrome で `http://localhost:8000/demo.html` を開くと、サンプルのページ [samples/demo.html](samples/demo.html) が表示されます。`⌘ + ⌥ + I` で DevTools を開き、Network パネルを選んで、`⌘ + R` でページを読み直します。
+
+- 1行が、1回のリクエスト（ファイルを1つ取りに行くこと）です。`demo.html` と `demo.js` の2行が表示されます。
 - **Status** の列: `200`（成功）、`404`（見つからない）、`500`（サーバのエラー）など。赤い行に注目します。
 - 行をクリックすると、**Headers**（送ったリクエストの URL など）、**Response**（返ってきた中身）が見られます。
 - **Disable cache**: チェックすると、前に取ってきたものを使わずに、毎回取りに行きます。「直したのに変わらない」ときに使います。
 
-### 11.2 ブラウザのブレークポイント
+アドレスバーで `http://localhost:8000/nothing.html` を開くと、Status が `404` の赤い行になることも確かめてください。
 
-Sources パネルでは、左のファイルの一覧から JavaScript のファイルを開き、行番号をクリックするとブレークポイントを置けます。ほかに、次のものも便利です。
+### 11.2 手を動かす: Elements と Console で要素の値を見る
+
+1. ページのタスク名を入力する欄を右クリック →「検証」。Elements パネルで `<input id="title" ...>` が選ばれます。
+2. 欄に「本を返す」と打ちます。
+3. Console パネルで `$0.value` と打つと、`'本を返す'` と表示されます。`$0` は Elements パネルで選んでいる要素です。
+4. Elements パネルで `<form id="form">` を選び、右側の「Event Listeners」タブを開くと、`submit` のリスナー（イベントの処理）が1つ登録されていることが分かります。
+
+### 11.3 手を動かす: ブラウザのブレークポイント
+
+Sources パネルで、左のファイルの一覧から `demo.js` を開き、`render` 関数の中の `list.innerHTML = '';` の行番号をクリックしてブレークポイントを置きます。ページでタスクを追加すると、そこで止まり、右側の「Scope」で `tasks` の中身が見られます。`F8` で続行します。
+
+ほかに、次のものも便利です。
 
 | 種類 | 場所 | 働き |
 | --- | --- | --- |
 | Event Listener Breakpoints | Sources パネルの右側 | 「クリックされたとき」などのイベントが起きた瞬間に止まる |
 | DOM Breakpoints | Elements パネルで要素を右クリック → Break on | その要素が変えられたときに止まる。「誰がこの表示を書き換えているのか」を探すときに使う |
 
-Elements パネルで要素を選び、右側の「Event Listeners」タブを開くと、その要素に登録されているイベントの処理（リスナー）の一覧が見られます。同じイベントに、いくつのリスナーが登録されているかも分かります。
-
-Console で `$0` と打つと、Elements パネルで選んでいる要素が表示されます。`$0.value` や `$0.checked` のように、要素のプロパティの今の値も確かめられます。
-
-### 11.3 ローカルでページを開く
-
-HTML のファイルをダブルクリックして開く（アドレスが `file:///...` になる）と、`fetch` が使えないなど、Web サーバから配信したときと動きが違うことがあります。練習用に、指定したフォルダのファイルを配信するだけの小さなサーバ [samples/serve.mjs](samples/serve.mjs) を用意しました。
-
-```sh
-$ cd このフォルダ
-$ node samples/serve.mjs samples        # samples フォルダを配信する
-配信中: http://localhost:8000/  （Ctrl + C で終了）
-```
-
-ブラウザで `http://localhost:8000/demo.html` を開くと、サンプルのページ [samples/demo.html](samples/demo.html) が表示されます。このサーバは、第4部で同じようなものを一から作ります。
-
-URL の `/` から後ろの部分も、ファイルのパス（第1章2.2節）と同じ考え方です。ページの中で `fetch('/data.json')` のように **`/` で始まる**書き方をすると「サーバのいちばん上から」、`fetch('data.json')` のように **`/` で始まらない**書き方をすると「今のページのある場所から」の位置になります。
+終わったら、ターミナルで `Ctrl + C` を押してサーバを止めます。
 
 Safari を使う場合は、設定 →「詳細」→「Web 開発者用の機能を表示」をオンにすると、Web インスペクタ（`⌘ + ⌥ + I`）が使えます。この教材では Chrome DevTools で説明します。
 
@@ -444,19 +589,21 @@ Safari を使う場合は、設定 →「詳細」→「Web 開発者用の機�
 - `code .` で、ターミナルから VS Code を開ける。Git のエディタには `code --wait` を使う。
 - 設定は「既定 < ユーザー < ワークスペース < 言語ごと」。プロジェクトの決まりは `.vscode/settings.json` と `.editorconfig` に書いてコミットする。
 - 拡張機能は自分の権限で動くプログラム。信頼できるものだけを入れる。
-- `F2`（名前の変更）、`⌘ + D`（複数カーソル）、`⌘ + .`（書き換えの候補）で、手で打ち直さずに書き換える。
+- `F2`（名前の変更）、`⌘ + D`（複数カーソル）、`⌘ + .`（書き換えの候補）で、手で打ち直さずに書き換え、`diff` で出力が変わらないことを確かめる。
 - デバッグは「再現 → 予想 → 確認 → 直して確認」。思い込みではなく、デバッガで実際の値を見る。
+- 条件付きブレークポイント・ログポイント・`launch.json` で、見たいところだけを手早く見る。
 - ブラウザ側の問題は Chrome DevTools。特に Network パネルで、リクエストとその結果を見る習慣をつける。
 
 ## 練習問題
 
-[exercises/README.md](exercises/README.md) にあります。解答は [solutions/README.md](solutions/README.md) です。
+[exercises/README.md](exercises/README.md) に9問あります（基本4・応用3・発展2）。解答は [solutions/README.md](solutions/README.md) です。
 
 ## 参考資料
 
 - VS Code ドキュメント: https://code.visualstudio.com/docs
   - Node.js のデバッグ: https://code.visualstudio.com/docs/nodejs/nodejs-debugging
   - キーボードショートカット（macOS 版の PDF あり）: https://code.visualstudio.com/docs/getstarted/keybindings
+- EditorConfig: https://editorconfig.org/
 - Node.js のデバッグガイド: https://nodejs.org/en/learn/getting-started/debugging
 - Chrome DevTools: https://developer.chrome.com/docs/devtools
 

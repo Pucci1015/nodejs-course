@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # 練習問題8 用: .gitignore が要件どおりかを確認する
-# 使い方: bash check-gitignore.sh [確認するフォルダ]   既定: ~/dev/git-ignore-practice
+# 使い方: bash exercises/check-gitignore.sh [確認するフォルダ]   既定: ~/dev/ch03/git-ignore-practice
 set -uo pipefail
 
-dir="${1:-$HOME/dev/git-ignore-practice}"
+dir="${1:-$HOME/dev/ch03/git-ignore-practice}"
 cd "$dir" || exit 1
 
 ng=0

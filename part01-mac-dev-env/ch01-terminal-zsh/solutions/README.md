@@ -2,13 +2,16 @@
 
 [練習問題](../exercises/README.md) の解答と解説です。コマンドの書き方は1通りではありません。自分の答えが違っていても、同じ結果になり、理由を説明できれば正解です。
 
-出力の例の `alice` は、ユーザー名の例です。自分の Mac では、自分のユーザー名になります。
+出力の例の `alice` は、ユーザー名の例です。ことわりが無ければ、コマンドは `~/dev/ch01` で打っています。
 
 | ファイル | 内容 |
 | --- | --- |
 | [broken-script-fixed.sh](broken-script-fixed.sh) | 問題7 の直した後のスクリプト（`fixed.sh`） |
+| [port.sh](port.sh) | 問題8 |
 | [zsh-functions.zsh](zsh-functions.zsh) | 問題9（`~/.zshrc` に足すエイリアスと関数） |
 | [log-summary.sh](log-summary.sh) | 問題10 |
+
+解答のファイルを動かすときも、教材のフォルダではなく `~/dev/ch01` にコピーしてから動かします（例: `cp （Finder から port.sh をドラッグ） ~/dev/ch01/port-answer.sh`）。
 
 ---
 
@@ -17,68 +20,76 @@
 ### 問題1 場所とパス
 
 ```sh
-$ cd ~/dev/playground/src/routes
+$ cd ~/dev/ch01/playground/src/routes
 $ pwd
-/Users/alice/dev/playground/src/routes      # 1. ~ ではなく、/ から始まる絶対パスで表示される
-$ cd ../../docs                             # 2. routes → src → playground と2つ上がってから docs へ
-$ pwd
-/Users/alice/dev/playground/docs
-$ cd -                                      # 3. 直前にいた場所（src/routes）へ戻る
-~/dev/playground/src/routes
-$ cd ~/dev/playground
-$ ls -a                                     # 4. .hidden-config は ls -a にだけ出る
-$ ls "My Documents"                         # 5. クォート
-$ ls My\ Documents                          # 5. \ でスペースをエスケープ
-$ ls My Documents                           # 6.
+/Users/alice/dev/ch01/playground/src/routes   # 1. ~ ではなく、/ から始まる絶対パスで表示される
+$ cd ../../docs                               # 2. routes → src → playground と2つ上がってから docs へ
+$ cd -                                        # 3. 直前にいた場所（src/routes）へ戻る
+~/dev/ch01/playground/src/routes
+$ cd ~/dev/ch01/playground
+$ ls -a                                       # 4. .hidden-config は ls -a にだけ出る
+$ ls "My Documents"                           # 5. クォート
+$ ls My\ Documents                            # 5. \ で空白をエスケープ
+$ ls My Documents
 ls: My: No such file or directory
 ls: Documents: No such file or directory
 ```
 
-- 2 の答えは1つではありません。`cd ~/dev/playground/docs` も正しく動きますが、これは `~` から始まる絶対パスです。相対パスは「今いる場所からの道順」なので、`..` で上がってから下ります。
-- 3 の `cd -` は、移動した先を表示してくれます。
-- 4 は、`.` で始まる名前のファイルは「隠しファイル」で、`ls` は `-a` を付けないと表示しないためです（本文3.1節）。`.`（今いる場所）と `..`（1つ上）も `ls -a` にだけ出ます。
-- 6 は、シェルがスペースで引数を区切るので、`ls` に `My` と `Documents` の2つの引数が渡り、どちらのフォルダも無いと言われます（本文2.4節）。Tab キーで補完すると、`My\ Documents` のようにエスケープが自動で付きます。
+- 2 は、`cd ~/dev/ch01/playground/docs` でも動きますが、これは `~` から始まる絶対パスです。相対パスは「今いる場所からの道順」なので、`..` で上がってから下ります。
+- 4 は、`.` で始まる名前は隠しファイルで、`ls` は `-a` を付けないと表示しないためです（本文3.2節）。`.`（今いる場所）と `..`（1つ上）も `ls -a` にだけ出ます。
+- 5 の `ls My Documents` は、シェルが空白で引数を区切るので、`My` と `Documents` の2つの引数になり、どちらも無いと言われます（本文2.4節）。
 
 ### 問題2 ファイルを作る・コピーする・消す
 
 ```sh
-$ cd ~/dev/playground
-$ mkdir -p backup/2026/11                               # 1. -p で途中の backup と 2026 もまとめて作る
-$ cp memo.txt backup/2026/11/                           # 2.
+$ cd ~/dev/ch01/playground
+$ mkdir -p backup/2026/11                                # 1. -p で途中の backup と 2026 も作る
+$ cp memo.txt backup/2026/11/                            # 2.
 $ mv backup/2026/11/memo.txt backup/2026/11/memo-old.txt # 3. mv は「移動」と「名前の変更」の両方に使う
-$ cp docs backup/                                        # 4.
-cp: docs is a directory (not copied).
 $ cp -R docs backup/                                     # 4. -R でフォルダごと
-$ ls backup
-2026	docs
 $ rm -i backup/2026/11/memo-old.txt                      # 5.
 remove backup/2026/11/memo-old.txt? n
 $ ls backup/2026/11
 memo-old.txt
 $ rm -i backup/2026/11/memo-old.txt
 remove backup/2026/11/memo-old.txt? y
+$ mkdir src/{lib,tests}                                  # 6. ブレース展開で2つの引数になる
+$ ls src
+app.js	lib	models	routes	tests
 ```
 
-- 1 で `-p` を付けないと、`backup` がまだ無いので `mkdir: backup/2026: No such file or directory` になります。
-- 4 は、`cp` が既定ではファイルしかコピーしないためです。フォルダは `-R`（中身ごと）を付けます（本文3.3節）。
-- 6 の答えは「入らない」です。`rm` はゴミ箱を通らず、すぐに消します。消したものは戻せないので、慣れるまでは `-i` を付けます（本文3.4節）。
+- 1 で `-p` を付けないと、`backup` がまだ無いので `No such file or directory` になります。
+- 4 で `-R` を付けないと、`cp: docs is a directory (not copied).` と言われます（本文3.4節）。
+- 6 は、シェルが `src/{lib,tests}` を `src/lib src/tests` に書き換えてから `mkdir` に渡します。`echo src/{lib,tests}` で確かめられます。
 
-### 問題3 グロブとクォートの結果を予想する
+### 問題3 グロブとクォート
 
-| コマンド | zsh の結果 | 理由 |
+```sh
+$ cd ~/dev/ch01/playground
+$ echo photos/*.jpg                # 1.
+photos/IMG_0001.jpg photos/IMG_0002.jpg photos/IMG_0103.jpg
+$ echo logs/app-?.log              # 2. ? はちょうど1文字（logs/app-[123].log でもよい）
+logs/app-1.log logs/app-2.log logs/app-3.log
+$ echo src/**/*.js                 # 3.
+src/app.js src/models/task.js src/routes/index.js src/routes/tasks.js
+$ echo *\ *.txt                    # 4. "* *.txt" とクォートすると、グロブも止まってしまう
+draft final v2.txt meeting notes.txt
+```
+
+4 は、空白だけを `\` でエスケープします。`"* *.txt"` と全体をクォートすると、`*` も展開されなくなり、`* *.txt` という文字がそのまま表示されます。`*" "*.txt` のように、空白の所だけクォートしても同じ結果になります。
+
+5.
+
+| コマンド | 結果 | 理由 |
 | --- | --- | --- |
-| `echo *.txt` | `draft final v2.txt meeting notes.txt memo.txt todo.txt` | シェルが `*.txt` を、あてはまるファイル名の並びにしてから、`echo` に渡す |
 | `echo "*.txt"` | `*.txt` | ダブルクォートの中では、グロブは展開されない |
 | `echo '$HOME' "$HOME"` | `$HOME /Users/alice` | シングルクォートの中は、変数も展開されない。ダブルクォートの中は、変数は展開される |
-| `echo photos/IMG_00??.jpg` | `photos/IMG_0001.jpg photos/IMG_0002.jpg` | `?` は「ちょうど1文字」。`IMG_0103.jpg` は `IMG_00` で始まらないので入らない |
-| `echo src/**/*.js` | `src/app.js src/models/task.js src/routes/index.js src/routes/tasks.js` | `**/` は「いくつ下のフォルダでもよい（0段も含む）」 |
-| `echo *.xyz` | `zsh: no matches found: *.xyz`（`echo` は動かない） | あてはまるファイルが無い |
+| `echo *.xyz` | `zsh: no matches found: *.xyz`（`echo` は動かない） | あてはまるファイルが無いと、zsh はエラーにしてコマンドを動かさない |
+| `bash -c 'echo *.xyz'` | `*.xyz` | bash は、あてはまるものが無いグロブを、そのままの文字として渡す |
 
-2: bash では `echo *.xyz` が `*.xyz` と表示されます。あてはまるファイルが無いグロブを、zsh はエラーにしてコマンドを動かさず、bash はそのままの文字列として渡すためです（本文4.1節）。
+> おまけ: bash で `echo src/**/*.js` を打つと、`src/app.js` が出てきません。bash の既定では `**` が `*` と同じ（1段だけ）で、「いくつ下でもよい」は zsh の機能だからです。
 
-> おまけ: bash で `echo src/**/*.js` を実行すると、`src/app.js` が出てきません。bash の既定では `**` が `*` と同じ（1段のフォルダだけ）で、「いくつ下でもよい」は zsh の機能だからです。
-
-3: `?` が「任意の1文字」のグロブとして読まれ、`search?q=node` にあてはまるファイルが無いためです。URL 全体をクォートで囲みます。
+6. `?` が「ちょうど1文字」のグロブとして読まれ、あてはまるファイルが無いためです。URL 全体をクォートで囲みます。
 
 ```sh
 $ curl 'https://example.com/search?q=node'
@@ -89,42 +100,39 @@ URL には `?`・`&`・`*`・`#` など、シェルにとって特別な文字�
 ### 問題4 リダイレクトと終了ステータス
 
 ```sh
-$ cd ../samples
-$ bash streams-demo.sh
+$ bash samples/streams-demo.sh; echo $?            # 1.
 これは stdout（標準出力）です
 これは stderr（標準エラー出力）です
-$ echo $?                                   # 1.
 3
-$ bash streams-demo.sh > out.txt            # 2. 画面には stderr の行だけが出る
+$ bash samples/streams-demo.sh > out.txt           # 2. 画面には stderr の行だけが出る
 これは stderr（標準エラー出力）です
-$ bash streams-demo.sh 2> err.txt           # 3. 画面には stdout の行だけが出る
+$ bash samples/streams-demo.sh 2> err.txt          # 3. 画面には stdout の行だけ
 これは stdout（標準出力）です
-$ bash streams-demo.sh &> all.txt           # 4. または > all.txt 2>&1
-$ bash streams-demo.sh >> log.txt           # 5. 3回実行する
-$ bash streams-demo.sh >> log.txt
-$ bash streams-demo.sh >> log.txt
+$ bash samples/streams-demo.sh &> all.txt          # 4. または > all.txt 2>&1
+$ bash samples/streams-demo.sh >> log.txt          # 5. 3回打つ（↑ キーで呼び出すと楽）
 $ wc -l log.txt
        3 log.txt
-$ bash streams-demo.sh | cat                # 6.
-$ echo $?
+$ bash samples/streams-demo.sh | cat; echo $?      # 6.
+これは stdout（標準出力）です
+これは stderr（標準エラー出力）です
 0
-$ rm out.txt err.txt all.txt log.txt        # 7.
+$ rm out.txt err.txt all.txt log.txt               # 7.
 ```
 
-- 5 で `log.txt` に入るのは stdout の行だけなので、1回に1行ずつ増えて3行です（stderr の行は画面に出ます）。`>` は毎回上書きなので、3回実行しても1行です。
-- 6 は、パイプの終了ステータスが、**最後のコマンド**（ここでは `cat`）のものになるためです。`cat` は成功しているので 0 です（本文7.3節）。途中の失敗も見つけたいときは、スクリプトで `set -o pipefail` を使います（本文9.2節）。
+- 5 で `log.txt` に入るのは stdout の行だけなので、1回に1行ずつ増えて3行です。`>` は毎回上書きなので、3回動かしても1行です。
+- 6 は、パイプの終了ステータスが**最後のコマンド**（`cat`）のものになるためです（本文7.3節）。途中の失敗も見つけたいときは、スクリプトで `set -o pipefail` を使います（本文9.2節）。
+- 7 は `rm *.txt` でも消せますが、グロブで消すときは、先に `echo *.txt` で何が消えるかを確かめる癖をつけましょう。
 
 ### 問題5 パイプでログを数える
 
 ```sh
-$ cd ../samples
-$ wc -l access.log                                               # 1.
-      80 access.log
-$ grep -c POST access.log                                        # 2.
+$ wc -l samples/access.log                                               # 1.
+      80 samples/access.log
+$ grep -c POST samples/access.log                                        # 2.
 12
-$ awk '$9 == 404' access.log | wc -l                             # 3.
+$ awk '$9 == 404' samples/access.log | wc -l                             # 3.
       10
-$ awk '{print $9}' access.log | sort | uniq -c                   # 4.
+$ awk '{print $9}' samples/access.log | sort | uniq -c                   # 4.
   38 200
    4 201
    1 204
@@ -136,35 +144,49 @@ $ awk '{print $9}' access.log | sort | uniq -c                   # 4.
   10 404
    4 500
    3 503
-$ awk '{print $1}' access.log | sort | uniq -c | sort -rn | head -n 3   # 5.
+$ awk '{print $1}' samples/access.log | sort | uniq -c | sort -rn | head -n 3   # 5.
   32 203.0.113.5
   21 198.51.100.23
   13 192.0.2.77
-$ awk '$9 == 404 {print $7}' access.log | sort | uniq -c | sort -rn     # 6.
+$ awk '$9 == 404 {print $7}' samples/access.log | sort | uniq -c | sort -rn     # 6.
    4 /tasks/999
    3 /wp-login.php
    3 /favicon.ico
 ```
 
-- 2 は `grep POST access.log | wc -l` でも同じです。`grep -c` は「あてはまった行の数」を表示します。
+- 2 は `grep POST samples/access.log | wc -l` でも同じです。
 - 4 で `sort` を先にするのは、`uniq` が**隣り合った**同じ行しかまとめないためです（本文6.2節）。
-- 6 の `/wp-login.php` は、WordPress（よく使われるブログのソフト）のログイン画面の場所です。このサイトは WordPress ではないので、**WordPress の弱いところを探して、いろいろなサイトに手当たり次第にアクセスするボット**だと考えられます。公開したサーバには、必ずこうしたアクセスが来ます（第10部・第12部）。`/favicon.ico` は、ブラウザがタブのアイコンを自動で取りに来るもので、攻撃ではありません。
-- `uniq -c` の件数の前の空白の数は、Mac と Linux で少し違います。
+- 6 の `/wp-login.php` は、WordPress（よく使われるブログのソフト）のログイン画面の場所です。このサイトは WordPress ではないので、**弱いところを探して、いろいろなサイトに手当たり次第にアクセスするボット**だと考えられます。公開したサーバには、必ずこうしたアクセスが来ます（第10部・第12部）。`/favicon.ico` は、ブラウザがタブのアイコンを自動で取りに来るもので、攻撃ではありません。
 
-### 問題6 権限を読む
+### 問題6 権限を読む・変える
 
-1. `secret.txt` = **640**、`deploy.sh` = **755**、`shared` = **750**、`id_ed25519` = **600**
-   （`rw-` = 4+2+0 = 6、`r-x` = 4+0+1 = 5、`r--` = 4、`---` = 0）
-2. 読めて、書ける（所有者の `rw-`）。
-3. 読めるが、書けない（グループの `r--`）。
-4. 読めて、実行できるが、書き換えられない（その他の `r-x`）。`/usr/bin` の中のコマンドが、だいたいこの形です。
-5. `alice`（所有者）だけ。秘密鍵（第3章）は、この形にしておかないと、ssh が「ほかの人に読まれるかもしれない」と言って使ってくれません。
-6. `chmod 600 secret.txt`
-7. `touch` で作ったファイルは `-rw-r--r--` で、`chmod +x` の後は `-rwxr-xr-x` になります。所有者・グループ・その他の全員に `x`（実行）が足されました。
+1. `secret.txt` = **640**、`deploy.sh` = **755**、`id_ed25519` = **600**（`rw-` = 4+2 = 6、`r-x` = 4+1 = 5、`r--` = 4、`---` = 0）。
+   `bob` は `staff` グループなので、`secret.txt` はグループの `r--` で「読めるが、書けない」。`deploy.sh` はグループの `r-x` で「実行できる」。`id_ed25519` は持ち主の `alice` しか読めません。秘密鍵（第3章）はこの形にしておかないと、ssh が「ほかの人に読まれるかもしれない」と言って使ってくれません。
 
-おまけ（`shared` フォルダ）:
+2.
 
-`shared` は `drwxr-x---` なので、グループの `bob` は中に入れて（`x`）一覧も見られます（`r`）が、ファイルを作ったり消したりはできません（`w` が無い）。どのグループにも入っていない人は、何もできません。
+```sh
+$ cd ~/dev/ch01/playground
+$ touch a.sh b.txt c.txt
+$ chmod u+x a.sh             # 持ち主（u）に x を足す
+$ chmod 600 b.txt            # rw- --- ---
+$ chmod a-w c.txt            # 全員（a）から w を外す（chmod -w c.txt でもよい）
+$ ls -l a.sh b.txt c.txt
+-rwxr--r--  1 alice  staff  0 11  7 10:00 a.sh
+-rw-------  1 alice  staff  0 11  7 10:00 b.txt
+-r--r--r--  1 alice  staff  0 11  7 10:00 c.txt
+```
+
+`c.txt` を数で書くと `444` です。
+
+3.
+
+```sh
+$ echo hi > c.txt
+zsh: permission denied: c.txt
+```
+
+持ち主の `alice` 自身でも、`w` が無いと書けません。このとき `sudo` を付けるのではなく、`ls -l` で権限を見て、必要なら `chmod u+w c.txt` で直します（本文8.3節）。
 
 ---
 
@@ -172,91 +194,72 @@ $ awk '$9 == 404 {print $7}' access.log | sort | uniq -c | sort -rn     # 6.
 
 ### 問題7 動かないスクリプトを直す
 
-1. 起きること:
+1. 原因:
 
 ```sh
-$ ./broken-script.sh
-zsh: permission denied: ./broken-script.sh
-$ bash broken-script.sh
-broken-script.sh: line 2: cd: $'~\r': No such file or directory
+$ ./exercises/broken-script.sh
+zsh: permission denied: ./exercises/broken-script.sh
+$ bash exercises/broken-script.sh
+exercises/broken-script.sh: line 2: cd: $'~\r': No such file or directory
 …（表示が崩れたり、ホームではない場所のファイルを数えたりする）
 ```
 
-2. 原因:
-
 | # | 原因 | 調べ方 | 見えたもの |
 | --- | --- | --- | --- |
-| 1 | 実行権限が無い | `ls -l broken-script.sh` | `-rw-r--r--`（`x` が無い） |
-| 2 | 改行コードが CRLF | `file broken-script.sh`、`cat -e broken-script.sh` | `with CRLF line terminators`、行の最後が `^M$` |
-| 3 | shebang が無い | `head -n 1 broken-script.sh` | 1行目がコメント（`#!` で始まっていない） |
+| 1 | 実行権限が無い | `ls -l exercises/broken-script.sh` | `-rw-r--r--`（`x` が無い） |
+| 2 | 改行コードが CRLF | `file exercises/broken-script.sh`、`cat -e exercises/broken-script.sh` | `with CRLF line terminators`、行の最後が `^M$` |
+| 3 | shebang が無い | `head -n 1 exercises/broken-script.sh` | 1行目がコメント（`#!` で始まっていない） |
 
 2つ目の原因のせいで、`cd ~` が「`~\r` というフォルダへ移動」と読まれ、失敗しています。`$'~\r'` は、bash が「`~` の後に CR という見えない文字が付いている」ことを表す書き方です。
 
-3. 直し方（本文の書き方だけで直せます）:
+2. 直し方:
 
 ```sh
-$ echo '#!/usr/bin/env bash' > fixed.sh             # 1行目に shebang を書く（> で新しく作る）
-$ tr -d '\r' < broken-script.sh >> fixed.sh         # \r を消した中身を、後ろに足す（>>）
-$ chmod +x fixed.sh                                 # 実行権限を付ける
+$ echo '#!/usr/bin/env bash' > fixed.sh                 # 1行目に shebang を書く（> で新しく作る）
+$ tr -d '\r' < exercises/broken-script.sh >> fixed.sh   # \r を消した中身を、後ろに足す（>>）
+$ chmod +x fixed.sh                                     # 実行権限を付ける
 $ ./fixed.sh
 今日は 2026-11-07 です
 ホームには 12 個のファイル/フォルダがあります
-$ file fixed.sh                                     # with CRLF line terminators と出なくなる
+$ file fixed.sh                                         # with CRLF line terminators と出なくなる
 ```
 
 `'#!/usr/bin/env bash'` をシングルクォートで囲むのは、`!` をシェルに特別な意味で読ませないためです。VS Code で開いて、1行目を足し、右下の「CRLF」を「LF」に変えて保存してもかまいません。直した後のファイルは [broken-script-fixed.sh](broken-script-fixed.sh) です。
 
-4. Windows で作られたファイルや、Windows を使う人からメールやチャットで受け取ったファイル、改行の設定がばらばらのリポジトリで起こります。実行権限は、ファイルをダウンロードしたり、zip で受け取ったりすると外れていることがあります。第3章の `.gitattributes`、第4章のエディタの設定（`files.eol`）で、もう一度出てきます。
+3. Windows で作られたファイルや、Windows を使う人からメールやチャットで受け取ったファイル、改行の設定がばらばらのリポジトリで起こります。実行権限は、ファイルをダウンロードしたり、zip で受け取ったりすると外れていることがあります。第3章の `.gitattributes`、第4章の EditorConfig で、もう一度出てきます。
 
-### 問題8 環境変数と PATH を確かめる
+### 問題8 環境変数を読むスクリプト
 
-1.
+解答: [port.sh](port.sh)
 
-```sh
-$ GREETING=hello
-$ echo $GREETING
-hello
-$ env | grep GREETING              # 何も表示されない
-$ export GREETING
-$ env | grep GREETING
-GREETING=hello
+```bash
+#!/usr/bin/env bash
+port="${PORT:-3000}"                   # PORT が無いか空なら 3000（本文10.1節）
+
+# 数字を消して何か残れば、数字以外が混ざっている（本文6.2節の tr -d '0-9'）
+if [[ -n "$(echo "$port" | tr -d '0-9')" ]]; then
+  echo "PORT は数字にしてください: $port" >&2
+  exit 1
+fi
+
+echo "ポート $port で待ち受けます"
 ```
 
-`GREETING=hello` だけでは**シェル変数**で、このシェルの中だけで使えます。`env` は別のプログラムとして起動されるので、シェル変数は見えません。`export` すると**環境変数**になり、このシェルから起動するプログラム（`env` や、後の章の `node`）にもコピーが渡ります（本文10.1節）。
-
-2.
-
 ```sh
-$ echo $PATH | tr ':' '\n' | wc -l
+$ PORT=9000                          # シェル変数
+$ bash port.sh
+ポート 3000 で待ち受けます            # 子のプロセス（bash）には渡らない
+$ export PORT
+$ bash port.sh
+ポート 9000 で待ち受けます            # 環境変数になったので渡る
+$ unset PORT
+$ echo $PATH | tr ':' '\n' | wc -l     # PATH のフォルダの数（数は Mac によって違う）
        9
 ```
 
-数は、Mac の設定によって違います。`tr ':' '\n'` で `:` を改行に変えると、1行に1つのフォルダになるので、`wc -l` で行の数を数えれば、フォルダの数になります。
-
-3. `✗` が付いたフォルダがあれば、PATH に「無いフォルダ」が入っています。困ることはありませんが、設定の書き間違いのことがあります。
-
-4. 例:
-
-```sh
-$ which -a git
-/opt/homebrew/bin/git
-/usr/bin/git
-```
-
-使われるのは、最初に出てきた `/opt/homebrew/bin/git` です。シェルは PATH の**前から順に**探し、最初に見つかったものを使うためです（本文10.2節）。
-
-5.
-
-```sh
-$ type cd
-cd is a shell builtin          # 組み込み
-$ type ls
-ls is /bin/ls                  # ディスク上のプログラム
-$ type echo
-echo is a shell builtin        # 組み込み
-```
-
-`echo` は `/bin/echo` というプログラムもありますが、シェルは自分の組み込みのものを先に使います（`which -a echo` で両方を見られます）。
+- `"$(echo "$port" | tr -d '0-9')"` の外側の `"…"` は、結果を1つの文字列として `-n` に渡すためです。中の `"$port"` は、`$( )` の中で新しくクォートし直しています。
+- `PORT=9000` の後の `bash port.sh` が `3000` になるのは、`export` していないシェル変数は、子のプロセスに渡らないためです（本文10.1節）。第5部 第26章で、Node.js のサーバの設定を環境変数で渡すときに、同じことが起きます。
+- 本当のサーバでは、`0` や `99999` のような、ポートとして使えない数も断ります。第5部 第26章で、Node.js で同じ確かめを書きます。
 
 ### 問題9 エイリアスと関数を作る
 
@@ -264,28 +267,33 @@ echo is a shell builtin        # 組み込み
 
 ```sh
 $ cp ~/.zshrc ~/.zshrc.backup
-$ code ~/.zshrc                      # または open -e ~/.zshrc で開き、zsh-functions.zsh の中身を足す
-$ source ~/.zshrc
-$ type ll
+$ type ll mkcd                          # 1.
 ll is an alias for ls -lahF
-$ mkcd ~/dev/playground/new/folder
-$ pwd
-/Users/alice/dev/playground/new/folder
-$ cd ~/dev/playground
-$ bak memo.txt
-$ ls memo.txt.*
+mkcd is a shell function
+$ cat >> ~/.zshrc <<'EOF'               # 2. bak を足す（open -e ~/.zshrc で開いて書いてもよい）
+
+# bak ファイル: ファイル名.YYYY-MM-DD.bak という名前でコピーを作る
+bak() {
+  if [[ $# -lt 1 ]]; then
+    echo "使い方: bak ファイル" >&2
+    return 1
+  fi
+  cp -i "$1" "$1.$(date +%Y-%m-%d).bak"
+}
+EOF
+$ source ~/.zshrc
+$ cd ~/dev/ch01/playground && bak memo.txt && ls memo.txt.*
 memo.txt.2026-11-07.bak
-$ bak
+$ bak; echo $?
 使い方: bak ファイル
+1
 ```
 
-- 3 の日付は `$(date +%Y-%m-%d)` で作り、`"$1.$(date +%Y-%m-%d).bak"` のように、ファイル名の後ろにつなげます。
-- 関数を途中で終わらせるときは、`exit` ではなく `return` を使います。関数は今のシェルの中で動いているので、`exit` だとシェル（ターミナルのタブ）ごと終わってしまいます。
+- 日付は `$(date +%Y-%m-%d)` で作り、`"$1.$(date +%Y-%m-%d).bak"` のように、ファイル名の後ろにつなげます。
 - `cp -i` にしておくと、同じ日に2回 `bak` したとき、上書きの前に確かめてくれます。
+- 関数で `exit 1` と書くと、ターミナルのタブごと閉じてしまいます。関数は `return` です（本文11.3節）。
 
-4: スクリプトは、**別のプロセス**として動きます。`bash mkcd.sh x/y` は、新しい bash を起動し、その bash の中でフォルダを作って移動します。スクリプトが終わると、その bash はなくなるので、移動もなかったことになります。元のシェル（zsh）の場所は変わりません。フォルダは、ファイルシステムに作られたので残ります。
-
-「今のシェルの状態を変えるもの」は、組み込みコマンドか関数（または `source` で読み込むファイル）でなければできません。本文1.5節の「`cd` が組み込みである理由」と同じです。
+3: スクリプトは、**別のプロセス**として動きます。`bash mkcd.sh x/y` は新しい bash を起動し、その bash の中でフォルダを作って移動します。スクリプトが終わるとその bash はなくなるので、移動もなかったことになります。フォルダはファイルシステムに作られたので残ります。本文1.4節の「`cd` が組み込みである理由」と同じです。
 
 ---
 
@@ -299,12 +307,10 @@ $ bak
 $ mkdir -p ~/.local/bin
 $ cp log-summary.sh ~/.local/bin/log-summary
 $ chmod +x ~/.local/bin/log-summary
-$ echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zprofile   # 1回だけ実行する
-$ exec zsh -l                                                    # ログインシェルを起動し直して、.zprofile を読み直す
-$ which log-summary
+$ which log-summary                     # 本文11.4節で PATH に足してあれば見つかる
 /Users/alice/.local/bin/log-summary
-$ log-summary ../samples/access.log; echo "exit=$?"
-ファイル: ../samples/access.log
+$ log-summary samples/access.log; echo "exit=$?"
+ファイル: samples/access.log
 リクエスト数: 80
 4xx の件数: 17
 5xx の件数: 7
@@ -314,25 +320,25 @@ $ log-summary ../samples/access.log; echo "exit=$?"
   11 /
 警告: 5xx が 7 件あります
 exit=2
+$ awk '$9 < 500' samples/access.log > ok.log
+$ log-summary ok.log > /dev/null; echo "exit=$?"
+exit=0
 ```
 
 ポイント:
 
-- **PATH は `~/.zprofile` に書きます**（本文11.1節）。`.zshrc` に書くと、`source ~/.zshrc` するたびに、同じフォルダが PATH に足されて重なっていきます。
-- `'export PATH="$HOME/.local/bin:$PATH"'` を**シングルクォート**で囲むのは、`$HOME` や `$PATH` を今は展開せず、そのままの文字で `.zprofile` に書くためです。ダブルクォートにすると、今の PATH の値がまるごと書き込まれてしまいます。
-- `>>`（足す）を `>`（上書き）と間違えると、`.zprofile` の中身が消えます。心配なら、先に `cp ~/.zprofile ~/.zprofile.backup` を取りましょう。
-- `exec zsh -l` は、今のシェルを、新しいログインシェルに入れ替えるコマンドです。新しいタブを開いても同じことになります。
-- 件数は、`awk '$9 >= 500' "$log" | wc -l` のように「条件に合う行だけを通して、行の数を数える」で出しています。Mac の `wc` は数字の前に空白を付けるので、`tr -d ' '` で消しています。
+- `which log-summary` で何も出ないときは、本文11.4節の `.zprofile` の設定（`~/.local/bin` を PATH に足す）ができていません。**PATH は `~/.zprofile` に書きます**。`.zshrc` に書くと、`source ~/.zshrc` するたびに、同じフォルダが PATH に重なっていきます。
+- 件数は、`awk '$9 >= 500' "$log" | wc -l | tr -d ' '` のように「条件に合う行だけを通して、行の数を数え、前の空白を消す」で出しています。空白を消しておくと、`[[ $count_5xx -gt 0 ]]` で数として比べられます。
 - エラーと警告は `>&2` で stderr に出しています。こうしておくと、`log-summary access.log > report.txt` としたとき、ファイルには結果だけが入り、警告は画面に出ます。
-- 拡張子を外して `log-summary` という名前にしたのは、使う人にとって「何の言語で書かれているか」は関係ないからです。何で動かすかは、1行目の shebang で決まります。
+- 第3部 第11章で、同じ集計を JavaScript で書きます。
 
 ### 問題11 リダイレクトと awk をもう一歩
 
 1.
 
 ```sh
-$ bash streams-demo.sh > both.txt 2>&1      # 画面には何も出ない。both.txt に2行
-$ bash streams-demo.sh 2>&1 > both.txt      # 画面に stderr の行が出る。both.txt には stdout の1行だけ
+$ bash samples/streams-demo.sh > both.txt 2>&1      # 画面には何も出ない。both.txt に2行
+$ bash samples/streams-demo.sh 2>&1 > both.txt      # 画面に stderr の行が出る。both.txt には stdout の1行だけ
 これは stderr（標準エラー出力）です
 ```
 
@@ -348,23 +354,23 @@ $ bash streams-demo.sh 2>&1 > both.txt      # 画面に stderr の行が出る�
 2.
 
 ```sh
-$ bash streams-demo.sh 2>&1 > /dev/null | wc -l
+$ bash samples/streams-demo.sh 2>&1 > /dev/null | wc -l
        1
 ```
 
-パイプがあるとき、stdout は最初からパイプを向いています。① `2>&1` で stderr を「今の stdout の先」＝パイプに向け、② その後で stdout だけを `/dev/null` に向けると、パイプに流れるのは stderr だけになります。1 の2つ目の書き方の性質を、逆に使っています。
+パイプがあるとき、stdout は最初からパイプを向いています。① `2>&1` で stderr を「今の stdout の先」＝パイプに向け、② その後で stdout だけを `/dev/null` に向けると、パイプに流れるのは stderr だけになります。
 
 3.
 
 ```sh
-$ awk '{sum += $10} END {print "合計:", sum, "平均:", sum / NR}' access.log
+$ awk '{sum += $10} END {print "合計:", sum, "平均:", sum / NR}' samples/access.log
 合計: 373903 平均: 4673.79
 ```
 
 4.
 
 ```sh
-$ cut -d: -f2 access.log | sort | uniq -c
+$ cut -d: -f2 samples/access.log | sort | uniq -c
   17 09
   14 10
   18 11
@@ -377,7 +383,7 @@ $ cut -d: -f2 access.log | sort | uniq -c
 5.
 
 ```sh
-$ awk '$9 >= 500 {print $1, $7}' access.log
+$ awk '$9 >= 500 {print $1, $7}' samples/access.log
 203.0.113.5 /api/report
 203.0.113.5 /api/report
 198.51.100.9 /api/report

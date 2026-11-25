@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # 練習問題5 用: 「やってしまった」状態のリポジトリを作る
-# 使い方: bash ex-undo-setup.sh [作成先]   既定: ~/dev/git-undo
+# 使い方: bash exercises/ex-undo-setup.sh [作成先]   既定: ~/dev/ch03/git-undo
 set -euo pipefail
 
-dest="${1:-$HOME/dev/git-undo}"
+dest="${1:-$HOME/dev/ch03/git-undo}"
 if [[ -e "$dest" ]]; then
   echo "既に存在します: $dest（確認してから削除してください）" >&2
   exit 1

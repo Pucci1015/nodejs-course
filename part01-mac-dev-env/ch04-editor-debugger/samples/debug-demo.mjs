@@ -1,6 +1,6 @@
-// デバッガの操作を練習するための小さなプログラム（第4章 10節）
+// デバッガの操作を練習するための小さなプログラム（第4章 9〜10節）
 //
-// 練習の手順（VS Code の JavaScript Debug Terminal で `node debug-demo.mjs 3` を実行）:
+// 練習の手順（~/dev/ch04 の VS Code の JavaScript Debug Terminal で `node samples/debug-demo.mjs 3` を実行）:
 //   1. 【ブレークポイント】行(A) に置いて実行し、止まったら「変数」で tasks の中身を見る
 //   2. 【ステップオーバー】F10 で1行ずつ進め、summary の値が変わる様子を見る
 //   3. 【ステップイン】行(B) で F11 を押して formatTask の中に入る。Shift + F11 で戻る

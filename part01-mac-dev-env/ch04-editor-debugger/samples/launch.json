@@ -1,5 +1,6 @@
 // プロジェクトの .vscode/launch.json の例（第4章 10.4節）
 // 「実行とデバッグ」の画面で設定を選び、F5 で開始する。
+// ~/dev/ch04 を VS Code で開いたとき（code ~/dev/ch04）の書き方。${workspaceFolder} は開いているフォルダ。
 {
   "version": "0.2.0",
   "configurations": [
@@ -14,9 +15,8 @@
       "type": "node",
       "request": "launch",
       "name": "debug-demo.mjs を引数つきで実行",
-      "program": "${workspaceFolder}/debug-demo.mjs",
+      "program": "${workspaceFolder}/samples/debug-demo.mjs",
       "args": ["3"],
-      "env": { "DEBUG_DEMO": "1" },
       "skipFiles": ["<node_internals>/**"]
     },
     {
